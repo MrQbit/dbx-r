@@ -14,7 +14,7 @@
 
 ## Launch
 ```
-git clone <repo> duet && cd duet
+git clone https://github.com/MrQbit/dbx-r.git duet && cd duet
 nohup make weekend > weekend.out 2>&1 &
 tail -f orchestrator/heartbeat.log
 ```

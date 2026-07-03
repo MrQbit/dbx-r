@@ -1,8 +1,8 @@
-# PROJECT DUET — Master Build Specification **v2.0 (UNATTENDED-RUN EDITION)**
+# PROJECT DUET — Master Build Specification **v2.1 (UNATTENDED-RUN EDITION)**
 ## BDX-A (bipedal, BDX-R–derived) and ROCKY-5 (pentaradial Eridian, 50% scale)
 
 **Spec version:** 2.1 (DGX Spark edition) · **Date:** 2026-07-02 · Supersedes v1.0/v2.0 entirely.
-**Executor:** Claude Code (Sonnet), fully autonomous — see companion `CLAUDE.md`.
+**Executor:** Claude Code (Opus 4.8), fully autonomous — see companion `CLAUDE.md`.
 **Human:** Martin. Human touches the system ONLY at the pre-flight checklist (`WEEKEND_RUNBOOK.md`) and at printer plate swaps. **No stage in this spec may block on human input.**
 
 ---
@@ -129,7 +129,7 @@ Tests (gate G3): URDF loads in `yourdfpy`, MuJoCo, Isaac; all inertia tensors po
 
 ---
 
-# 6. RL — Isaac Lab v2.1.0, manager-based envs, 50 Hz policies
+# 6. RL — Isaac Lab 2.3.x (per §1 pin), manager-based envs, 50 Hz policies
 
 ## 6.1 Tasks
 `Duet-BdxA-Flat-v0`, `Duet-BdxA-Rough-v0`, `Duet-Rocky-Flat-v0`, `Duet-Rocky-Rough-v0`. Pattern: Isaac Lab `Velocity-Flat-H1-v0` (BDX-A) and `Velocity-Flat-Anymal-C-v0` (ROCKY-5) reference configs, with our robots and reward mods. sim dt 1/200 s, decimation 4. Envs: start 4096. Memory is not the constraint on Spark (128 GB unified) — GPU throughput is. After 200 warm-up iters, the orchestrator measures steps/sec at 4096 and once at 8192; keep whichever is faster in wall-clock terms and log it. On OOM or driver fault, fall back 4096→2048→1024 (§9).

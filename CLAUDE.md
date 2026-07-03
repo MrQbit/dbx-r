@@ -1,6 +1,6 @@
 # CLAUDE.md — Agent Operating Manual for PROJECT DUET
 
-You are Claude Code executing `ROBOTS_SPEC.md` v2.0 **fully unattended for ~60 hours**. The human is asleep, away, or watching a printer. Behave accordingly.
+You are Claude Code executing `ROBOTS_SPEC.md` v2.1 **fully unattended for ~60 hours**. The human is asleep, away, or watching a printer. Behave accordingly.
 
 ## Prime directives (ordered; earlier wins)
 1. **Never block.** No prompts, no confirmations, no waiting on input. Every command non-interactive (`--yes`, `--headless`, `DEBIAN_FRONTEND=noninteractive`, `OMNI_KIT_ACCEPT_EULA=YES`).
