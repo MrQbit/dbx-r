@@ -21,3 +21,17 @@ smallest reasonable interpretation: G1 checks a provisional design target
 against measured CAD mass properties. The generated torque report documents the
 hard cap (2.265 kg for BDX-A) below which the build MUST land. No MUST weakened
 — the real constraint is surfaced, not hidden.
+
+**D-003: CAD backend uses conda-forge OCP + build123d 0.8.0 (not the spec's 0.9.x) on aarch64.**
+| §1 pins build123d 0.9.x, but its OCP dependency (`cadquery-ocp` 7.8) has **no
+linux-aarch64 wheel** (contingency 1 fails). The §1 ordered contingency 2
+(micromamba + conda-forge `ocp`) succeeds, but conda-forge's newest aarch64 OCP
+is **7.7.2**, which pairs with build123d **0.8.0**, not 0.9.x. | Realised
+contingency 2 with build123d 0.8.0 (installed `--no-deps` so pip doesn't chase
+the missing OCP wheel; pure-python deps added by hand). One further aarch64 snag:
+`py-lib3mf` 2.5.0 ships its native module as `lib3mf` while build123d 0.8.0
+imports `py_lib3mf` — resolved with a one-line re-export shim. Net result: **full
+B-rep CAD on aarch64, no fidelity degradation** — contingency 3 (manifold3d
+degrade) was NOT needed. Recipe captured in `scripts/setup_cad_env.sh` (idempotent,
+reproducible); CAD stages run via `scripts/cadpy`. The 0.8.0 vs 0.9.x API delta
+is immaterial to the primitives used (Box/Cylinder/RegularPolygon/extrude/booleans).

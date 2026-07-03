@@ -9,7 +9,12 @@ echo "[setup] host uv venv (Python 3.11)"
 if [[ ! -x .venv/bin/python ]]; then
   uv venv --python 3.11 .venv
 fi
-uv pip install --python .venv -e '.[dev]'
+uv pip install --python .venv pyyaml numpy trimesh numpy-stl manifold3d pytest
+
+echo "[setup] CAD environment (aarch64 OCP contingency, §1 / D-003)"
+# build123d/OCP has no aarch64 pip wheel; setup_cad_env.sh builds the micromamba
+# conda-forge OCP env used by scripts/cadpy. Idempotent.
+bash scripts/setup_cad_env.sh
 
 echo "[setup] Isaac Lab 2.3.x ARM image (pin newest 2.3.x tag + record digest)"
 # Primary path: pull the official multi-arch Isaac Lab image (ARM variant).

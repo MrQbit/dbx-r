@@ -6,6 +6,8 @@
 SHELL := /bin/bash
 PY := ./.venv/bin/python
 PYTEST := $(PY) -m pytest
+CADPY := ./scripts/cadpy         # CAD interpreter (micromamba duet-cad; §1 contingency)
+ROBOT ?=
 export DEBIAN_FRONTEND := noninteractive
 export OMNI_KIT_ACCEPT_EULA := YES
 
@@ -34,8 +36,11 @@ gate-1: ## Params complete & frozen (zero TODO, torque PASS)
 	$(PY) scripts/gen_reports.py
 	$(PYTEST) tests/test_params.py tests/test_torque.py
 
-gate-2:  ## CAD + mesh QA + BOM + renders
-	$(PYTEST) tests/test_cad.py
+_cad:  ## (internal) generate one robot's parts: STL + QA + BOM + mass
+	$(CADPY) scripts/gen_cad.py $(ROBOT)
+
+gate-2: _cad  ## CAD + mesh QA + BOM + mass (runs in the CAD env via cadpy)
+	$(CADPY) -m pytest tests/test_cad.py tests/test_qa.py
 
 gate-3:  ## Descriptions load + 5 s settle
 	$(PYTEST) tests/test_descriptions.py

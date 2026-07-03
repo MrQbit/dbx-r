@@ -29,6 +29,7 @@ weekend.out
 *.usda
 docs/reports/
 docs/ingest/
+docs/bom/
 
 # OS / editor cruft
 .DS_Store

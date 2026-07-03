@@ -3,14 +3,17 @@ name = "duet"
 version = "0.1.0"
 description = "PROJECT DUET — BDX-A + ROCKY-5 unattended build pipeline (host tools)"
 requires-python = ">=3.11"
-# Host-side dependencies only (CAD/audio/tests/orchestrator). Isaac/RL deps live
-# inside the pinned Isaac Lab 2.3.x ARM container, never installed on the host.
+# Host venv deps (aarch64 wheels only): orchestrator, params, mesh QA, URDF load.
+# build123d/OCP has NO aarch64 wheel — it lives in the micromamba CAD env built by
+# scripts/setup_cad_env.sh (§1 contingency / D-003), reached via scripts/cadpy.
+# Isaac/RL deps live inside the pinned Isaac Lab 2.3.x ARM container.
 dependencies = [
     "pyyaml>=6.0",
     "numpy>=1.26",
     "trimesh>=4.0",
     "numpy-stl>=3.1",
-    "build123d>=0.9,<0.10",
+    "manifold3d",
+    "rtree",
     "yourdfpy>=0.0.56",
 ]
 

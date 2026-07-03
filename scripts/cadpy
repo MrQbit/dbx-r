@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Run a Python command in the CAD environment (ROBOTS_SPEC.md §1 contingency).
+# Prefers the micromamba duet-cad env (conda-forge OCP + build123d 0.8.0); falls
+# back to the host venv if build123d happens to be importable there (e.g. if a
+# future aarch64 wheel lands). Used by the Makefile's CAD/G2 targets so parts are
+# generated with the right interpreter regardless of which contingency is active.
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")/.." && pwd)"
+MM="$HOME/.local/bin/micromamba"
+MR="$HOME/micromamba"
+export PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}"
+if [[ -x "$MM" ]] && "$MM" run -r "$MR" -n duet-cad python -c "import build123d" 2>/dev/null; then
+  exec "$MM" run -r "$MR" -n duet-cad python "$@"
+fi
+exec "$HERE/.venv/bin/python" "$@"
