@@ -1,0 +1,81 @@
+# ROCKY-5 design parameters (ROBOTS_SPEC.md §4). Every number here is law.
+# Pentaradial Eridian, 50% scale. Radially symmetric: 5 identical limbs at 72deg.
+# The URDF generator instances limb 0 at 72deg increments; a symmetry unit test
+# asserts identical link inertias across limbs (tests/test_symmetry.py).
+
+robot: rocky
+scale: 0.5
+limb_count: 5
+limb_angle_deg: 72            # limb 0 = heading (0deg), then +72 each
+
+# --- Canonical dimensions (§4), millimetres --------------------------------
+dimensions:
+  carapace_dia_mm: 160         # circumscribed diameter
+  dome_height_mm: 110
+  limb_reach_mm: 180
+  coxa_mm: 40
+  femur_mm: 70
+  tibia_mm: 70
+  stance_height_mm: 130        # neutral
+  footprint_dia_mm: 310
+  foot_dia_mm: 18              # TPU hemispherical
+
+mass_budget_kg: 2.2           # incl. battery (same 3S pack as BDX-A §3.2)
+design_target_kg: 1.8         # provisional mass for G1 torque check (D-002)
+
+battery:                       # same pack as bdx_a
+  chemistry: li-ion
+  cells: 3
+  capacity_mah_min: 2600
+  connector: XT30
+  bms: true
+  bay_mm: [70, 38, 20]
+  bay_foam_tolerance_mm: 2
+
+# --- Degrees of freedom (15, §4): per limb i in 0..4 -----------------------
+# Servo IDs = 3i+1, 3i+2, 3i+3. Generated from the template below by the
+# description pipeline; listed here explicitly so params are self-contained.
+dof_template:                  # per-limb joints (i substituted 0..4)
+  - {suffix: coxa_yaw,     offset: 1, limit_rad: [-0.9,  0.9]}
+  - {suffix: femur_pitch,  offset: 2, limit_rad: [-1.4,  1.0]}
+  - {suffix: tibia_pitch,  offset: 3, limit_rad: [-0.3,  2.0]}
+
+# --- Actuator (STS3215, shared with bdx_a §3.5) ----------------------------
+servo:
+  model: STS3215
+  voltage_v: 12
+  torque_continuous_nm: 1.2
+  torque_stall_nm: 2.9
+  bus: {adapter: waveshare_a, port: /dev/ttyUSB0, baud: 1000000}
+  kp: 17
+  kd: 0.5
+  effort_clamp_nm: 2.5
+  vel_clamp_rad_s: 5
+  armature: 0.01
+  friction: 0.03
+
+# --- Torque check (§4): femur worst case ~0.52 Nm vs 1.2 Nm continuous ------
+torque_check:
+  femur_worst_case_nm: 0.52    # PASS by construction; report still generated
+  continuous_margin: 1.8
+  stall_margin: 3.0
+
+# --- Carapace procedural displacement (§4) ---------------------------------
+carapace:
+  material: PLA
+  pieces: 2
+  noise: {type: simplex, amp_mm: 1.2, freq_per_mm: 0.08, faces: outer_only}
+
+# --- Audio (§4 / §7): chord voice ------------------------------------------
+audio:
+  driver_mm: 40
+  amp: MAX98357A
+  bus: i2s
+  grilles: 5                   # slotted sound grilles in skirt
+
+# --- IMU (§4): at centroid -------------------------------------------------
+imu:
+  model: BNO055
+  bus: i2c-7
+  mount: centroid
+  forward_axis: "+X"           # limb 0 heading

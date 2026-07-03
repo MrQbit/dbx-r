@@ -18,6 +18,9 @@ venv/
 runs/                      # RL training runs / TensorBoard events / checkpoints
 orchestrator/heartbeat.log
 orchestrator/stages.state.json
+orchestrator/.env_ready
+orchestrator/.isaac_image_digest
+FAILURE-*.md               # per-track failure files (regenerated each run)
 weekend.out
 *.onnx
 *.stl

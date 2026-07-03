@@ -1,0 +1,68 @@
+# PROJECT DUET DAG — single source of truth for `make weekend` (§9).
+# Per-stage keys:
+#   cmd          shell command (must be fully non-interactive)
+#   timeout_min  hard wall-clock timeout
+#   retries      attempts after the first (default 2, exponential backoff)
+#   on_fail      halt_track | degrade | skip
+#   needs        upstream stage ids (DAG edges)
+#   track        common | bdx_a | rocky   (tracks are independent; §9)
+#   artifacts    paths existence-checked after success
+#   resume_key   if listed artifacts already valid, stage is skipped (idempotent)
+#   gpu          true => must hold the GPU lock (GPU stages serialize)
+
+defaults:
+  retries: 2
+  backoff: exponential
+  on_fail: halt_track
+
+stages:
+  # --- shared setup --------------------------------------------------------
+  env-setup:
+    track: common
+    cmd: "scripts/setup_env.sh && make gate-0"
+    timeout_min: 240
+    on_fail: halt_track
+    artifacts: [docs/DECISIONS.md, .venv]
+    resume_key: [orchestrator/.env_ready]
+
+  ingest:
+    track: common
+    needs: [env-setup]
+    cmd: "python scripts/ingest.py --budget-min 45"
+    timeout_min: 45
+    on_fail: degrade          # fall back to Appendix A, log D-###
+    artifacts: [docs/ingest]
+
+  # --- per-track pipeline (bdx_a shown; rocky mirrors it) ------------------
+  bdx_a-cad:      {track: bdx_a, needs: [ingest], cmd: "make -s _cad ROBOT=bdx_a",      timeout_min: 60,  artifacts: [bdx_a/cad/parts]}
+  bdx_a-mesh-qa:  {track: bdx_a, needs: [bdx_a-cad], cmd: "make -s gate-2",              timeout_min: 15}
+  bdx_a-desc:     {track: bdx_a, needs: [bdx_a-mesh-qa], cmd: "make -s _desc ROBOT=bdx_a", timeout_min: 30}
+  bdx_a-settle:   {track: bdx_a, needs: [bdx_a-desc], cmd: "make -s gate-3",             timeout_min: 20}
+  bdx_a-print:    {track: bdx_a, needs: [bdx_a-desc], cmd: "make -s _print ROBOT=bdx_a", timeout_min: 30, artifacts: [bdx_a/print/print_manifest.yaml]}
+  bdx_a-flat:     {track: bdx_a, needs: [bdx_a-settle], cmd: "make -s _train TASK=Duet-BdxA-Flat-v0",  timeout_min: 360, on_fail: degrade, gpu: true}
+  bdx_a-rough:    {track: bdx_a, needs: [bdx_a-flat],   cmd: "make -s _train TASK=Duet-BdxA-Rough-v0", timeout_min: 600, on_fail: degrade, gpu: true}
+  bdx_a-export:   {track: bdx_a, needs: [bdx_a-rough],  cmd: "make -s _export ROBOT=bdx_a", timeout_min: 15}
+  bdx_a-eval:     {track: bdx_a, needs: [bdx_a-export],  cmd: "make -s gate-5 ROBOT=bdx_a", timeout_min: 30}
+  bdx_a-deploy:   {track: bdx_a, needs: [bdx_a-eval],    cmd: "make -s _deploy ROBOT=bdx_a", timeout_min: 20}
+
+  rocky-cad:      {track: rocky, needs: [ingest], cmd: "make -s _cad ROBOT=rocky",       timeout_min: 60,  artifacts: [rocky/cad/parts]}
+  rocky-mesh-qa:  {track: rocky, needs: [rocky-cad], cmd: "make -s gate-2",              timeout_min: 15}
+  rocky-desc:     {track: rocky, needs: [rocky-mesh-qa], cmd: "make -s _desc ROBOT=rocky", timeout_min: 30}
+  rocky-settle:   {track: rocky, needs: [rocky-desc], cmd: "make -s gate-3",             timeout_min: 20}
+  rocky-print:    {track: rocky, needs: [rocky-desc], cmd: "make -s _print ROBOT=rocky", timeout_min: 30, artifacts: [rocky/print/print_manifest.yaml]}
+  rocky-audio:    {track: rocky, needs: [rocky-desc], cmd: "make -s gate-7",             timeout_min: 30, on_fail: degrade}
+  # GPU order (§9): both FLAT policies before either ROUGH spends budget.
+  rocky-flat:     {track: rocky, needs: [rocky-settle, bdx_a-flat], cmd: "make -s _train TASK=Duet-Rocky-Flat-v0",  timeout_min: 360, on_fail: degrade, gpu: true}
+  rocky-rough:    {track: rocky, needs: [rocky-flat, bdx_a-rough],  cmd: "make -s _train TASK=Duet-Rocky-Rough-v0", timeout_min: 600, on_fail: degrade, gpu: true}
+  rocky-export:   {track: rocky, needs: [rocky-rough],  cmd: "make -s _export ROBOT=rocky", timeout_min: 15}
+  rocky-eval:     {track: rocky, needs: [rocky-export],  cmd: "make -s gate-5 ROBOT=rocky", timeout_min: 30}
+  rocky-deploy:   {track: rocky, needs: [rocky-eval],    cmd: "make -s _deploy ROBOT=rocky", timeout_min: 20}
+
+  # --- final report (always runs; both tracks may be DEGRADED/HALTED) ------
+  weekend-report:
+    track: common
+    needs: [bdx_a-deploy, rocky-deploy]
+    cmd: "python scripts/gen_weekend_report.py"
+    on_fail: skip             # report generation must never itself block the DoD
+    timeout_min: 15
+    artifacts: [docs/reports/WEEKEND_REPORT.md]

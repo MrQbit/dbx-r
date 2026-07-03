@@ -1,0 +1,78 @@
+# BDX-A design parameters (ROBOTS_SPEC.md §3). Every number here is law.
+# All geometry downstream is parametric from this file.
+#
+# HUMAN OVERRIDE WINDOW: `tier` may be changed to `robstride` BEFORE launch
+# (WEEKEND_RUNBOOK.md). After `make weekend` starts, this file is frozen.
+
+robot: bdx_a
+tier: sts3215_0p6x        # DECIDED D-001. Alternative (deferred to v2 hw): robstride
+scale: 0.6
+
+# --- Canonical dimensions (0.6x values, §3.2), millimetres -----------------
+dimensions:
+  standing_height_mm: 420      # legs extended, incl. static head
+  hip_yaw_spacing_mm: 108
+  thigh_mm: 96                 # hip-pitch -> knee
+  shin_mm: 96                  # knee -> ankle
+  foot_length_mm: 84
+  foot_width_mm: 42
+  foot_sole_tpu_mm: 3
+
+mass_budget_kg: 2.6            # incl. battery (hard ceiling)
+design_target_kg: 1.8          # provisional mass for G1 torque check (D-002);
+                               # re-checked against measured CAD mass at G2
+
+battery:                       # DECIDED (§3.2)
+  chemistry: li-ion
+  cells: 3                     # 3S, 11.1 V nominal
+  capacity_mah_min: 2600
+  connector: XT30
+  bms: true
+  bay_mm: [70, 38, 20]         # L x W x H
+  bay_foam_tolerance_mm: 2
+
+# --- Degrees of freedom (§3.3): order = obs order = action order = servo ID -
+# Servo IDs are 1..10 in the order listed below. DO NOT REORDER.
+dof:
+  - {name: l_hip_yaw,     servo_id: 1,  limit_rad: [-0.6,  0.6]}
+  - {name: l_hip_roll,    servo_id: 2,  limit_rad: [-0.5,  0.5]}
+  - {name: l_hip_pitch,   servo_id: 3,  limit_rad: [-1.6,  0.6]}
+  - {name: l_knee,        servo_id: 4,  limit_rad: [ 0.0,  2.2]}
+  - {name: l_ankle_pitch, servo_id: 5,  limit_rad: [-1.0,  1.0]}
+  - {name: r_hip_yaw,     servo_id: 6,  limit_rad: [-0.6,  0.6]}
+  - {name: r_hip_roll,    servo_id: 7,  limit_rad: [-0.5,  0.5]}
+  - {name: r_hip_pitch,   servo_id: 8,  limit_rad: [-1.6,  0.6]}
+  - {name: r_knee,        servo_id: 9,  limit_rad: [ 0.0,  2.2]}
+  - {name: r_ankle_pitch, servo_id: 10, limit_rad: [-1.0,  1.0]}
+
+# 2-DOF neck stubbed as fixed joints so v2 needs no mesh rework (§3.4).
+fixed_joints: [neck_pitch, neck_yaw]
+
+# --- Actuator (STS3215 @ 12 V, §3.3 / Appendix A.3) ------------------------
+servo:
+  model: STS3215
+  voltage_v: 12
+  torque_continuous_nm: 1.2
+  torque_stall_nm: 2.9
+  bus: {adapter: waveshare_a, port: /dev/ttyUSB0, baud: 1000000}
+  # PD / sim model (Appendix A.3); ingest may refine +/-30%.
+  kp: 17
+  kd: 0.5
+  effort_clamp_nm: 2.5
+  vel_clamp_rad_s: 5
+  armature: 0.01
+  friction: 0.03
+
+# --- Torque check requirement (§3.3), verified by tests/test_torque.py ------
+torque_check:
+  com_offset_mm: 30            # worst-case single support
+  knee_angle_deg: 60
+  continuous_margin: 1.8       # continuous >= 1.8x static holding torque
+  stall_margin: 3.0            # stall >= 3x static holding torque
+
+# --- IMU / electronics (§3.5) ----------------------------------------------
+imu:
+  model: BNO055
+  bus: i2c-7
+  mount: torso_com
+  forward_axis: "+X"
