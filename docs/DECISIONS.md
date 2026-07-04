@@ -35,3 +35,12 @@ B-rep CAD on aarch64, no fidelity degradation** — contingency 3 (manifold3d
 degrade) was NOT needed. Recipe captured in `scripts/setup_cad_env.sh` (idempotent,
 reproducible); CAD stages run via `scripts/cadpy`. The 0.8.0 vs 0.9.x API delta
 is immaterial to the primitives used (Box/Cylinder/RegularPolygon/extrude/booleans).
+
+**D-004: Isaac Lab image pinned to `nvcr.io/nvidia/isaac-lab:2.3.2` (newest 2.3.x at setup).**
+| §1 requires pinning the newest 2.3.x tag + recording its digest, frozen for the
+weekend. Tags 2.3.0–2.3.2 exist on nvcr.io (public, no NGC auth needed); 2.3.3+
+do not. | Pinned **2.3.2**, digest
+`sha256:388dbc806f48359a964cb9f807feb226da95d0a107f470fdcad9780ea10fe6f2`
+(recorded in `orchestrator/.isaac_image_digest`). This digest is FROZEN — no
+mid-run Isaac Lab upgrades (§1 version rule). Primary Docker path succeeded; the
+source-build fallback (dgx-spark-playbook) was not needed.

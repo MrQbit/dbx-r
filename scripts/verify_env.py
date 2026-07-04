@@ -96,9 +96,13 @@ def check_host_imports(c: Checks):
 
 
 def check_isaac_smoke(c: Checks):
-    image = os.environ.get("DUET_ISAAC_IMAGE")
     digest_file = ROOT / "orchestrator" / ".isaac_image_digest"
-    if not image and not digest_file.exists():
+    # Prefer the frozen digest (§1: image is pinned at G0 for the whole weekend).
+    image = None
+    if digest_file.exists():
+        image = digest_file.read_text().strip()
+    image = image or os.environ.get("DUET_ISAAC_IMAGE")
+    if not image:
         c.skip("Isaac Sim headless smoke", "(image not pinned yet — G0 container step pending)")
         return
     # Headless create+destroy stage, <5 min (§1). Non-interactive.
@@ -106,7 +110,7 @@ def check_isaac_smoke(c: Checks):
         "docker", "run", "--rm", "--gpus", "all",
         "-e", "OMNI_KIT_ACCEPT_EULA=YES",
         "-e", "LD_PRELOAD=/lib/aarch64-linux-gnu/libgomp.so.1",
-        image or "isaac-lab:pinned",
+        image,
         "python", "-c", "import isaacsim; print('isaac-smoke-ok')",
     ]
     try:

@@ -27,6 +27,8 @@ weekend.out
 *.3mf
 *.usd
 *.usda
+*/description/*.urdf
+*/description/*.mjcf.xml
 docs/reports/
 docs/ingest/
 docs/bom/

@@ -42,7 +42,10 @@ _cad:  ## (internal) generate one robot's parts: STL + QA + BOM + mass
 gate-2: _cad  ## CAD + mesh QA + BOM + mass (runs in the CAD env via cadpy)
 	$(CADPY) -m pytest tests/test_cad.py tests/test_qa.py
 
-gate-3:  ## Descriptions load + 5 s settle
+_desc:  ## (internal) generate URDF + MJCF for one/both robots
+	$(PY) scripts/gen_descriptions.py $(ROBOT)
+
+gate-3: _desc  ## Descriptions load (yourdfpy/mujoco) + inertia + 5 s settle
 	$(PYTEST) tests/test_descriptions.py
 
 gate-4:  ## Training success-or-DEGRADED with artifacts (orchestrator-driven)
