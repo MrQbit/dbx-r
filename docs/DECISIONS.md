@@ -67,3 +67,19 @@ Dome 110 -> 85 mm (0.53 ratio) for the squat river-stone silhouette + lower CG.
 Removed the dome camera; sensing is audio + fully symmetric hidden ToF (no
 component may imply a front). 15 DOF (3/limb) kept — research confirms it is
 "accurate-plus" and enables the walk-and-manipulate behaviour from the story.
+
+**D-007 (OPEN — needs operator): BDX-A physical target — BDX-R full-scale/Robstride vs 0.6x/STS3215.**
+| Operator directed reuse of BDX-R (github.com/BDX-R/BDX-R-{IsaacLab,MjLab}) as
+the BDX-A basis. BDX-R is the **full-scale (~0.66 m) Robstride** build (~$3k);
+the spec (D-001) chose **0.6x + STS3215** (~$400, printable now). Both share the
+same geometry/kinematics + training pipeline, so reuse of structure + training is
+scale-agnostic and proceeds now. | The actuator model, BOM, torque check, and CAD
+sizing finalise once chosen. Pending operator answer; until then BDX-A keeps the
+D-001 STS3215 assumption for the torque gate.
+
+**D-008: ROCKY-5 gains 3-finger grip manipulators on its 2 front legs (limbs 1 & 4).**
+| Operator: Rocky needs manipulators like the film; no upstream exists so we own
+the design. Book canon = every leg can be a hand. | Added a hand-foot to limbs 1
+& 4 (flanking heading limb 0): flat palm (ground contact, same height as the
+sphere feet, so pentapod walking is preserved) + a driven grip (3 fingers, IDs
+16-17). ROCKY-5 now 17 DOF; still settles on all 5 legs; 2.16 kg < 2.2 budget.

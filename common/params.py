@@ -31,7 +31,8 @@ def bdx_a_dof(params: dict) -> list[dict]:
 
 
 def rocky_dof(params: dict) -> list[dict]:
-    """Expand ROCKY-5's per-limb template into 15 explicit joints (§4)."""
+    """Expand ROCKY-5 into explicit joints: 15 leg joints (§4) + front-leg grip
+    manipulators (D-008). Order == obs == action == servo-id order."""
     out = []
     for i in range(params["limb_count"]):
         for j in params["dof_template"]:
@@ -42,4 +43,9 @@ def rocky_dof(params: dict) -> list[dict]:
                     "limit_rad": j["limit_rad"],
                 }
             )
+    man = params.get("manipulators")
+    if man:
+        for leg, sid in zip(man["legs"], man["servo_ids"]):
+            out.append({"name": f"leg{leg}_grip", "servo_id": sid,
+                        "limit_rad": man["grip_limit_rad"]})
     return out

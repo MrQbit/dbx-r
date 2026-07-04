@@ -43,13 +43,15 @@ def test_bdx_a_limits_match_spec():
     assert dof["l_ankle_pitch"] == [-1.0, 1.0]
 
 
-def test_rocky_expands_to_15_dof():
+def test_rocky_expands_to_17_dof():
     dof = rocky_dof(load_params("rocky"))
-    assert len(dof) == 15
-    # Servo IDs = 3i+1, 3i+2, 3i+3 for i in 0..4 -> a contiguous 1..15.
-    assert sorted(d["servo_id"] for d in dof) == list(range(1, 16))
+    # 15 leg joints + 2 front-leg grip manipulators (D-008).
+    assert len(dof) == 17
+    assert sorted(d["servo_id"] for d in dof) == list(range(1, 18))
     assert dof[0]["name"] == "leg0_coxa_yaw"
-    assert dof[-1]["name"] == "leg4_tibia_pitch"
+    assert dof[14]["name"] == "leg4_tibia_pitch"   # last leg joint
+    grips = [d["name"] for d in dof if d["name"].endswith("_grip")]
+    assert grips == ["leg1_grip", "leg4_grip"]
 
 
 def test_shared_battery_pack():

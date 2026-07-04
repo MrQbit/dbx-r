@@ -42,6 +42,15 @@ dof_template:                  # per-limb joints (i substituted 0..4)
   - {suffix: femur_pitch,  offset: 2, limit_rad: [-1.4,  1.0]}
   - {suffix: tibia_pitch,  offset: 3, limit_rad: [-0.3,  2.0]}
 
+# Front manipulators (D-008): the 2 legs flanking heading limb 0 get a 3-finger
+# grip hand that doubles as a foot (grip open = flat foot). Extra DOF, IDs 16-17,
+# appended after the 15 leg joints. Movie: Rocky manipulates with its front pair.
+manipulators:
+  legs: [1, 4]                 # symmetric about the +X heading (limb 0)
+  grip_limit_rad: [0.0, 1.4]   # 0 = open/flat (stand), 1.4 = closed (grasp)
+  servo_ids: [16, 17]
+  fingers: 3                   # triangular stony fingers (driven together)
+
 # --- Actuator (STS3215, shared with bdx_a §3.5) ----------------------------
 servo:
   model: STS3215

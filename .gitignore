@@ -30,9 +30,11 @@ weekend.out
 */description/*.urdf
 */description/*.mjcf.xml
 docs/reports/
-docs/ingest/
 docs/bom/
 
 # OS / editor cruft
 .DS_Store
 *.swp
+
+# Vendored upstream (fetch via scripts/fetch_upstream.sh; pinned SHAs)
+third_party/

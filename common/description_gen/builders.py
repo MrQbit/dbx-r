@@ -105,6 +105,10 @@ def build_rocky() -> RobotModel:
                     shape=Shape("cylinder", (d["carapace_dia_mm"] * MM / 2, 0.06)),
                     com=(0, 0, 0.0)))
 
+    foot_r = d["foot_dia_mm"] * MM / 2
+    man = p.get("manipulators") or {"legs": [], "servo_ids": [], "grip_limit_rad": [0.0, 0.0]}
+    grip_ids = dict(zip(man["legs"], man["servo_ids"]))
+
     tmpl = {t["suffix"]: t for t in p["dof_template"]}
     for i in range(p["limb_count"]):
         ang = math.radians(i * p["limb_angle_deg"])
@@ -118,17 +122,28 @@ def build_rocky() -> RobotModel:
         m.add_link(Link(coxa_l, 0.09, Shape("box", (coxa, 0.03, 0.03)), com=(coxa / 2, 0, 0)))
         m.add_link(Link(fem_l, 0.10, Shape("box", (femur, 0.028, 0.028)), com=(femur / 2, 0, 0)))
         m.add_link(Link(tib_l, 0.07, Shape("box", (tibia, 0.024, 0.024)), com=(tibia / 2, 0, 0)))
-        # TPU 95A hemispherical foot (Ø18 mm) at the tibia tip — the clean contact.
-        foot_l = f"leg{i}_foot"
-        foot_r = d["foot_dia_mm"] * MM / 2
-        m.add_link(Link(foot_l, 0.02, Shape("sphere", (foot_r,))))
         _revolute(m, cyaw, "base_link", coxa_l, (cx, cy, 0.0), (0, 0, 1),
                   tmpl["coxa_yaw"]["limit_rad"], servo, 3 * i + 1, rpy=(0, 0, ang))
         _revolute(m, fpit, coxa_l, fem_l, (coxa, 0, 0), pitch_axis,
                   tmpl["femur_pitch"]["limit_rad"], servo, 3 * i + 2)
         _revolute(m, tpit, fem_l, tib_l, (femur, 0, 0), pitch_axis,
                   tmpl["tibia_pitch"]["limit_rad"], servo, 3 * i + 3)
-        m.add_joint(Joint(f"leg{i}_ankle_fixed", "fixed", tib_l, foot_l, (tibia, 0, 0)))
+
+        if i in grip_ids:
+            # Hand-foot (D-008): a flat palm (ground contact, same height as the
+            # sphere feet) + a driven 3-finger grip. grip=0 -> flat foot to stand.
+            palm, fing = f"leg{i}_palm", f"leg{i}_finger"
+            m.add_link(Link(palm, 0.03, Shape("box", (0.04, 0.04, 2 * foot_r))))
+            m.add_link(Link(fing, 0.02, Shape("box", (0.028, 0.03, 0.008)), com=(0.014, 0, 0)))
+            m.add_joint(Joint(f"leg{i}_wrist_fixed", "fixed", tib_l, palm, (tibia, 0, 0)))
+            _revolute(m, f"leg{i}_grip", palm, fing, (0.018, 0, 0.006), (0, 1, 0),
+                      man["grip_limit_rad"], servo, grip_ids[i])
+            m.default_q[f"leg{i}_grip"] = 0.0
+        else:
+            foot_l = f"leg{i}_foot"   # TPU hemispherical foot (Ø18) at the tibia tip
+            m.add_link(Link(foot_l, 0.02, Shape("sphere", (foot_r,))))
+            m.add_joint(Joint(f"leg{i}_ankle_fixed", "fixed", tib_l, foot_l, (tibia, 0, 0)))
+
         # Sprawled stance. In the limb frame the femur extends +X and pitches
         # about the tangential axis; a POSITIVE angle rotates +X toward -Z (down).
         fp, tp = 0.6, 1.0

@@ -105,6 +105,10 @@ AUDIO_DRIVER = Component("driver_40mm", "audio", (40.0, 40.0, 22.0), 25.0, "vent
 AUDIO_AMP = Component("max98357a", "audio", (17.0, 13.0, 3.0), 2.0, "tray",
                       ("i2s",), 1.5, "I2S mono amp")
 
+# Rocky front-leg manipulator (D-008): 3 triangular stony fingers + grip linkage.
+GRIP_HAND = Component("grip_hand_3finger", "actuator", (46.0, 46.0, 26.0), 30.0, "pocket",
+                      (), 1.5, "3-finger grip hand-foot on the 2 front legs")
+
 # BDX-A head expression details (movie-accuracy — backlit eyes + antennae).
 EYE_LED = Component("eye_led", "sensor", (12.0, 12.0, 6.0), 4.0, "window",
                     ("gpio",), 1.0, "backlit WS2812 behind a translucent eye lens")
@@ -152,9 +156,12 @@ def bdx_a_components() -> list[Placement]:
 
 def rocky_components() -> list[Placement]:
     p = _common_core("base_link", torso_z=30.0)
-    # 15 servos across 5 limbs.
-    for sid in range(1, 16):
-        p.append(Placement(SERVO, f"rocky_joint_{sid}", (0, 0, 0), qty=1, note=f"servo id {sid}"))
+    # 17 servos: 15 limb joints (IDs 1-15) + 2 front-leg grips (IDs 16-17, D-008).
+    for sid in range(1, 18):
+        host = "rocky_grip" if sid >= 16 else f"rocky_joint_{sid}"
+        p.append(Placement(SERVO, host, (0, 0, 0), qty=1, note=f"servo id {sid}"))
+    for leg in (1, 4):
+        p.append(Placement(GRIP_HAND, f"rocky_leg{leg}_hand", (0, 0, 0), note=f"3-finger hand leg {leg}"))
     # ROCKY HAS NO FACE, NO EYES, NO FRONT (D-006). Sensing is by sound (audio)
     # plus fully SYMMETRIC, hidden ToF — no camera, nothing that implies a heading.
     p += [

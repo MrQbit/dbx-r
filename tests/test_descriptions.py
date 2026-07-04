@@ -21,7 +21,8 @@ from common.description_gen.mjcf import to_mjcf
 from common.description_gen.settle import run_settle
 
 ROBOTS = ["bdx_a", "rocky"]
-EXPECTED_DOF = {"bdx_a": 13, "rocky": 15}   # bdx_a: 10 legs + 3 active neck (D-005)
+# bdx_a: 10 legs + 3 neck (D-005). rocky: 15 legs + 2 front grips (D-008).
+EXPECTED_DOF = {"bdx_a": 13, "rocky": 17}
 
 
 @pytest.mark.parametrize("robot", ROBOTS)
