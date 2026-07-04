@@ -22,7 +22,9 @@ ROOT = Path(__file__).resolve().parent.parent
 MIN_DRIVER = (580, 95, 5)
 MIN_CUDA_MAJOR = 13
 MIN_FREE_GB = 150          # pre-flight (WEEKEND_RUNBOOK.md)
-HOST_IMPORTS = ["yaml", "numpy", "trimesh", "build123d"]
+# Host venv deps (aarch64 wheels). build123d is NOT here by design — it lives in
+# the micromamba CAD env (D-003) and is checked separately via scripts/cadpy.
+HOST_IMPORTS = ["yaml", "numpy", "trimesh", "mujoco", "yourdfpy"]
 
 
 def _ver_tuple(s: str) -> tuple[int, ...]:
@@ -95,6 +97,20 @@ def check_host_imports(c: Checks):
             c.skip(f"import {mod}", f"({type(e).__name__}) — run scripts/setup_env.sh")
 
 
+def check_cad_env(c: Checks):
+    """build123d lives in the micromamba CAD env (D-003); check it via cadpy."""
+    cadpy = ROOT / "scripts" / "cadpy"
+    try:
+        r = subprocess.run([str(cadpy), "-c", "import build123d, OCP"],
+                           capture_output=True, text=True, timeout=120)
+        if r.returncode == 0:
+            c.ok("CAD env (build123d + OCP via cadpy)")
+        else:
+            c.skip("CAD env (build123d)", "run scripts/setup_cad_env.sh")
+    except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+        c.skip("CAD env (build123d)", f"({type(e).__name__}) run scripts/setup_cad_env.sh")
+
+
 def check_isaac_smoke(c: Checks):
     digest_file = ROOT / "orchestrator" / ".isaac_image_digest"
     # Prefer the frozen digest (§1: image is pinned at G0 for the whole weekend).
@@ -105,17 +121,26 @@ def check_isaac_smoke(c: Checks):
     if not image:
         c.skip("Isaac Sim headless smoke", "(image not pinned yet — G0 container step pending)")
         return
-    # Headless create+destroy stage, <5 min (§1). Non-interactive.
+    # Headless create+destroy stage, <5 min (§1). Success == clean exit 0:
+    # Isaac/Kit logs to its own files, not stdout, so a printed marker is
+    # unreliable — a failed SimulationApp init raises and exits non-zero instead.
+    smoke = (
+        "from isaacsim import SimulationApp\n"
+        "app = SimulationApp({'headless': True})\n"
+        "import omni.usd\n"
+        "omni.usd.get_context().new_stage()\n"
+        "app.update(); app.close()\n"
+    )
     cmd = [
         "docker", "run", "--rm", "--gpus", "all",
-        "-e", "OMNI_KIT_ACCEPT_EULA=YES",
+        "-e", "OMNI_KIT_ACCEPT_EULA=YES", "-e", "OMNI_KIT_ALLOW_ROOT=1",
         "-e", "LD_PRELOAD=/lib/aarch64-linux-gnu/libgomp.so.1",
-        image,
-        "python", "-c", "import isaacsim; print('isaac-smoke-ok')",
+        image, "python", "-c", smoke,
     ]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        (c.ok if "isaac-smoke-ok" in r.stdout else c.fail)("Isaac Sim headless smoke")
+        (c.ok if r.returncode == 0 else c.fail)(
+            "Isaac Sim headless smoke", "" if r.returncode == 0 else f"(exit {r.returncode})")
     except (subprocess.TimeoutExpired, FileNotFoundError) as e:
         c.fail("Isaac Sim headless smoke", f"({type(e).__name__})")
 
@@ -127,6 +152,7 @@ def main() -> int:
     check_gpu(c)
     check_disk(c)
     check_host_imports(c)
+    check_cad_env(c)
     check_isaac_smoke(c)
     print(f"\nG0: {c.failed} failed, {c.skipped} skipped")
     return 1 if c.failed else 0
