@@ -44,6 +44,10 @@ def generate(robot: str) -> int:
         p = mod.part()
         stl = export_part_stl(p, parts_dir / f"{meta.name}.stl")
         mesh = trimesh.load(stl)
+        # Optional procedural post-process (e.g. Rocky's rock displacement, §4).
+        if hasattr(mod, "displace"):
+            mesh = mod.displace(mesh)
+            mesh.export(stl)
         qa = check_mesh(mesh, meta.name, meta.min_wall_mm)
         mp = part_mass(p, meta)
         total_g += mp.total_mass_g

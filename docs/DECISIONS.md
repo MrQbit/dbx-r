@@ -89,3 +89,11 @@ the design. Book canon = every leg can be a hand. | Added a hand-foot to limbs 1
 & 4 (flanking heading limb 0): flat palm (ground contact, same height as the
 sphere feet, so pentapod walking is preserved) + a driven grip (3 fingers, IDs
 16-17). ROCKY-5 now 17 DOF; still settles on all 5 legs; 2.16 kg < 2.2 budget.
+
+**D-009: ROCKY-5 carapace rock displacement raised to amp 3.5 mm / freq 0.13 (from spec 1.2/0.08).**
+| The spec's 1.2 mm amp at 0.08 /mm is imperceptible on the 160 mm carapace —
+renders as a smooth dome, not "made of rocks". | Raised to amp 3.5 mm, freq
+0.13 /mm, 4 octaves, applied OUTER-FACES-ONLY (masked by normal-vs-centroid) so
+the cosmetic shell wall never thins (min wall 1.72 mm > 1.6). Visibly craggy,
+watertight, QA-pass. A tuning knob in rocky/design/params.yaml. Future: 2-piece
+split + dovetails (§4), carved markings.

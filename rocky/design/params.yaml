@@ -75,7 +75,9 @@ torque_check:
 carapace:
   material: PLA
   pieces: 2
-  noise: {type: simplex, amp_mm: 1.2, freq_per_mm: 0.08, faces: outer_only}
+  # amp/freq raised from spec's 1.2/0.08 (imperceptible at this scale) for a
+  # visibly craggy "made of rocks" look (D-009, movie accuracy).
+  noise: {type: simplex, amp_mm: 3.5, freq_per_mm: 0.13, faces: outer_only}
 
 # --- Audio (§4 / §7): chord voice ------------------------------------------
 audio:
