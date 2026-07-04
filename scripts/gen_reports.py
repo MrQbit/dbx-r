@@ -15,7 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from common.params import load_params  # noqa: E402
-from common.cad_lib.torque import check_bdx_a, check_rocky, render_report  # noqa: E402
+from common.cad_lib.torque import check_rocky, render_report  # noqa: E402
 
 REPORTS = Path(__file__).resolve().parent.parent / "docs" / "reports"
 
@@ -23,7 +23,8 @@ REPORTS = Path(__file__).resolve().parent.parent / "docs" / "reports"
 def main() -> int:
     REPORTS.mkdir(parents=True, exist_ok=True)
     ok = True
-    for robot, checker in (("bdx_a", check_bdx_a), ("rocky", check_rocky)):
+    # BDX-A adopts BDX-R's Robstride actuators (D-007) — torque validated upstream.
+    for robot, checker in (("rocky", check_rocky),):
         params = load_params(robot)
         result = checker(params)
         out = REPORTS / f"torque_{robot}.md"

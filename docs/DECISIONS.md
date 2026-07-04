@@ -68,14 +68,20 @@ Removed the dome camera; sensing is audio + fully symmetric hidden ToF (no
 component may imply a front). 15 DOF (3/limb) kept — research confirms it is
 "accurate-plus" and enables the walk-and-manipulate behaviour from the story.
 
-**D-007 (OPEN — needs operator): BDX-A physical target — BDX-R full-scale/Robstride vs 0.6x/STS3215.**
-| Operator directed reuse of BDX-R (github.com/BDX-R/BDX-R-{IsaacLab,MjLab}) as
-the BDX-A basis. BDX-R is the **full-scale (~0.66 m) Robstride** build (~$3k);
-the spec (D-001) chose **0.6x + STS3215** (~$400, printable now). Both share the
-same geometry/kinematics + training pipeline, so reuse of structure + training is
-scale-agnostic and proceeds now. | The actuator model, BOM, torque check, and CAD
-sizing finalise once chosen. Pending operator answer; until then BDX-A keeps the
-D-001 STS3215 assumption for the torque gate.
+**D-007 (RESOLVED): BDX-A IS BDX-R exactly — full-scale (~0.66 m), Robstride, 14 DOF. Adopt, don't re-derive.**
+| Operator: "build EXACTLY the same BDX-R, same size, same actuators; only
+introduce improvements via more training, wireless charging, and better
+balancing. You can fork — open-source hobbyist, no licensing/commercial issues."
+| BDX-A now = the vendored BDX-R model (MjLab `bdxr.xml`: **14 DOF = 10 legs +
+4-DOF head** Neck_Pitch/Head_Pitch/Head_Yaw/Head_Roll; full-scale, base init
+0.25 m; Robstride actuators). We use BDX-R's own URDF/USD/MJCF + Isaac/MjLab
+training verbatim and layer improvements on top. **Supersedes D-001** (the 0.6x
+STS3215 build is dropped) and **supersedes D-005** (my invented 3-DOF neck —
+BDX-R already has the correct 4-DOF head; use theirs). My hand-built primitive
+BDX-A (`build_bdx_a`) is retired from the gates; ROCKY-5 stays our own
+params-driven design. Improvements tracked: Qi-15W charging (CAD add-on to the
+BDX-R chassis), balancing/gait via training. BDX-R model verified to load in our
+MuJoCo (14 DOF, 81 meshes) and Isaac (2.3.2, headless smoke passed).
 
 **D-008: ROCKY-5 gains 3-finger grip manipulators on its 2 front legs (limbs 1 & 4).**
 | Operator: Rocky needs manipulators like the film; no upstream exists so we own

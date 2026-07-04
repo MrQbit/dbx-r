@@ -1,83 +1,47 @@
-# BDX-A design parameters (ROBOTS_SPEC.md §3). Every number here is law.
-# All geometry downstream is parametric from this file.
+# BDX-A design parameters — ADOPTED EXACTLY FROM BDX-R (D-007).
 #
-# HUMAN OVERRIDE WINDOW: `tier` may be changed to `robstride` BEFORE launch
-# (WEEKEND_RUNBOOK.md). After `make weekend` starts, this file is frozen.
+# BDX-A is BDX-R, unchanged: same full-scale body, same Robstride actuators, same
+# 14-DOF kinematics. We do NOT re-derive geometry here — the authoritative model
+# is the vendored upstream (fetch via scripts/fetch_upstream.sh):
+#   MuJoCo:  third_party/bdx_r_mjlab/.../xmls/bdxr.xml   (host-native, 14 DOF)
+#   URDF/USD: third_party/bdx_r_isaaclab/.../data/Robots/BDXR/{URDF.urdf,BDX-R.usd}
+# This file is a RECORD of that adoption + the hooks for our improvements
+# (wireless charging, training/balancing). Numbers below are read from BDX-R;
+# treat the upstream model as law if they ever disagree.
 
 robot: bdx_a
-tier: sts3215_0p6x        # DECIDED D-001. Alternative (deferred to v2 hw): robstride
-scale: 0.6
+adopted_from:
+  repo: github.com/BDX-R/BDX-R-MjLab
+  sha: 079acd294650aa149644828723da517eabd808c9
+  isaaclab_sha: 62f0ba642fa0225180dc484f3ff195b7052b2a34
+  license: [Apache-2.0, MIT]
 
-# --- Canonical dimensions (0.6x values, §3.2), millimetres -----------------
+scale: 1.0                     # full-scale (NOT 0.6x — D-001 dropped by D-007)
+actuator_class: robstride      # quasi-direct-drive; NOT STS3215
+
 dimensions:
-  standing_height_mm: 420      # legs extended, incl. static head
-  hip_yaw_spacing_mm: 108
-  thigh_mm: 96                 # hip-pitch -> knee
-  shin_mm: 96                  # knee -> ankle
-  foot_length_mm: 84
-  foot_width_mm: 42
-  foot_sole_tpu_mm: 3
+  base_init_height_m: 0.25     # from bdxr.xml qpos0
+  standing_height_m: 0.66      # approx, full-scale droid
 
-mass_budget_kg: 2.6            # incl. battery (hard ceiling)
-design_target_kg: 1.8          # provisional mass for G1 torque check (D-002);
-                               # re-checked against measured CAD mass at G2
-
-battery:                       # DECIDED (§3.2)
-  chemistry: li-ion
-  cells: 3                     # 3S, 11.1 V nominal
-  capacity_mah_min: 2600
-  connector: XT30
-  bms: true
-  bay_mm: [70, 38, 20]         # L x W x H
-  bay_foam_tolerance_mm: 2
-
-# --- Degrees of freedom (§3.3): order = obs order = action order = servo ID -
-# Servo IDs are 1..10 in the order listed below. DO NOT REORDER.
+# --- DOF (14): 10 legs + 4-DOF head, names/ranges verbatim from BDX-R ---------
+# order == obs == action; servo IDs assigned 1..14 in this order.
 dof:
-  - {name: l_hip_yaw,     servo_id: 1,  limit_rad: [-0.6,  0.6]}
-  - {name: l_hip_roll,    servo_id: 2,  limit_rad: [-0.5,  0.5]}
-  - {name: l_hip_pitch,   servo_id: 3,  limit_rad: [-1.6,  0.6]}
-  - {name: l_knee,        servo_id: 4,  limit_rad: [ 0.0,  2.2]}
-  - {name: l_ankle_pitch, servo_id: 5,  limit_rad: [-1.0,  1.0]}
-  - {name: r_hip_yaw,     servo_id: 6,  limit_rad: [-0.6,  0.6]}
-  - {name: r_hip_roll,    servo_id: 7,  limit_rad: [-0.5,  0.5]}
-  - {name: r_hip_pitch,   servo_id: 8,  limit_rad: [-1.6,  0.6]}
-  - {name: r_knee,        servo_id: 9,  limit_rad: [ 0.0,  2.2]}
-  - {name: r_ankle_pitch, servo_id: 10, limit_rad: [-1.0,  1.0]}
-  # Active neck (D-005): movie-accurate BDX drives the neck. Real BDX = 4 neck
-  # DOF; Open-Duck-Mini v2 (proven) = 3 (two-stage pitch + yaw). We take the
-  # proven 3. IDs 11-13 append after the 10 legs; order still == obs == action.
-  - {name: head_pitch1,   servo_id: 11, limit_rad: [-0.6,  0.9]}   # lower neck
-  - {name: head_pitch2,   servo_id: 12, limit_rad: [-0.6,  0.9]}   # upper neck
-  - {name: head_yaw,      servo_id: 13, limit_rad: [-0.8,  0.8]}
+  - {name: Left_Hip_Yaw,    servo_id: 1,  limit_rad: [-0.26,  0.26]}
+  - {name: Left_Hip_Roll,   servo_id: 2,  limit_rad: [-0.26,  0.35]}
+  - {name: Left_Hip_Pitch,  servo_id: 3,  limit_rad: [-1.05,  0.70]}
+  - {name: Left_Knee,       servo_id: 4,  limit_rad: [-0.96,  1.31]}
+  - {name: Left_Ankle,      servo_id: 5,  limit_rad: [-0.79,  1.22]}
+  - {name: Right_Hip_Yaw,   servo_id: 6,  limit_rad: [-0.26,  0.26]}
+  - {name: Right_Hip_Roll,  servo_id: 7,  limit_rad: [-0.35,  0.26]}
+  - {name: Right_Hip_Pitch, servo_id: 8,  limit_rad: [-0.70,  1.05]}
+  - {name: Right_Knee,      servo_id: 9,  limit_rad: [-1.31,  0.96]}
+  - {name: Right_Ankle,     servo_id: 10, limit_rad: [-1.22,  0.79]}
+  - {name: Neck_Pitch,      servo_id: 11, limit_rad: [-0.35,  0.87]}
+  - {name: Head_Pitch,      servo_id: 12, limit_rad: [-1.05,  0.52]}
+  - {name: Head_Yaw,        servo_id: 13, limit_rad: [-0.87,  0.87]}
+  - {name: Head_Roll,       servo_id: 14, limit_rad: [-0.52,  0.52]}
 
-# No fixed neck stub anymore — the neck is actuated (see dof 11-13).
-
-# --- Actuator (STS3215 @ 12 V, §3.3 / Appendix A.3) ------------------------
-servo:
-  model: STS3215
-  voltage_v: 12
-  torque_continuous_nm: 1.2
-  torque_stall_nm: 2.9
-  bus: {adapter: waveshare_a, port: /dev/ttyUSB0, baud: 1000000}
-  # PD / sim model (Appendix A.3); ingest may refine +/-30%.
-  kp: 17
-  kd: 0.5
-  effort_clamp_nm: 2.5
-  vel_clamp_rad_s: 5
-  armature: 0.01
-  friction: 0.03
-
-# --- Torque check requirement (§3.3), verified by tests/test_torque.py ------
-torque_check:
-  com_offset_mm: 30            # worst-case single support
-  knee_angle_deg: 60
-  continuous_margin: 1.8       # continuous >= 1.8x static holding torque
-  stall_margin: 3.0            # stall >= 3x static holding torque
-
-# --- IMU / electronics (§3.5) ----------------------------------------------
-imu:
-  model: BNO055
-  bus: i2c-7
-  mount: torso_com
-  forward_axis: "+X"
+# --- Our improvements layered on the unchanged BDX-R body ---------------------
+improvements:
+  wireless_charging: qi_15w    # Qi RX pocket added to the chassis (components.py)
+  training: [more_iters, balancing]   # better balance/gait via RL, not geometry

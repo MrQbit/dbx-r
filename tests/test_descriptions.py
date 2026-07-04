@@ -20,9 +20,10 @@ from common.description_gen.urdf import to_urdf
 from common.description_gen.mjcf import to_mjcf
 from common.description_gen.settle import run_settle
 
-ROBOTS = ["bdx_a", "rocky"]
-# bdx_a: 10 legs + 3 neck (D-005). rocky: 15 legs + 2 front grips (D-008).
-EXPECTED_DOF = {"bdx_a": 13, "rocky": 17}
+# BDX-A is the vendored BDX-R model (validated in test_bdxr.py). Only ROCKY-5 is
+# our params-driven build, so only it flows through this description pipeline.
+ROBOTS = ["rocky"]
+EXPECTED_DOF = {"rocky": 17}   # 15 legs + 2 front grips (D-008)
 
 
 @pytest.mark.parametrize("robot", ROBOTS)

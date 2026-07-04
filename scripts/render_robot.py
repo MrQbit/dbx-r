@@ -24,7 +24,9 @@ from common.description_gen.builders import build  # noqa: E402
 from common.description_gen.mjcf import to_mjcf  # noqa: E402
 from common.description_gen.settle import _lowest_world_z  # noqa: E402
 
-VIEWS = {"bdx_a": (135, -10, 1.0), "rocky": (130, -30, 0.9)}
+# ROCKY-5 renders from our params-driven model. BDX-A is the vendored BDX-R
+# model (render it from third_party/bdx_r_mjlab directly, not build()).
+VIEWS = {"rocky": (130, -30, 0.9)}
 
 
 def render(robot: str, out: Path, az: float, el: float, dist: float) -> None:
@@ -49,7 +51,7 @@ def render(robot: str, out: Path, az: float, el: float, dist: float) -> None:
 
 
 def main() -> int:
-    robot = sys.argv[1] if len(sys.argv) > 1 else "bdx_a"
+    robot = sys.argv[1] if len(sys.argv) > 1 else "rocky"
     out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(f"docs/reports/{robot}_view.png")
     az, el, dist = VIEWS.get(robot, (135, -15, 1.0))
     if len(sys.argv) > 5:

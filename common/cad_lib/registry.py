@@ -12,9 +12,11 @@ from types import ModuleType
 
 # robot -> list of module import paths
 _PARTS: dict[str, list[str]] = {
+    # BDX-A is adopted from BDX-R (D-007) — its printable parts are BDX-R's meshes,
+    # not ours. We only keep the generic fit-coupon here (+ our charging/integration
+    # add-ons as they're authored). ROCKY-5 is our own full part set.
     "bdx_a": [
         "common.cad_lib.coupons",
-        "bdx_a.cad.parts.knee_link",
     ],
     "rocky": [
         "rocky.cad.parts.core_plate",

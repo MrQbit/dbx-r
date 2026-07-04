@@ -33,7 +33,8 @@ def generate(robot: str) -> None:
 
 
 def main() -> int:
-    for robot in sys.argv[1:] or ["bdx_a", "rocky"]:
+    # BDX-A is the vendored BDX-R model (D-007) — not generated here. Only ROCKY-5.
+    for robot in sys.argv[1:] or ["rocky"]:
         generate(robot)
     return 0
 

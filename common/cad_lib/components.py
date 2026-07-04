@@ -137,10 +137,10 @@ def _common_core(robot_base: str, torso_z: float) -> list[Placement]:
 # --------------------------------------------------------------------------- #
 def bdx_a_components() -> list[Placement]:
     p = _common_core("base_link", torso_z=60.0)
-    # 13 servos: 10 legs (IDs 1-10) + 3 active neck (IDs 11-13, D-005). Leg
-    # pockets live in the leg parts; neck servos in the neck stack.
-    for sid in range(1, 14):
-        host = "bdx_a_neck" if sid >= 11 else f"bdx_a_joint_{sid}"
+    # 14 servos = BDX-R exactly (D-007): 10 legs (IDs 1-10) + 4-DOF head
+    # (Neck_Pitch/Head_Pitch/Head_Yaw/Head_Roll, IDs 11-14). Robstride actuators.
+    for sid in range(1, 15):
+        host = "bdx_a_head" if sid >= 11 else f"bdx_a_joint_{sid}"
         p.append(Placement(SERVO, host, (0, 0, 0), qty=1, note=f"servo id {sid}"))
     # BDX has a face: eyes + cameras + antennae live in the actuated head.
     p += [

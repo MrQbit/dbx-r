@@ -25,71 +25,13 @@ def _revolute(model, name, parent, child, xyz, axis, limit, servo, sid, rpy=(0, 
     ))
 
 
-# --------------------------------------------------------------------------- #
-# BDX-A (biped, 10 DOF)
-# --------------------------------------------------------------------------- #
-def build_bdx_a() -> RobotModel:
-    p = load_params("bdx_a")
-    d = p["dimensions"]
-    servo = p["servo"]
-    thigh = d["thigh_mm"] * MM
-    shin = d["shin_mm"] * MM
-    half_hip = d["hip_yaw_spacing_mm"] * MM / 2.0
-    foot_l, foot_w = d["foot_length_mm"] * MM, d["foot_width_mm"] * MM
-
-    m = RobotModel(name="bdx_a", root="base_link")
-    # Torso + static head + battery/electronics lumped into the floating base.
-    # Sits ABOVE the hip origins (com raised, bottom at z=0) so it doesn't overlap
-    # the hip-roll links hanging below at z ~ -0.04.
-    m.add_link(Link("base_link", mass=0.60,
-                    shape=Shape("box", (0.07, 0.10, 0.12)), com=(0.0, 0.0, 0.06)))
-
-    limits = {j["name"]: j["limit_rad"] for j in p["dof"]}
-    ids = {j["name"]: j["servo_id"] for j in p["dof"]}
-
-    def leg(side, sign):
-        y = sign * half_hip
-        hy, hr = f"{side}_hip_yaw", f"{side}_hip_roll"
-        hp, kn, an = f"{side}_hip_pitch", f"{side}_knee", f"{side}_ankle_pitch"
-        # Small servo-block links for yaw/roll.
-        m.add_link(Link(f"{side}_hipyaw_link", 0.08, Shape("box", (0.035, 0.035, 0.035))))
-        m.add_link(Link(f"{side}_hiproll_link", 0.08, Shape("box", (0.035, 0.035, 0.035))))
-        m.add_link(Link(f"{side}_thigh", 0.13, Shape("box", (0.03, 0.035, thigh)),
-                        com=(0, 0, -thigh / 2)))
-        m.add_link(Link(f"{side}_shin", 0.11, Shape("box", (0.03, 0.03, shin)),
-                        com=(0, 0, -shin / 2)))
-        m.add_link(Link(f"{side}_foot", 0.06, Shape("box", (foot_l, foot_w, 0.02)),
-                        com=(0.015, 0, -0.01)))
-        _revolute(m, hy, "base_link", f"{side}_hipyaw_link", (0.0, y, -0.02), (0, 0, 1), limits[hy], servo, ids[hy])
-        _revolute(m, hr, f"{side}_hipyaw_link", f"{side}_hiproll_link", (0, 0, -0.02), (1, 0, 0), limits[hr], servo, ids[hr])
-        _revolute(m, hp, f"{side}_hiproll_link", f"{side}_thigh", (0, 0, -0.02), (0, 1, 0), limits[hp], servo, ids[hp])
-        _revolute(m, kn, f"{side}_thigh", f"{side}_shin", (0, 0, -thigh), (0, 1, 0), limits[kn], servo, ids[kn])
-        _revolute(m, an, f"{side}_shin", f"{side}_foot", (0, 0, -shin), (0, 1, 0), limits[an], servo, ids[an])
-        # Statically-stable symmetric crouch: hip_pitch + knee + ankle == 0 (foot flat).
-        m.default_q.update({hp: -0.3, kn: 0.6, an: -0.3})
-
-    leg("l", +1)
-    leg("r", -1)
-
-    # Active neck (D-005): base -> neck1 -> neck2 -> head (two-stage pitch + yaw),
-    # matching the proven Open-Duck-Mini v2 layout. Head carries eyes/cameras.
-    m.add_link(Link("neck1_link", 0.07, Shape("box", (0.03, 0.03, 0.03))))
-    m.add_link(Link("neck2_link", 0.07, Shape("box", (0.03, 0.03, 0.03))))
-    m.add_link(Link("head", 0.18, Shape("box", (0.06, 0.07, 0.06)), com=(0.012, 0, 0.02)))
-    _revolute(m, "head_pitch1", "base_link", "neck1_link", (0.012, 0, 0.12), (0, 1, 0), limits["head_pitch1"], servo, ids["head_pitch1"])
-    _revolute(m, "head_pitch2", "neck1_link", "neck2_link", (0, 0, 0.04), (0, 1, 0), limits["head_pitch2"], servo, ids["head_pitch2"])
-    _revolute(m, "head_yaw", "neck2_link", "head", (0, 0, 0.03), (0, 0, 1), limits["head_yaw"], servo, ids["head_yaw"])
-    m.default_q.update({"head_pitch1": 0.0, "head_pitch2": 0.0, "head_yaw": 0.0})
-
-    # Base height so the crouched feet rest on the floor (sagittal FK, angles sum 0).
-    zc = math.cos(0.3)
-    ankle_drop = 0.02 + 0.02 + 0.02 + thigh * zc + shin * zc  # hip stack + segments
-    m.default_base_height = ankle_drop + 0.02  # + foot half-height
-    return m
+# BDX-A is BDX-R, adopted verbatim (D-007) — no hand-built biped here. Its model
+# is the vendored upstream (common.description_gen.bdxr). Only ROCKY-5 below is
+# our own params-driven design.
 
 
 # --------------------------------------------------------------------------- #
-# ROCKY-5 (pentaradial, 15 DOF)
+# ROCKY-5 (pentaradial, 15 DOF + 2 front-leg grips)
 # --------------------------------------------------------------------------- #
 def build_rocky() -> RobotModel:
     p = load_params("rocky")
@@ -156,4 +98,9 @@ def build_rocky() -> RobotModel:
 
 
 def build(robot: str) -> RobotModel:
-    return {"bdx_a": build_bdx_a, "rocky": build_rocky}[robot]()
+    # BDX-A is adopted verbatim from BDX-R (D-007) — its model is the vendored
+    # upstream, loaded via common.description_gen.bdxr, NOT built here. Only ROCKY-5
+    # is our own params-driven design.
+    if robot == "bdx_a":
+        raise ValueError("BDX-A uses the vendored BDX-R model — see common.description_gen.bdxr")
+    return {"rocky": build_rocky}[robot]()

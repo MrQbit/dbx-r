@@ -38,12 +38,12 @@ def test_part_meta_contract():
 
 
 def test_interference_detects_overlap_and_clearance(tmp_path):
-    from bdx_a.cad.parts import knee_link
-    stl = export_part_stl(knee_link.part(), tmp_path / "k.stl")
+    from rocky.cad.parts import core_plate
+    stl = export_part_stl(core_plate.part(), tmp_path / "k.stl")
     mesh = trimesh.load(stl)
 
     overlap = mesh.copy()
-    overlap.apply_translation([5.0, 0.0, 0.0])   # slid 5 mm along a 96 mm link
+    overlap.apply_translation([5.0, 0.0, 0.0])   # slid 5 mm — heavy overlap
     assert pair_interference_volume(mesh, overlap) > 0.05, "overlap must be detected"
 
     apart = mesh.copy()
