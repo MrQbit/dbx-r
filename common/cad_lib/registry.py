@@ -21,7 +21,11 @@ _PARTS: dict[str, list[str]] = {
     ],
     "rocky": [
         "rocky.cad.parts.core_plate",
-        "rocky.cad.parts.carapace",             # movie-accurate rock dome (§4; 2-piece split WIP)
+        # Single-piece rock dome — fits the 250mm P2S envelope (211mm). The 2-piece
+        # split (carapace_cap/skirt) needs a mating lip/flange at the seam (a planar
+        # cut through the sloped thin wall leaves a thin wedge edge) before it QAs
+        # clean — deferred, not envelope-required while the carapace fits.
+        "rocky.cad.parts.carapace",             # movie-accurate rock dome (§4)
         "rocky.cad.parts.belly_rx_plate",       # Qi RX mount (wireless charging)
         # Shared wireless-charging dock (both robots dock on it); QA'd here.
         "common.cad_lib.charging_base",

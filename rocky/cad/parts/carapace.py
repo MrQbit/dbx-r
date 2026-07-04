@@ -42,15 +42,17 @@ def shell() -> Part:
 
 
 def displace_outer(mesh):
-    """Subdivide, then rock-texture the OUTER faces only. Midpoint subdivide
-    preserves manifoldness; 'outer' = normal points away from the piece centroid;
-    near-vertical (cut-seam / cap) faces are left flat so the pieces still mate."""
+    """Subdivide, then rock-texture the OUTER WALL only. 'Outer wall' = the normal
+    points radially away from the Z axis (dot of xy-position and xy-normal > 0).
+    This is robust for cut pieces (unlike a centroid test): it never touches the
+    inner wall (so the wall can't thin) nor the flat cut-seam / cap faces (normals
+    ~±Z, zero radial component — so the pieces still mate flush)."""
     mesh.merge_vertices()
     for _ in range(5):                 # ~53k tris, ~2.5 mm edges (fine craggy)
         mesh = mesh.subdivide()
     c = mesh.centroid
     n = mesh.vertex_normals
-    mask = np.einsum("ij,ij->i", mesh.vertices - c, n) > 0   # outer faces only
+    mask = np.einsum("ij,ij->i", mesh.vertices - c, n) > 0   # outer faces (centroid)
     raw = _value_noise(mesh.vertices, NOISE["freq_per_mm"], 4, 1.0)
     d = ((raw + 1.0) * 0.5) * NOISE["amp_mm"]      # outward-only [0, amp]
     d[~mask] = 0.0
