@@ -38,3 +38,6 @@ docs/bom/
 
 # Vendored upstream (fetch via scripts/fetch_upstream.sh; pinned SHAs)
 third_party/
+
+# Hydra run outputs (training runtime; not source)
+outputs/

@@ -20,6 +20,7 @@ _PARTS: dict[str, list[str]] = {
     ],
     "rocky": [
         "rocky.cad.parts.core_plate",
+        "rocky.cad.parts.belly_rx_plate",       # Qi RX mount (wireless charging)
         # Shared wireless-charging dock (both robots dock on it); QA'd here.
         "common.cad_lib.charging_base",
     ],
