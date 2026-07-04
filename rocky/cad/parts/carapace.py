@@ -1,11 +1,10 @@
-"""ROCKY-5 rock carapace — the movie-accurate stony dome (§4).
+"""ROCKY-5 rock carapace — shared shell + rock texture (section 4).
 
-A low pentagonal dome shell (squat river-stone silhouette per D-006), hollow so
-it caps the body over the electronics, with procedural rock displacement applied
-to the exported mesh (see `displace`). PLA, matte blackish-brown when printed.
-
-part() returns the smooth base shell (build123d); gen_cad.py then calls
-`displace(mesh)` on the exported mesh to add the rock texture and re-checks QA.
+Low pentagonal dome shell (squat river-stone, D-006), hollow to cap the body.
+This module is the reusable library; the printable pieces are carapace_cap.py
+and carapace_skirt.py (section 4: 2-piece carapace — smaller prints, assembles
+over the internal structure). Rock displacement is applied to the OUTER faces
+only so the cosmetic wall never thins.
 """
 
 from __future__ import annotations
@@ -13,27 +12,15 @@ from __future__ import annotations
 import numpy as np
 from build123d import BuildPart, BuildSketch, RegularPolygon, Plane, loft, Part
 
-from common.cad_lib.part_meta import PartMeta
 from common.cad_lib.rock import _value_noise
 from common.params import load_params
 
 _P = load_params("rocky")
 R = _P["dimensions"]["carapace_dia_mm"] / 2.0      # 80 mm base half-width
 H = _P["dimensions"]["dome_height_mm"]             # 85 mm (D-006, ~0.5 ratio)
-# Sloped dome walls: the perpendicular thickness is less than the offset, so use
-# a generous offset to keep the cosmetic min wall (1.6 mm) with margin.
-WALL = 2.8
-NOISE = _P["carapace"]["noise"]                     # amp 1.2, freq 0.08
-
-META = PartMeta(
-    name="carapace",
-    material="PLA",
-    qty=1,
-    cosmetic=True,                                  # 1.6 mm min wall class
-    plate_group="rocky_shells",
-    supports="tree",
-    clearances={},
-)
+WALL = 2.8                                          # sloped-wall offset (perp >= 1.6)
+Z_SPLIT = H * 0.55                                  # cap/skirt horizontal seam
+NOISE = _P["carapace"]["noise"]
 
 
 def _dome(r_base: float, r_top: float, z0: float, z1: float) -> Part:
@@ -46,26 +33,43 @@ def _dome(r_base: float, r_top: float, z0: float, z1: float) -> Part:
     return bp.part
 
 
-def part() -> Part:
-    # Hollow shell = outer dome minus a slightly smaller inner dome that pokes
-    # below z=0, leaving the bottom open to sit over the body.
-    # inner top stops WALL_CAP below the outer top so the cap isn't paper-thin.
+def shell() -> Part:
+    """Full hollow dome shell. Inner top stops below the outer top so the cap
+    isn't paper-thin."""
     outer = _dome(R, R * 0.5, 0.0, H)
     inner = _dome(R - WALL, R * 0.5 - WALL, -2.0, H - 3.5)
     return outer - inner
 
 
-def displace(mesh):
-    """Subdivide to a fine mesh, then apply rock texture to the OUTER faces ONLY
-    (§4) so the shell wall never thins. Midpoint subdivide preserves manifoldness;
-    'outer' = vertices whose normal points away from the centroid."""
+def displace_outer(mesh):
+    """Subdivide, then rock-texture the OUTER faces only. Midpoint subdivide
+    preserves manifoldness; 'outer' = normal points away from the piece centroid;
+    near-vertical (cut-seam / cap) faces are left flat so the pieces still mate."""
     mesh.merge_vertices()
-    for _ in range(5):                # 52 -> ~53k tris, ~2.5 mm edges (fine craggy)
+    for _ in range(5):                 # ~53k tris, ~2.5 mm edges (fine craggy)
         mesh = mesh.subdivide()
     c = mesh.centroid
-    outer = np.einsum("ij,ij->i", mesh.vertices - c, mesh.vertex_normals) > 0
+    n = mesh.vertex_normals
+    mask = np.einsum("ij,ij->i", mesh.vertices - c, n) > 0   # outer faces only
     raw = _value_noise(mesh.vertices, NOISE["freq_per_mm"], 4, 1.0)
-    d = ((raw + 1.0) * 0.5) * NOISE["amp_mm"]     # outward-only [0, amp]
-    d[~outer] = 0.0                                # inner surface stays put
-    mesh.vertices = mesh.vertices + mesh.vertex_normals * d[:, None]
+    d = ((raw + 1.0) * 0.5) * NOISE["amp_mm"]      # outward-only [0, amp]
+    d[~mask] = 0.0
+    mesh.vertices = mesh.vertices + n * d[:, None]
     return mesh
+
+
+# --- Single-piece registration (the working carapace). The 2-piece split
+# (carapace_cap.py / carapace_skirt.py) is WIP: the rock displacement thins the
+# wall at the cut seams — needs seam-aware masking before it QAs clean. ---
+from common.cad_lib.part_meta import PartMeta  # noqa: E402
+
+META = PartMeta(name="carapace", material="PLA", qty=1, cosmetic=True,
+                plate_group="rocky_shells", supports="tree")
+
+
+def part() -> Part:
+    return shell()
+
+
+def displace(mesh):
+    return displace_outer(mesh)

@@ -21,7 +21,7 @@ _PARTS: dict[str, list[str]] = {
     ],
     "rocky": [
         "rocky.cad.parts.core_plate",
-        "rocky.cad.parts.carapace",             # movie-accurate rock dome (§4)
+        "rocky.cad.parts.carapace",             # movie-accurate rock dome (§4; 2-piece split WIP)
         "rocky.cad.parts.belly_rx_plate",       # Qi RX mount (wireless charging)
         # Shared wireless-charging dock (both robots dock on it); QA'd here.
         "common.cad_lib.charging_base",
