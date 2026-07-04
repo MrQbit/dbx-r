@@ -71,6 +71,16 @@ def build_bdx_a() -> RobotModel:
     leg("l", +1)
     leg("r", -1)
 
+    # Active neck (D-005): base -> neck1 -> neck2 -> head (two-stage pitch + yaw),
+    # matching the proven Open-Duck-Mini v2 layout. Head carries eyes/cameras.
+    m.add_link(Link("neck1_link", 0.07, Shape("box", (0.03, 0.03, 0.03))))
+    m.add_link(Link("neck2_link", 0.07, Shape("box", (0.03, 0.03, 0.03))))
+    m.add_link(Link("head", 0.18, Shape("box", (0.06, 0.07, 0.06)), com=(0.012, 0, 0.02)))
+    _revolute(m, "head_pitch1", "base_link", "neck1_link", (0.012, 0, 0.12), (0, 1, 0), limits["head_pitch1"], servo, ids["head_pitch1"])
+    _revolute(m, "head_pitch2", "neck1_link", "neck2_link", (0, 0, 0.04), (0, 1, 0), limits["head_pitch2"], servo, ids["head_pitch2"])
+    _revolute(m, "head_yaw", "neck2_link", "head", (0, 0, 0.03), (0, 0, 1), limits["head_yaw"], servo, ids["head_yaw"])
+    m.default_q.update({"head_pitch1": 0.0, "head_pitch2": 0.0, "head_yaw": 0.0})
+
     # Base height so the crouched feet rest on the floor (sagittal FK, angles sum 0).
     zc = math.cos(0.3)
     ankle_drop = 0.02 + 0.02 + 0.02 + thigh * zc + shin * zc  # hip stack + segments

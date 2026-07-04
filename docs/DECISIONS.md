@@ -44,3 +44,26 @@ do not. | Pinned **2.3.2**, digest
 (recorded in `orchestrator/.isaac_image_digest`). This digest is FROZEN — no
 mid-run Isaac Lab upgrades (§1 version rule). Primary Docker path succeeded; the
 source-build fallback (dgx-spark-playbook) was not needed.
+
+**D-005: BDX-A neck is ACTIVATED — 3 DOF (head_pitch1, head_pitch2, head_yaw), IDs 11-13.**
+| §3.4 stubbed the neck as fixed joints for v1. Operator priority is a
+movie-accurate, non-clunky build; research on the real Disney BDX (arXiv
+2501.05204: 4 neck DOF) and the proven Open-Duck-Mini v2 (3 active neck DOF:
+two-stage pitch + yaw) shows a *fixed head is the #1 "dead/clunky" tell* — the
+neck is where the character lives. | Deviates from §3.4 (a v1 simplification, not
+a MUST). Added the Open-Duck 3-DOF neck (two-stage pitch + yaw) appended as
+IDs 11-13 after the 10 legs; obs==action==servo-id order preserved. BDX-A is now
+13 DOF. Legs unchanged and confirmed correct vs the real droid (5/leg, hip
+yaw/roll/pitch + knee + ankle-pitch, NO ankle roll — matches Disney, which uses
+rounded foam feet instead). Mass +0.32 kg (still 1.84 kg < 2.265 kg cap);
+settle still passes. RL obs/action N: 10 -> 13.
+
+**D-006: ROCKY-5 dome lowered to canon (85 mm) and NO face/camera.**
+| The book gives Rocky a pentagonal carapace "18 in across and half as thick"
+(ratio 0.5); our 110 mm dome on a 160 mm carapace was 0.69 — too tall/beetle-like.
+Rocky also has NO eyes, NO face, NO front (pentaradial, senses by sound). Our
+component registry had wrongly placed a CSI camera on the dome as a "heading". |
+Dome 110 -> 85 mm (0.53 ratio) for the squat river-stone silhouette + lower CG.
+Removed the dome camera; sensing is audio + fully symmetric hidden ToF (no
+component may imply a front). 15 DOF (3/limb) kept — research confirms it is
+"accurate-plus" and enables the walk-and-manipulate behaviour from the story.

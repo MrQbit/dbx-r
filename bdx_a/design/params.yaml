@@ -44,9 +44,14 @@ dof:
   - {name: r_hip_pitch,   servo_id: 8,  limit_rad: [-1.6,  0.6]}
   - {name: r_knee,        servo_id: 9,  limit_rad: [ 0.0,  2.2]}
   - {name: r_ankle_pitch, servo_id: 10, limit_rad: [-1.0,  1.0]}
+  # Active neck (D-005): movie-accurate BDX drives the neck. Real BDX = 4 neck
+  # DOF; Open-Duck-Mini v2 (proven) = 3 (two-stage pitch + yaw). We take the
+  # proven 3. IDs 11-13 append after the 10 legs; order still == obs == action.
+  - {name: head_pitch1,   servo_id: 11, limit_rad: [-0.6,  0.9]}   # lower neck
+  - {name: head_pitch2,   servo_id: 12, limit_rad: [-0.6,  0.9]}   # upper neck
+  - {name: head_yaw,      servo_id: 13, limit_rad: [-0.8,  0.8]}
 
-# 2-DOF neck stubbed as fixed joints so v2 needs no mesh rework (§3.4).
-fixed_joints: [neck_pitch, neck_yaw]
+# No fixed neck stub anymore — the neck is actuated (see dof 11-13).
 
 # --- Actuator (STS3215 @ 12 V, §3.3 / Appendix A.3) ------------------------
 servo:

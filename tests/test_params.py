@@ -12,10 +12,13 @@ import pytest
 
 from common.params import load_params, bdx_a_dof, rocky_dof, params_path
 
-BDX_A_DOF_ORDER = [
+# 10 legs (IDs 1-10) then the active 3-DOF neck (IDs 11-13, D-005).
+BDX_A_LEG_ORDER = [
     "l_hip_yaw", "l_hip_roll", "l_hip_pitch", "l_knee", "l_ankle_pitch",
     "r_hip_yaw", "r_hip_roll", "r_hip_pitch", "r_knee", "r_ankle_pitch",
 ]
+BDX_A_NECK_ORDER = ["head_pitch1", "head_pitch2", "head_yaw"]
+BDX_A_DOF_ORDER = BDX_A_LEG_ORDER + BDX_A_NECK_ORDER
 
 
 @pytest.mark.parametrize("robot", ["bdx_a", "rocky"])
@@ -26,9 +29,10 @@ def test_no_todo_markers(robot):
 
 def test_bdx_a_dof_order_and_ids():
     dof = bdx_a_dof(load_params("bdx_a"))
-    assert [d["name"] for d in dof] == BDX_A_DOF_ORDER, "DOF order is law (§3.3)"
-    # IDs 1..10 in declared order; obs order == action order == servo ID order.
-    assert [d["servo_id"] for d in dof] == list(range(1, 11))
+    assert [d["name"] for d in dof] == BDX_A_DOF_ORDER, "DOF order is law (§3.3, D-005)"
+    # IDs 1..13 in declared order; obs order == action order == servo ID order.
+    assert [d["servo_id"] for d in dof] == list(range(1, 14))
+    assert [d["name"] for d in dof[:10]] == BDX_A_LEG_ORDER  # legs unchanged, 1-10
 
 
 def test_bdx_a_limits_match_spec():

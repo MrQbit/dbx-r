@@ -18,6 +18,8 @@ _PARTS: dict[str, list[str]] = {
     ],
     "rocky": [
         "rocky.cad.parts.core_plate",
+        # Shared wireless-charging dock (both robots dock on it); QA'd here.
+        "common.cad_lib.charging_base",
     ],
 }
 

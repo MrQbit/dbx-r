@@ -11,7 +11,9 @@ limb_angle_deg: 72            # limb 0 = heading (0deg), then +72 each
 # --- Canonical dimensions (§4), millimetres --------------------------------
 dimensions:
   carapace_dia_mm: 160         # circumscribed diameter
-  dome_height_mm: 110
+  # Dome lowered to the book-canonical "half as thick" ratio (~0.5 x width);
+  # squat river-stone silhouette, lower CG, more stable radial walker (D-006).
+  dome_height_mm: 85
   limb_reach_mm: 180
   coxa_mm: 40
   femur_mm: 70
