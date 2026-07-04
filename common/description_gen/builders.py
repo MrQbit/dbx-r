@@ -42,9 +42,11 @@ def build_rocky() -> RobotModel:
     tibia = d["tibia_mm"] * MM
     mount_r = d["carapace_dia_mm"] * MM / 2 - 0.028  # coxa mount radius (matches core_plate)
 
+    # Masses reflect Robstride QDD motors (~0.23 kg each, D-010): base carries the
+    # 5 coxa motors + electronics + battery; each limb link carries its own motor.
     m = RobotModel(name="rocky", root="base_link")
-    m.add_link(Link("base_link", mass=0.70,
-                    shape=Shape("cylinder", (d["carapace_dia_mm"] * MM / 2, 0.06)),
+    m.add_link(Link("base_link", mass=1.6,
+                    shape=Shape("cylinder", (d["carapace_dia_mm"] * MM / 2, 0.07)),
                     com=(0, 0, 0.0)))
 
     foot_r = d["foot_dia_mm"] * MM / 2
@@ -61,9 +63,9 @@ def build_rocky() -> RobotModel:
         # The coxa_yaw joint already rotates the limb frame by `ang`, so in the
         # LOCAL femur/tibia frame the tangential pitch axis is simply +Y.
         pitch_axis = (0.0, 1.0, 0.0)
-        m.add_link(Link(coxa_l, 0.09, Shape("box", (coxa, 0.03, 0.03)), com=(coxa / 2, 0, 0)))
-        m.add_link(Link(fem_l, 0.10, Shape("box", (femur, 0.028, 0.028)), com=(femur / 2, 0, 0)))
-        m.add_link(Link(tib_l, 0.07, Shape("box", (tibia, 0.024, 0.024)), com=(tibia / 2, 0, 0)))
+        m.add_link(Link(coxa_l, 0.30, Shape("box", (coxa, 0.05, 0.05)), com=(coxa / 2, 0, 0)))
+        m.add_link(Link(fem_l, 0.30, Shape("box", (femur, 0.048, 0.048)), com=(femur / 2, 0, 0)))
+        m.add_link(Link(tib_l, 0.22, Shape("box", (tibia, 0.04, 0.04)), com=(tibia / 2, 0, 0)))
         _revolute(m, cyaw, "base_link", coxa_l, (cx, cy, 0.0), (0, 0, 1),
                   tmpl["coxa_yaw"]["limit_rad"], servo, 3 * i + 1, rpy=(0, 0, ang))
         _revolute(m, fpit, coxa_l, fem_l, (coxa, 0, 0), pitch_axis,
