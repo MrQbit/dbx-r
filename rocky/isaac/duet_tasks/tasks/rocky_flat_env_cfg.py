@@ -54,8 +54,8 @@ ROCKY_CFG = ArticulationCfg(
     actuators={
         "all": ImplicitActuatorCfg(
             joint_names_expr=[".*"],
-            stiffness=17.0, damping=0.5,
-            effort_limit_sim=2.5, velocity_limit_sim=5.0, armature=0.01,
+            stiffness=40.0, damping=2.0,          # Robstride RS00 (D-010)
+            effort_limit_sim=17.0, velocity_limit_sim=19.0, armature=0.02,
         ),
     },
     soft_joint_pos_limit_factor=0.95,

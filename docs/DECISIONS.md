@@ -97,3 +97,14 @@ renders as a smooth dome, not "made of rocks". | Raised to amp 3.5 mm, freq
 the cosmetic shell wall never thins (min wall 1.72 mm > 1.6). Visibly craggy,
 watertight, QA-pass. A tuning knob in rocky/design/params.yaml. Future: 2-piece
 split + dovetails (§4), carved markings.
+
+**D-010 (needs scale decision): ROCKY-5 actuator switched to Robstride, shared with BDX-A.**
+| Operator: "assume Robstride for Rocky as well, reuse as many components as
+possible to simplify (BDX is known behavior)." | Actuator is now a shared
+Robstride QDD motor across both robots (also corrected BDX-A's registry, which
+still listed STS3215). CONSEQUENCE: Robstride ~230 g each vs STS3215 60 g — **17x
+Robstride = 4.35 kg of motors alone, ~2x Rocky's 2.2 kg budget.** Rocky cannot
+stay 2.2 kg / 160 mm with Robstride; it must scale up to a larger/heavier robot
+(full-scale ~5-6 kg like BDX-R). Dimensions, masses, CAD, and the (STS3215-trained)
+Rocky policy all need to follow the scale decision — RETRAIN pending. Actuator
+type + component reuse applied now; scale/budget/dims flagged for the operator.

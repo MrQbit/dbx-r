@@ -68,8 +68,11 @@ JETSON = Component("jetson_orin_nano", "compute", (100.0, 80.0, 30.0), 100.0, "t
                    "Orin Nano 8GB on compact carrier; ribbon = CSI cam")
 BATTERY = Component("battery_3s", "power", (70.0, 38.0, 20.0), 150.0, "bay",
                     ("xt30",), 2.0, "3S Li-ion >=2600 mAh + BMS (params §3.2)")
-SERVO = Component("sts3215", "actuator", (45.2, 24.0, 32.0), 60.0, "pocket",
-                  ("dupont",), 1.0, "bus servo; daisy-chained")
+# Shared actuator across BOTH robots (D-010): Robstride QDD motor — proven on
+# BDX-R, reused on ROCKY-5 to simplify sourcing/firmware/wiring/spares. Much
+# heavier than a hobby servo (~230 g vs 60 g) — drives Rocky's mass/size up.
+SERVO = Component("robstride_rs00", "actuator", (48.0, 48.0, 32.0), 230.0, "pocket",
+                  ("canbus",), 2.0, "Robstride QDD motor (RS00-class), CAN bus")
 BUCK = Component("buck_5v5a", "power", (43.0, 21.0, 14.0), 15.0, "tray",
                  ("dupont",), 2.0, "5V/5A to Jetson barrel")
 INA219 = Component("ina219", "sensor", (26.0, 20.0, 4.0), 5.0, "tray",

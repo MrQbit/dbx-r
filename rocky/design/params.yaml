@@ -52,17 +52,21 @@ manipulators:
   fingers: 3                   # triangular stony fingers (driven together)
 
 # --- Actuator (STS3215, shared with bdx_a §3.5) ----------------------------
+# Actuator = Robstride, SHARED with BDX-A (D-010) — reuse BDX's proven motor to
+# simplify sourcing/firmware/wiring. NOTE: 17x Robstride ~4.35 kg of motors alone,
+# ~2x the 2.2 kg budget below — Rocky MUST scale up to a larger/heavier robot
+# (mass_budget + dimensions pending the operator scale decision).
 servo:
-  model: STS3215
-  voltage_v: 12
-  torque_continuous_nm: 1.2
-  torque_stall_nm: 2.9
-  bus: {adapter: waveshare_a, port: /dev/ttyUSB0, baud: 1000000}
-  kp: 17
-  kd: 0.5
-  effort_clamp_nm: 2.5
-  vel_clamp_rad_s: 5
-  armature: 0.01
+  model: robstride_rs00
+  voltage_v: 24
+  torque_continuous_nm: 14.0
+  torque_stall_nm: 17.0
+  bus: {type: canbus}
+  kp: 40
+  kd: 2.0
+  effort_clamp_nm: 17.0
+  vel_clamp_rad_s: 19.0
+  armature: 0.02
   friction: 0.03
 
 # --- Torque check (§4): femur worst case ~0.52 Nm vs 1.2 Nm continuous ------
