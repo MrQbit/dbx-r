@@ -90,11 +90,16 @@ def to_mjcf(model: RobotModel) -> str:
     return f"""<mujoco model="{model.name}">
   <compiler angle="radian"/>
   <option timestep="0.005" gravity="0 0 -9.81" iterations="50"/>
+  <visual>
+    <global offwidth="1280" offheight="960"/>
+  </visual>
   <default>
-    <geom friction="0.8 0.02 0.001" condim="3"/>
+    <geom friction="0.8 0.02 0.001" condim="3" rgba="0.62 0.65 0.70 1"/>
   </default>
   <worldbody>
-    <geom name="floor" type="plane" size="5 5 0.1" pos="0 0 0"/>
+    <light pos="0.6 -0.4 1.4" dir="-0.4 0.3 -1" diffuse="0.9 0.9 0.9" specular="0.2 0.2 0.2"/>
+    <light pos="-0.8 0.6 1.0" dir="0.5 -0.4 -1" diffuse="0.4 0.4 0.45"/>
+    <geom name="floor" type="plane" size="5 5 0.1" pos="0 0 0" rgba="0.3 0.32 0.35 1"/>
 {chr(10).join(body_lines)}
   </worldbody>
   <actuator>
