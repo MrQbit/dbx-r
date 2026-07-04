@@ -17,6 +17,7 @@ _PARTS: dict[str, list[str]] = {
     # add-ons as they're authored). ROCKY-5 is our own full part set.
     "bdx_a": [
         "common.cad_lib.coupons",
+        "bdx_a.cad.parts.belly_rx_mount",       # Qi RX add-on (wireless charging)
     ],
     "rocky": [
         "rocky.cad.parts.core_plate",
