@@ -20,4 +20,4 @@ def part() -> Part:
 
 
 def displace(mesh):
-    return displace_outer(mesh)
+    return displace_outer(mesh, z_seam=Z_SPLIT)

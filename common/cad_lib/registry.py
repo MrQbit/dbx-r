@@ -21,10 +21,16 @@ _PARTS: dict[str, list[str]] = {
     ],
     "rocky": [
         "rocky.cad.parts.core_plate",
+        # Interchangeable 3-pronged limbs (movie): a symmetric 3-prong foot on
+        # every leg (qty 5) and the one culturally-marked primary limb segment
+        # (base-3 ruler + Eridian marriage symbol, engraved shallow so QA passes).
+        "rocky.cad.parts.foot",
+        "rocky.cad.parts.limb_marked",
         # Single-piece rock dome — fits the 250mm P2S envelope (211mm). The 2-piece
-        # split (carapace_cap/skirt) needs a mating lip/flange at the seam (a planar
-        # cut through the sloped thin wall leaves a thin wedge edge) before it QAs
-        # clean — deferred, not envelope-required while the carapace fits.
+        # split (carapace_cap/skirt) is now validated (seam-flush displacement +
+        # a dovetail registration lip; both QA-clean and assemble with zero
+        # interference) but stays UNREGISTERED — redundant while the single piece
+        # fits. Swap the two in if a future scale pushes the dome past the envelope.
         "rocky.cad.parts.carapace",             # movie-accurate rock dome (§4)
         "rocky.cad.parts.belly_rx_plate",       # Qi RX mount (wireless charging)
         # Shared wireless-charging dock (both robots dock on it); QA'd here.

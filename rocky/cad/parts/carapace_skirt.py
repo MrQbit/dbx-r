@@ -8,16 +8,21 @@ from __future__ import annotations
 from build123d import Box, Pos, Part
 
 from common.cad_lib.part_meta import PartMeta
-from rocky.cad.parts.carapace import shell, Z_SPLIT, displace_outer
+from rocky.cad.parts.carapace import (
+    shell, Z_SPLIT, displace_outer, seam_lip, lip_protect_radius,
+)
 
 META = PartMeta(name="carapace_skirt", material="PLA", qty=1, cosmetic=True,
-                plate_group="rocky_shells", supports="none")
+                plate_group="rocky_shells", supports="none",
+                clearances={"seam_lip": "loose"})
 
 
 def part() -> Part:
     lower = Pos(0, 0, Z_SPLIT - 100) * Box(400, 400, 200)   # keep z <= seam
-    return shell() & lower
+    return (shell() & lower) + seam_lip()                   # + registration lip
 
 
 def displace(mesh):
-    return displace_outer(mesh)
+    # Hold the flat seam flush AND leave the internal registration lip un-textured
+    # (protect_r_below) so it keeps its slide fit into the cap.
+    return displace_outer(mesh, z_seam=Z_SPLIT, protect_r_below=lip_protect_radius())
