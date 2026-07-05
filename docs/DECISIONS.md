@@ -143,3 +143,10 @@ envelope in one piece and hides the electronics. Mass stays ~5 kg (motor-dominat
 Stay on the NVIDIA stack (operator). Orin Nano 8GB moves from the 100x80 dev kit to
 a compact carrier (reComputer J401-class, ~90x63) — keeps USB/Ethernet/CSI out of
 the box (no custom PCB), smaller footprint for the tightened body.
+
+## D-016 — Halve PPO learning rate after resized-Rocky NaN blowup
+The resized-Rocky retrain (165mm/EduLite-05) climbed to reward +46.6 then crashed at
+iter ~354 with `normal expects std >= 0.0` — a PPO policy-std NaN blowup (the tighter
+6 Nm dynamics let some envs reach extreme states). The identical PPO config trained
+the first Rocky + BDX fine, so it's numerical instability, not a config bug. Halved
+learning_rate 1e-3 -> 5e-4 (gentler updates) and relaunched. Watch iter ~354.
