@@ -39,13 +39,30 @@ def _organic_chord(freqs, dur_ms: float, brightness: float = 0.6,
                 continue                                  # dim highs when un-bright
             fk = f * k * (1 + INHARMONICITY * (k - 1))
             out += (amp * brightness ** (k - 1)) * np.sin(2 * np.pi * fk * t)
+    out = out / (len(freqs) + 1e-6)
+    # whale / water-jug SUB-BASS an octave below the lowest note (widen range down
+    # toward the film's ~80-200 Hz deep register)
+    sub_f = min(freqs) / 2.0
+    out += 0.35 * np.sin(2 * np.pi * sub_f * (1 + INHARMONICITY) * t)
     # breath: gentle band-ish noise shaped by the envelope
     rng = np.random.RandomState(int(sum(freqs)) % 2**31)
     noise = rng.randn(n).astype(np.float32)
     noise = np.convolve(noise, np.ones(8) / 8, mode="same")   # soften (low-pass-ish)
-    out = out / (len(freqs) + 1e-6) + breath * noise
+    out = out + breath * noise
     flutter = 1.0 + 0.05 * np.sin(2 * np.pi * 5.5 * t)        # slow vibrato/flutter
     return (out * _adsr(n) * flutter).astype(np.float32)
+
+
+def birdsong(dur_ms: float = 180.0, semitones: int = 0) -> np.ndarray:
+    """High warbling chirp (~1.5-3 kHz) — the film's birdsong/piccolo top end.
+    Sprinkled into bright/excited phrases to widen the range upward."""
+    n = max(int(SR * dur_ms / 1000), 1)
+    t = np.arange(n) / SR
+    f0 = 1800 * 2 ** (semitones / 12.0)
+    freq = f0 * (1 + 0.35 * np.sin(2 * np.pi * 17 * t)) * (1 + 0.5 * t / t[-1])
+    phase = 2 * np.pi * np.cumsum(freq) / SR
+    env = np.sin(np.pi * np.linspace(0, 1, n)) ** 0.5
+    return (0.22 * np.sin(phase) * env).astype(np.float32)
 
 
 def _chord_freqs(token: str, semitones: int) -> np.ndarray:
@@ -73,8 +90,12 @@ def eridian_phrase(words, emotion: str = "neutral",
     semis, bright = vp["pitch_semitones"], vp["brightness"]
     words = [w for w in words if w] or ["rocky"]
     per_ms = (total_ms / len(words)) if total_ms else 260.0
-    segs = [_organic_chord(_chord_freqs(w, semis), per_ms, brightness=bright)
-            for w in words]
+    segs = []
+    for i, w in enumerate(words):
+        seg = _organic_chord(_chord_freqs(w, semis), per_ms, brightness=bright)
+        if bright > 0.7 and i % 2 == 1:                  # excited -> bird flourishes
+            seg = seg + _fit(birdsong(min(per_ms, 200.0), semis + 12), len(seg))
+        segs.append(seg)
     return np.concatenate(segs) if segs else np.zeros(0, dtype=np.float32)
 
 
@@ -94,8 +115,9 @@ def translate(text: str, emotion: str = "neutral", tag: str = "statement",
     semis = vp["pitch_semitones"]
 
     spoken = persona.say(text, tag)                          # literal Eridian syntax
-    eng = tts.speak(spoken, pitch=int(np.clip(42 + 3 * semis, 5, 95)),
-                    pitch_range=70) if english else np.zeros(0, dtype=np.float32)
+    # on-ship translator: word-by-word hard-cuts, flat tags, bitcrush/band-pass
+    eng = tts.speak_translated(spoken, pitch=int(np.clip(46 + 3 * semis, 5, 95))
+                               ) if english else np.zeros(0, dtype=np.float32)
 
     span_ms = (len(eng) / SR * 1000) if len(eng) else 260.0 * max(len(text.split()), 1)
     erid = eridian_phrase(text.split(), emotion, total_ms=span_ms)

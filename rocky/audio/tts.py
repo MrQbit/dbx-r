@@ -11,6 +11,7 @@ from __future__ import annotations
 import ctypes
 
 import numpy as np
+from scipy import signal
 
 from rocky.audio.synth import SR
 
@@ -69,3 +70,52 @@ def speak(text: str, pitch: int = 42, rate: int = 150, voice: str = "en",
         audio = np.interp(np.linspace(0, len(audio), n_out, endpoint=False),
                           np.arange(len(audio)), audio).astype(np.float32)
     return audio
+
+
+# --- "laptop translator" character (movie-match) ---------------------------
+def _bandpass(a, lo=150.0, hi=4000.0):
+    """Strip sub-150 warmth + above-4k air -> the thin translated-TTS interface
+    (removes the natural warm human chest resonance)."""
+    ny = SR / 2.0
+    sos = signal.butter(4, [lo / ny, min(hi / ny, 0.99)], btype="band", output="sos")
+    return signal.sosfilt(sos, a).astype(np.float32)
+
+
+def _bitcrush(a, bits=9, down_sr=16000):
+    """Quantize + sample-rate-reduce (sample-and-hold) -> rugged, digitized,
+    'industrial speaker cone' texture."""
+    q = 2 ** (bits - 1)
+    a = np.round(a * q) / q
+    step = max(int(round(SR / down_sr)), 1)
+    if step > 1:
+        a = np.repeat(a[::step], step)[:len(a)]         # 16 kHz sample-and-hold
+    return a.astype(np.float32)
+
+
+def laptop_fx(a):
+    """Full translator chain: band-pass + bitcrush/downsample + soft-clip drive."""
+    if len(a) == 0:
+        return a
+    a = _bandpass(a)
+    a = _bitcrush(a, bits=9, down_sr=16000)
+    a = np.tanh(a * 1.6) / np.tanh(1.6)                  # mild clipping distortion
+    m = np.abs(a).max()
+    return (a / m * 0.95).astype(np.float32) if m > 0 else a
+
+
+def speak_translated(text: str, pitch: int = 46, rate: int = 165,
+                     gap_ms: float = 42.0) -> np.ndarray:
+    """Rocky's ON-SHIP translator voice: each word synthesized IN ISOLATION (so it
+    reads FLAT/declarative — no sentence intonation, tags like 'question' stay
+    deadpan) and concatenated with 35-50ms micro-pauses (discrete data-blocks,
+    hard word cuts), then run through the laptop_fx texture chain."""
+    words = [w.strip(".,!?;:") for w in text.replace(",", " ").split()]
+    words = [w for w in words if w]
+    gap = np.zeros(int(SR * gap_ms / 1000), dtype=np.float32)
+    segs = []
+    for w in words:
+        wv = speak(w, pitch=pitch, rate=rate, pitch_range=25)   # low range = flat
+        segs.append(wv)
+        segs.append(gap)
+    raw = np.concatenate(segs) if segs else np.zeros(0, dtype=np.float32)
+    return laptop_fx(raw)
