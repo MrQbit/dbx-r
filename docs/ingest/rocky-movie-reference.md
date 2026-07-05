@@ -44,6 +44,33 @@ inference from qualitative BTS notes — tune, not canon.
   vs solemnity (slow/low/still-not-frozen). Model as arousal×valence driving gait
   params + voice params + a gesture library (reach/tap/fist-bump/forearm-play).
 
+## Operator behavioral spec (authoritative — synthesized into code)
+Implemented in `rocky/persona.py` + `rocky_reference.py` poses:
+- **Anatomy:** 5 IDENTICAL limbs, each 3 joints (body-proximal / elbow-knee / wrist)
+  ending in a 3-pronged hand-foot; any limb is arm or leg. (Our build actuates
+  grips on 2 legs for cost; all 5 feet get the 3-prong shape — CAD TODO.)
+- **Omnidirectional, NO chassis yaw:** directional movement = shift the kinetic
+  vector to a different set of limbs, never rotate the body. → RL: command is a 2D
+  velocity vector on the 0.35 m/s disk, PENALIZE base yaw-rate, no heading reward.
+- **Gait:** arachnid alternating/quad-support wave (e.g. 1-3-5 step while 2-4
+  support, or a syncopated cascade); fast & agile; can climb/clamp with fingers.
+- **Dormant rock-dome:** withdraw all 5 limbs tightly up under the carapace →
+  flat solid dome. → `rocky_reference.rest_pose()`.
+- **Dialogue syntax (MANDATORY tags):** append ", question!"/", question?" for
+  questions, ", statement!" for assertions; drop articles/copula; literal
+  descriptors ("humans"→"leaky space blobs"); "No understand word" on unknown
+  syntax. → `persona.say(text, tag)`.
+- **Emotion = body+sound (no face):** excitement/agree = rapid 3-prong TAPPING +
+  carapace SWAY; distress/fear = RETRACT limbs + rapid carapace CHATTER (clicking
+  stone); curious = hold still, TILT carapace toward subject + echolocation clicks;
+  contact = trace with one finger. → `persona.jitter/gait_mod/voice_params` +
+  EMOTIONS states (excited/agree/curious/solemn/distress/dormant).
+- **Voice:** native melodic chords/whale-song, in-film translated via a rugged,
+  slightly clipped, low-fi TTS (Ortiz). → our chord voice + a mechanical TTS gloss;
+  agitation→pitch up, grave→down.
+- **Cultural markings (CAD TODO):** base-3 math scales/rulers etched into limbs +
+  a carved marriage symbol (two interlocking circles) on one primary limb.
+
 Sources: HollywoodReporter (Ortiz), GoldDerby (Scanlan), BlackGirlNerds, MovieWeb,
 The Credits/MPA + Space.com (sound), LinguisticDiscovery (Eridian language),
 WinterIsComing (catchphrases). Video (Scanlan): youtube.com/watch?v=J3V9e3uqplM.

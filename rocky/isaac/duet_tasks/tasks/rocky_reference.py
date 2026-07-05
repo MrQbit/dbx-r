@@ -77,6 +77,32 @@ def body_roll(phase: float, limb_count: int = 5) -> float:
     return roll
 
 
+def rest_pose(limb_count: int = 5, grip_legs=(1, 4)) -> dict:
+    """Dormant 'rock dome' (spec §1): all 5 limbs withdrawn tightly up under the
+    carapace so Rocky flattens into a solid rock-like dome — his sleep/idle state."""
+    out = {}
+    for i in range(limb_count):
+        out[f"leg{i}_coxa_yaw"] = 0.0
+        out[f"leg{i}_femur_pitch"] = -0.55        # raise thigh: tuck the limb up under
+        out[f"leg{i}_tibia_pitch"] = 0.05         # fold the shank in tight
+    for leg in grip_legs:
+        out[f"leg{leg}_grip"] = 0.0
+    return out
+
+
+def retract_pose(limb_count: int = 5, grip_legs=(1, 4)) -> dict:
+    """Distress/fear (spec §3): limbs pulled in tight (partway toward the dome),
+    ready to chatter — pair with persona.jitter('distress', ...) for the vibration."""
+    out = {}
+    for i in range(limb_count):
+        out[f"leg{i}_coxa_yaw"] = 0.0
+        out[f"leg{i}_femur_pitch"] = -0.15
+        out[f"leg{i}_tibia_pitch"] = 0.45
+    for leg in grip_legs:
+        out[f"leg{leg}_grip"] = 0.3                # grips clenched
+    return out
+
+
 def reference_array(phase: float, joint_names) -> np.ndarray:
     """Reference targets as an array in the given joint order (for the RL reward)."""
     ref = reference(phase)
