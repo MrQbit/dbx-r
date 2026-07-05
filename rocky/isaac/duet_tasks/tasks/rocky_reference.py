@@ -24,18 +24,27 @@ FOLD_TIBIA = 0.7                 # how much the tibia folds during swing
 
 
 def _leg_phase(theta: float):
-    """One leg's joint targets at its local phase theta in [0,1):
-    stance (planted, retracting to push) then a lift-and-swing-forward."""
+    """One leg's joint targets at its local phase theta in [0,1): stance (planted,
+    retracting to push) then a CYCLOID lift-and-swing. The cycloid profile has zero
+    vertical/horizontal velocity at lift-off and touch-down — no impact step, the
+    smooth organic arc of the puppet (spec §2)."""
     if theta < DUTY:                                   # stance
         s = theta / DUTY
-        coxa = COXA_SWEEP * (0.5 - s)                  # sweep back (push body forward)
+        coxa = COXA_SWEEP * (0.5 - s)                  # sweep back (push body along heading)
         return coxa, STANCE_FEMUR, STANCE_TIBIA
     s = (theta - DUTY) / (1.0 - DUTY)                  # swing 0->1
-    lift = np.sin(np.pi * s)                           # 0->1->0 (raise then plant)
-    coxa = -COXA_SWEEP * 0.5 + COXA_SWEEP * s          # swing forward
-    femur = STANCE_FEMUR - LIFT_FEMUR * lift           # raise the foot
+    lift = (1.0 - np.cos(2 * np.pi * s)) / 2           # cycloid vertical: 0->1->0, v=0 at ends
+    prot = s - np.sin(2 * np.pi * s) / (2 * np.pi)     # cycloid horizontal: smooth 0->1
+    coxa = -COXA_SWEEP * 0.5 + COXA_SWEEP * prot       # swing forward (cycloid)
+    femur = STANCE_FEMUR - LIFT_FEMUR * lift           # raise the foot (H_swing clearance)
     tibia = STANCE_TIBIA - FOLD_TIBIA * lift           # fold the shank
     return coxa, femur, tibia
+
+
+def _wrap(a: float) -> float:
+    """Wrap angle to [-pi, pi]."""
+    import math
+    return (a + math.pi) % (2 * math.pi) - math.pi
 
 
 # Movie note (Scanlan/Ortiz): Rocky's gait is deliberately SYNCOPATED — "one's
@@ -47,16 +56,26 @@ PHASE_DESYNC = (0.00, 0.06, -0.04, 0.05, -0.03)       # break the perfect wave
 LIFT_VARY = (1.0, 0.9, 1.08, 0.94, 1.05)              # per-leg lift variation
 
 
-def reference(phase: float, limb_count: int = 5, grip_legs=(1, 4)) -> dict:
-    """Joint-name -> target angle at global gait phase in [0,1). Syncopated wave."""
+HEADING_AIM = 0.45              # how strongly each leg re-aims its stride to the heading
+
+
+def reference(phase: float, heading: float = 0.0, limb_count: int = 5,
+              grip_legs=(1, 4)) -> dict:
+    """Joint-name -> target angle at global gait phase in [0,1), for a HOLONOMIC
+    stride toward `heading` (rad, global). Rocky is omnidirectional: strides re-aim
+    to the movement vector while the chassis NEVER yaws — heading only shifts the
+    per-leg coxa azimuth (which legs lead), not the body (spec §2 holonomic invariant)."""
+    import math
     out = {}
     for i in range(limb_count):
+        alpha = 2 * math.pi * i / limb_count           # leg's fixed radial mount angle
         theta = (phase + i / limb_count + PHASE_DESYNC[i % 5]) % 1.0
         coxa, femur, tibia = _leg_phase(theta)
-        # per-leg lift variation (desync the depth too)
         femur = STANCE_FEMUR - (STANCE_FEMUR - femur) * LIFT_VARY[i % 5]
         tibia = STANCE_TIBIA - (STANCE_TIBIA - tibia) * LIFT_VARY[i % 5]
-        out[f"leg{i}_coxa_yaw"] = coxa
+        # aim this leg's stride along the global heading (no chassis yaw)
+        aim = HEADING_AIM * _wrap(heading - alpha)
+        out[f"leg{i}_coxa_yaw"] = aim + coxa
         out[f"leg{i}_femur_pitch"] = femur
         out[f"leg{i}_tibia_pitch"] = tibia
     for leg in grip_legs:

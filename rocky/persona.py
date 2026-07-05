@@ -37,15 +37,37 @@ EMOTIONS = {
 
 
 # --- emotion -> motion (joint jitter / vibration) --------------------------
-def jitter(state: str, t: float, joint_index: int) -> float:
-    """Per-joint vibration to ADD to the gait targets (rad). Frequency and
-    amplitude scale with arousal — the spec's 'map emotional states to joint
-    jitter/vibration frequencies'. Distress chatters fast; dormant is nearly still."""
+# The three spec §3 micro-motion profiles, as explicit generators:
+
+def wrist_tap(t: float, freq: float = 10.0, amp: float = 0.06) -> float:
+    """Excitement/affirmation: fast (8-12 Hz) RECTIFIED oscillation on the grounded
+    end-effectors — 3-pronged fingers rapidly tapping a surface."""
+    return amp * abs(math.sin(2 * math.pi * freq * t))
+
+
+def scan_tilt(t: float, omega_slow: float = 1.0, amp: float = 0.12) -> float:
+    """Echolocation scanning: a slow sinusoidal tilt of the chassis toward the
+    region of interest (translation velocity held at zero)."""
+    return amp * math.sin(omega_slow * t)
+
+
+def agitate_noise(rng, sigma: float = 0.05, n: int = 15) -> "list[float]":
+    """Agitation/alarm: Gaussian noise (sigma~0.05 rad) across all 15 leg joints
+    simultaneously — a full-body structural vibration (chattering stone)."""
+    return [float(x) for x in rng.normal(0.0, sigma, n)]
+
+
+def jitter(state: str, t: float, joint_index: int, is_wrist: bool = False) -> float:
+    """Per-joint vibration to ADD to the gait targets (rad), dispatched to the spec
+    profile for the state: excited/agree -> wrist tap on end-effectors; distress ->
+    broadband tremor (use agitate_noise for the true Gaussian); else arousal-scaled
+    tremor. Dormant is nearly still."""
     e = EMOTIONS[state]
+    if state in ("excited", "agree") and is_wrist:
+        return wrist_tap(t, freq=8.0 + 4.0 * e.arousal)
     freq = 2.0 + 14.0 * e.arousal              # ~2 Hz calm .. ~16 Hz agitated chatter
-    amp = 0.01 + 0.05 * e.arousal              # subtle tremor .. visible tapping
-    phase = joint_index * 1.7                  # decorrelate joints
-    return amp * math.sin(2 * math.pi * freq * t + phase)
+    amp = (0.05 if state == "distress" else 0.01 + 0.04 * e.arousal)
+    return amp * math.sin(2 * math.pi * freq * t + joint_index * 1.7)
 
 
 def gait_mod(state: str) -> dict:
