@@ -63,16 +63,19 @@ class Placement:
 # --------------------------------------------------------------------------- #
 # Shared component catalogue (nominal sourceable modules)
 # --------------------------------------------------------------------------- #
-JETSON = Component("jetson_orin_nano", "compute", (100.0, 80.0, 30.0), 100.0, "tray",
-                   ("usb", "barrel", "i2c", "i2s", "gpio", "ribbon"), 4.0,
-                   "Orin Nano 8GB on compact carrier; ribbon = CSI cam")
+# NVIDIA stack retained (operator: "stay on Nvidia"): Orin Nano 8GB on a COMPACT
+# carrier (reComputer J401-class ~90x63 vs the 100x80 dev kit) — keeps USB/Ethernet/
+# CSI out of the box, no custom PCB, smaller footprint (D-015).
+JETSON = Component("jetson_orin_nano", "compute", (90.0, 63.0, 30.0), 90.0, "tray",
+                   ("usb", "eth", "i2c", "i2s", "gpio", "ribbon"), 4.0,
+                   "NVIDIA Orin Nano 8GB on compact carrier; ribbon = CSI cam")
 BATTERY = Component("battery_3s", "power", (70.0, 38.0, 20.0), 150.0, "bay",
                     ("xt30",), 2.0, "3S Li-ion >=2600 mAh + BMS (params §3.2)")
-# Shared actuator across BOTH robots (D-010): Robstride QDD motor — proven on
-# BDX-R, reused on ROCKY-5 to simplify sourcing/firmware/wiring/spares. Much
-# heavier than a hobby servo (~230 g vs 60 g) — drives Rocky's mass/size up.
-SERVO = Component("robstride_rs00", "actuator", (48.0, 48.0, 32.0), 230.0, "pocket",
-                  ("canbus",), 2.0, "Robstride QDD motor (RS00-class), CAN bus")
+# ROCKY-5 actuator (D-013): Robstride EduLite 05 QDD (1.8 rated / 6 peak Nm, ~$80) —
+# torque-valid at the tightened size, far cheaper than RS00. BDX-A keeps the
+# higher-torque Robstride (42 Nm hips). Dims PROVISIONAL — verify EduLite datasheet.
+SERVO = Component("robstride_edulite05", "actuator", (52.0, 52.0, 34.0), 242.0, "pocket",
+                  ("canbus",), 2.0, "Robstride EduLite 05 QDD (9:1), CAN bus")
 BUCK = Component("buck_5v5a", "power", (43.0, 21.0, 14.0), 15.0, "tray",
                  ("dupont",), 2.0, "5V/5A to Jetson barrel")
 INA219 = Component("ina219", "sensor", (26.0, 20.0, 4.0), 5.0, "tray",

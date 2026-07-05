@@ -125,3 +125,21 @@ approach but can't be carried over. Chose to unify BOTH robots in Isaac: imitati
 is a reference-tracking REWARD (`duet_mdp.track_reference_gait`) on the hand-authored
 gaits (rocky_reference movie-accurate; bdx_reference bipedal), combined with rough
 terrain in one policy per robot. Tasks: Duet-{Rocky,Bdx}-Imitate-Rough-v0.
+
+## D-013 — ROCKY-5 servo: RS00 -> Robstride EduLite 05
+The RS00 (14/17 Nm) was ~3x over-specced for a 5-legged ~5 kg robot (torque report:
+passes to 17 kg). Switched Rocky to EduLite 05 (1.8 rated / 6 peak Nm, ~$80,
+significantly cheaper). Torque-valid ONLY at the tightened size (shorter femur
+lever, worst case ~0.8 Nm -> needs 1.44 cont / 2.4 peak; EduLite 1.8/6 clears it).
+BDX-A CANNOT use EduLite (hips need 42 Nm) — stays on higher-torque Robstride.
+Requires an RL retrain with effort_limit=6.
+
+## D-014 — ROCKY-5 tightened to smallest-that-fits
+Carapace 220 -> 165 mm (x0.75), legs scaled to match; fits the 250 mm print
+envelope in one piece and hides the electronics. Mass stays ~5 kg (motor-dominated,
+17 x ~240 g). Requires URDF regen + retrain.
+
+## D-015 — Jetson: dev kit -> compact NVIDIA carrier
+Stay on the NVIDIA stack (operator). Orin Nano 8GB moves from the 100x80 dev kit to
+a compact carrier (reComputer J401-class, ~90x63) — keeps USB/Ethernet/CSI out of
+the box (no custom PCB), smaller footprint for the tightened body.

@@ -42,7 +42,7 @@ ROCKY_CFG = ArticulationCfg(
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.16),
+        pos=(0.0, 0.0, 0.12),                     # lower spawn: tightened size (D-014)
         joint_pos={
             ".*_coxa_yaw": 0.0,
             ".*_femur_pitch": 0.6,
@@ -50,12 +50,12 @@ ROCKY_CFG = ArticulationCfg(
             ".*_grip": 0.0,
         },
     ),
-    # STS3215 implicit PD (Appendix A.3) on all 17 joints.
+    # EduLite 05 implicit PD (D-013) on all 17 joints — effort clamp 6 Nm (was 17).
     actuators={
         "all": ImplicitActuatorCfg(
             joint_names_expr=[".*"],
-            stiffness=40.0, damping=2.0,          # Robstride RS00 (D-010)
-            effort_limit_sim=17.0, velocity_limit_sim=19.0, armature=0.02,
+            stiffness=40.0, damping=2.0,          # Robstride EduLite 05
+            effort_limit_sim=6.0, velocity_limit_sim=15.0, armature=0.02,
         ),
     },
     soft_joint_pos_limit_factor=0.95,

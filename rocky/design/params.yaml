@@ -9,23 +9,23 @@ limb_count: 5
 limb_angle_deg: 72            # limb 0 = heading (0deg), then +72 each
 
 # --- Canonical dimensions (§4), millimetres --------------------------------
-# Scaled up x1.375 (D-010): compact-as-possible size that carries 17 Robstride
-# QDD motors. Carapace 160->220 mm; ~4.8 kg (motors alone ~3.9 kg dominate).
+# TIGHTENED to smallest-that-fits (D-014): carapace 220->165 mm (x0.75). Shorter
+# leg levers keep the cheaper EduLite-05 servos torque-valid (D-013); shell now
+# fits the 250 mm print envelope in one piece and hides the electronics. Mass is
+# motor-dominated (~4 kg of 17 servos) so it stays ~5 kg even at this size.
 dimensions:
-  carapace_dia_mm: 220         # circumscribed diameter (was 160)
-  # Dome kept at the book-canonical "half as thick" ratio (~0.5 x width);
-  # squat river-stone silhouette, lower CG, more stable radial walker (D-006).
-  dome_height_mm: 117
-  limb_reach_mm: 248
-  coxa_mm: 55
-  femur_mm: 96
-  tibia_mm: 96
-  stance_height_mm: 179        # neutral
-  footprint_dia_mm: 426
-  foot_dia_mm: 25              # TPU hemispherical
+  carapace_dia_mm: 165         # circumscribed diameter (was 220)
+  dome_height_mm: 88           # ~0.5x width (squat river-stone silhouette, D-006)
+  limb_reach_mm: 186
+  coxa_mm: 41
+  femur_mm: 72
+  tibia_mm: 72
+  stance_height_mm: 134        # neutral
+  footprint_dia_mm: 320
+  foot_dia_mm: 19              # TPU hemispherical
 
-mass_budget_kg: 6.0           # realistic compact w/ 17 Robstride (~5.9 kg, D-010)
-design_target_kg: 5.5         # provisional mass for G1 torque check (D-002)
+mass_budget_kg: 5.0           # motor-dominated (17 x ~240 g ~= 4 kg); smaller shell
+design_target_kg: 5.0         # mass for G1 torque check (D-014)
 
 battery:                       # same pack as bdx_a
   chemistry: li-ion
@@ -53,27 +53,31 @@ manipulators:
   servo_ids: [16, 17]
   fingers: 3                   # triangular stony fingers (driven together)
 
-# --- Actuator (STS3215, shared with bdx_a §3.5) ----------------------------
-# Actuator = Robstride, SHARED with BDX-A (D-010) — reuse BDX's proven motor to
-# simplify sourcing/firmware/wiring. NOTE: 17x Robstride ~4.35 kg of motors alone,
-# ~2x the 2.2 kg budget below — Rocky MUST scale up to a larger/heavier robot
-# (mass_budget + dimensions pending the operator scale decision).
+# --- Actuator (Robstride EduLite 05, D-013) --------------------------------
+# Switched from RS00 to EduLite 05: the RS00 (14/17 Nm) was ~3x over-specced for a
+# 5-legged 5 kg robot; EduLite 05 (1.8 rated / 6 peak) is torque-valid at the
+# tightened size (shorter femur lever) and SIGNIFICANTLY cheaper (~$80). NOTE:
+# BDX-A CANNOT use these (its hips need 42 Nm) — Rocky-only. Servo change means the
+# RL policy must retrain with effort_limit 6 (queued after the current run).
 servo:
-  model: robstride_rs00
-  voltage_v: 24
-  torque_continuous_nm: 14.0
-  torque_stall_nm: 17.0
+  model: robstride_edulite05
+  voltage_v: 48                # EduLite rated 48 V (15-60 V)
+  gear_ratio: 9                # 9:1 planetary
+  torque_continuous_nm: 1.8    # rated
+  torque_stall_nm: 6.0         # peak
   bus: {type: canbus}
   kp: 40
   kd: 2.0
-  effort_clamp_nm: 17.0
-  vel_clamp_rad_s: 19.0
+  effort_clamp_nm: 6.0
+  vel_clamp_rad_s: 15.0
   armature: 0.02
   friction: 0.03
 
-# --- Torque check (§4): femur worst case ~0.52 Nm vs 1.2 Nm continuous ------
+# --- Torque check (§4): femur worst case at the tightened size --------------
+# Real static worst case at 72 mm femur / ~5 kg / dynamic 2x ~= 0.8 Nm (was a
+# conservative 1.8 for the larger robot). EduLite 1.8 cont / 6 peak clears it.
 torque_check:
-  femur_worst_case_nm: 1.8     # scaled up (heavier/larger); Robstride 14 Nm >> this
+  femur_worst_case_nm: 0.8
   continuous_margin: 1.8
   stall_margin: 3.0
 
