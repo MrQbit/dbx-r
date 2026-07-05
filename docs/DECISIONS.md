@@ -108,3 +108,20 @@ stay 2.2 kg / 160 mm with Robstride; it must scale up to a larger/heavier robot
 (full-scale ~5-6 kg like BDX-R). Dimensions, masses, CAD, and the (STS3215-trained)
 Rocky policy all need to follow the scale decision — RETRAIN pending. Actuator
 type + component reuse applied now; scale/budget/dims flagged for the operator.
+
+## D-011 — Rough-terrain curriculum: command-relative promotion
+Isaac Lab's stock `terrain_levels_vel` promotes only if the robot walks >4 m net
+(half the 8 m patch); robots capped at 0.35 m/s never reach it and are demoted
+forever (observed terrain_level stuck ~0.06–0.12; Isaac Lab issue #969). Replaced
+with `duet_mdp.terrain_levels_track` (promote on ≥60% of COMMANDED distance, demote
+<25%), + constant per-episode command, 30 s training episodes, start at level 0,
+action_rate −0.005. Spec pins commands to the 0.35 m/s disk (§6.3/A.2), so the
+levers are the curriculum/episode (spec-silent). Applies to both robots.
+
+## D-012 — Imitation unified in Isaac (not ported from mjlab)
+RL policy weights don't transfer across simulators (Isaac PhysX vs mjlab MuJoCo:
+different obs/action/physics → OOD failure). The mjlab BDX imitation validated the
+approach but can't be carried over. Chose to unify BOTH robots in Isaac: imitation
+is a reference-tracking REWARD (`duet_mdp.track_reference_gait`) on the hand-authored
+gaits (rocky_reference movie-accurate; bdx_reference bipedal), combined with rough
+terrain in one policy per robot. Tasks: Duet-{Rocky,Bdx}-Imitate-Rough-v0.
