@@ -26,6 +26,18 @@ class RockyRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # height scanner rides on base_link (Rocky's base body, not 'base')
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link"
 
+        # Soften the default random-rough (near bed-of-nails) + stair heights so the
+        # difficulty curriculum can actually progress (the 3k run stuck at level 0.06).
+        tg = self.scene.terrain.terrain_generator
+        if tg is not None:
+            st = tg.sub_terrains
+            if "random_rough" in st:
+                st["random_rough"].noise_range = (0.01, 0.04)
+                st["random_rough"].noise_step = 0.01
+            for key in ("pyramid_stairs", "pyramid_stairs_inv"):
+                if key in st:
+                    st[key].step_height_range = (0.02, 0.12)
+
         # Rocky body names for the terrain-aware rewards
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = "leg[0-4]_(foot|palm)"
         self.rewards.feet_air_time.params["threshold"] = 0.35
