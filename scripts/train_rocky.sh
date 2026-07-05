@@ -9,6 +9,7 @@ cd "$(dirname "$0")/.."
 
 NUM_ENVS="${1:-64}"
 MAX_ITER="${2:-5}"
+TASK="${TASK:-Duet-Rocky-Flat-v0}"     # override: TASK=Duet-Rocky-Rough-v0
 shift $(( $# < 2 ? $# : 2 )) || true
 EXTRA=("$@")
 
@@ -30,6 +31,6 @@ docker run --rm --gpus all \
     ./isaaclab.sh -p -m pip install -q -e /workspace/duet/rocky/isaac
     cd /workspace/duet
     /workspace/isaaclab/isaaclab.sh -p /workspace/duet/rocky/isaac/train.py \
-      --task=Duet-Rocky-Flat-v0 --headless --num_envs $NUM_ENVS --max_iterations $MAX_ITER ${EXTRA[*]}
+      --task=$TASK --headless --num_envs $NUM_ENVS --max_iterations $MAX_ITER ${EXTRA[*]}
     chown -R $(id -u):$(id -g) /workspace/duet/logs 2>/dev/null || true
   "
