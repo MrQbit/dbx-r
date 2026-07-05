@@ -19,9 +19,14 @@ ADSR_MS = (30.0, 80.0, 0.7, 150.0)   # attack, decay, sustain-level, release
 
 def _adsr(n: int, sr: int = SR) -> np.ndarray:
     a, d, s, r = ADSR_MS
-    a_n, d_n, r_n = (int(x * sr / 1000) for x in (a, d, r))
-    a_n, d_n, r_n = max(a_n, 1), max(d_n, 1), max(r_n, 1)
-    sus_n = max(n - a_n - d_n - r_n, 0)
+    note_ms = n / sr * 1000
+    # Scale A/D/R down if they'd exceed the note, always leaving a sustain plateau
+    # (~15%) so a note reads as a clean on/off, not a fade-to-zero mid-note.
+    total = a + d + r
+    if total > note_ms * 0.85:
+        a, d, r = (x * note_ms * 0.85 / total for x in (a, d, r))
+    a_n, d_n, r_n = (max(int(x * sr / 1000), 1) for x in (a, d, r))
+    sus_n = max(n - a_n - d_n - r_n, 1)
     env = np.concatenate([
         np.linspace(0, 1, a_n),
         np.linspace(1, s, d_n),

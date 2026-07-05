@@ -48,11 +48,11 @@ Procedural rock carapace (movie-accurate stony dome):
 | **BDX-A flat walking** (BDX-R) | ✅ trained, eval clip |
 | **ROCKY-5 flat walking** (Robstride) | ✅ trained, eval clip |
 | Component integration + shared BOM (Jetson, battery, Robstride, Qi charging…) | ✅ |
-| ROCKY-5 chord voice — synth + codec + motifs + demo WAVs | ✅ (decode round-trip **`[In progress]`**) |
+| ROCKY-5 chord voice — synth + codec + motifs + demo WAVs + decode round-trip (99% @ SNR 20dB) | ✅ G7 |
 | Wireless charging (Qi-15 W RX mounts + dock) | ✅ CAD, QA-clean |
 | **Advanced terrain** (stairs/drops/uneven/slopes + perception) | **`[In progress]`** — infra works; policy training deeper |
 | Carapace 2-piece split (dovetail seam) | **`[In progress]`** — single piece fits envelope |
-| Imitation learning → movie-accurate *motion* | **`[In progress]`** (not started) |
+| Imitation learning → movie-accurate *motion* (mjlab) | **`[In progress]`** — setup ready, training pending GPU |
 | Object avoidance / navigation (cameras, ToF) | **`[In progress]`** (planned) |
 | BDX droidspeak + on-Jetson persona model | **`[In progress]`** (planned) |
 | Runtime HIL (G6), print package/swap (G8) | **`[In progress]`** |

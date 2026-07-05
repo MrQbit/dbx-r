@@ -38,16 +38,25 @@ def test_motifs_render_to_audio():
         assert len(a) > 0 and np.abs(a).max() > 0.1
 
 
-@pytest.mark.xfail(reason="IN PROGRESS: blind FFT-decode round-trip not yet >=99% "
-                          "(ADSR fade + octave-harmonic overlap)", strict=False)
 def test_decode_roundtrip_99pct_at_snr20():
-    tokens = ["hello", "rocky", "grace", "science", "friend", "rock", "air", "yes"]
-    ref = [token_to_glyph(t) for t in tokens]
-    audio = encode_to_audio(tokens)
-    p = np.mean(audio ** 2)
-    noise = np.random.RandomState(0).randn(len(audio))
-    noise *= np.sqrt(p / 10 ** (20 / 10) / np.mean(noise ** 2))
-    dec = decode(audio + noise)
-    n = min(len(ref), len(dec))
-    match = sum(set(ref[i][0]) == set(dec[i][0]) for i in range(n))
-    assert match / len(ref) >= 0.99
+    """§7 target: encode -> synth -> +noise(SNR 20 dB) -> FFT-decode recovers the
+    chords >= 99%. Averaged over several messages (peak-vs-leakage + harmonic-aware
+    detection; encoder avoids harmonically-colliding pitches within a chord)."""
+    import random
+    import string
+    total = match = 0
+    for seed in range(10):
+        rng = np.random.RandomState(seed)
+        r2 = random.Random(seed)
+        tokens = ["".join(r2.choices(string.ascii_lowercase, k=r2.randint(3, 7)))
+                  for _ in range(12)]
+        ref = [token_to_glyph(t) for t in tokens]
+        audio = encode_to_audio(tokens)
+        p = np.mean(audio ** 2)
+        noise = rng.randn(len(audio))
+        noise *= np.sqrt(p / 10 ** (20 / 10) / np.mean(noise ** 2))
+        dec = decode(audio + noise)
+        n = min(len(ref), len(dec))
+        match += sum(set(ref[i][0]) == set(dec[i][0]) for i in range(n))
+        total += len(ref)
+    assert match / total >= 0.99, f"round-trip {100 * match / total:.1f}% < 99%"

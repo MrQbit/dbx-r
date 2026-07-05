@@ -22,15 +22,35 @@ PITCHES = np.array([110.00, 130.81, 146.83, 164.81, 196.00,     # A2 C3 D3 E3 G3
 DURATIONS = (120.0, 240.0, 480.0)
 
 
+# Harmonic-collision graph: pitch j collides with i if f_j sits on one of i's
+# inharmonic partials (k*f_i, k=2..4). We never put a colliding pair in one chord,
+# so every chord is harmonically independent and the acoustic round-trip is exact
+# (octaves like A2/A3 AND 3rd-partial hits like A2->E4, C3->G4 are all covered).
+def _build_collisions():
+    n = len(PITCHES)
+    col = {i: set() for i in range(n)}
+    for i in range(n):
+        for k in (2, 3, 4):
+            hf = PITCHES[i] * k * (1 + 0.003 * (k - 1))
+            for j in range(n):
+                if i != j and abs(PITCHES[j] - hf) < 0.03 * hf:
+                    col[i].add(j); col[j].add(i)
+    return col
+
+
+COLLIDES = _build_collisions()
+
+
 def token_to_glyph(token: str):
-    """Deterministic token -> (pitch-index tuple, duration_ms) via SHA-1."""
+    """Deterministic token -> (pitch-index tuple, duration_ms) via SHA-1.
+    Avoids harmonically-colliding pitches within a chord (see COLLIDES)."""
     h = hashlib.sha1(token.encode()).digest()
     size = 2 + h[0] % 3                          # 2..4 notes
     idxs: list[int] = []
     i = 1
     while len(idxs) < size and i < len(h):
         c = h[i] % len(PITCHES)
-        if c not in idxs:
+        if c not in idxs and not (COLLIDES[c] & set(idxs)):
             idxs.append(c)
         i += 1
     dur = DURATIONS[h[6] % 3]
@@ -105,20 +125,37 @@ def decode(audio: np.ndarray, gap_ms: float = 180.0, sr: int = SR):
     glyphs = []
     for a, b in _segments(audio, sr, gap_ms):
         seg = audio[a:b]
-        spec = np.abs(np.fft.rfft(seg * np.hanning(len(seg))))
-        freqs = np.fft.rfftfreq(len(seg), 1 / sr)
-        energy = np.array([spec[(freqs > f0 * 0.98) & (freqs < f0 * 1.02)].max()
-                           if ((freqs > f0 * 0.98) & (freqs < f0 * 1.02)).any() else 0.0
-                           for f0 in PITCHES])
+        # Zero-pad the FFT so low pitches (A2=110 Hz) get bins finer than their
+        # detection band; use a min absolute band width (>=5 Hz) too.
+        nfft = max(1 << 15, 1 << int(len(seg) - 1).bit_length())
+        spec = np.abs(np.fft.rfft(seg * np.hanning(len(seg)), n=nfft))
+        freqs = np.fft.rfftfreq(nfft, 1 / sr)
+
+        def peak_energy(f0):
+            bw = max(0.02 * f0, 5.0)
+            band = np.abs(freqs - f0) < bw
+            if not band.any():
+                return 0.0
+            # a real fundamental is a PEAK above the local baseline; a leakage tail
+            # from an adjacent pitch is a slope (peak ~ baseline) -> suppressed.
+            shoulder = (np.abs(freqs - f0) >= bw) & (np.abs(freqs - f0) < 2.5 * bw)
+            base = spec[shoulder].mean() if shoulder.any() else 0.0
+            return max(spec[band].max() - base, 0.0)
+
+        energy = np.array([peak_energy(f0) for f0 in PITCHES])
         emax = energy.max() + 1e-9
         residual = energy.astype(float).copy()
         detected = []
         for i in np.argsort(PITCHES):          # low -> high
-            if residual[i] > 0.30 * emax and energy[i] > 0.25 * emax:
+            # a colliding lower note already detected means energy here is its
+            # harmonic (the encoder never co-places colliding pitches)
+            if COLLIDES[i] & set(detected):
+                continue
+            if residual[i] > 0.28 * emax and energy[i] > 0.20 * emax:
                 detected.append(int(i))
-                # subtract this note's harmonics from higher pitches
-                for k, amp in enumerate(PARTIAL_AMPS[1:], start=2):
-                    hf = PITCHES[i] * k
+                # subtract this note's inharmonic partials from higher pitch bands
+                for k, amp in zip((2, 3, 4), PARTIAL_AMPS[1:]):
+                    hf = PITCHES[i] * k * (1 + 0.003 * (k - 1))
                     for j in range(len(PITCHES)):
                         if abs(PITCHES[j] - hf) < 0.03 * hf:
                             residual[j] -= amp * energy[i]
