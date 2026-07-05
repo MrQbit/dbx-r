@@ -43,3 +43,5 @@ third_party/
 
 # Hydra run outputs (training runtime; not source)
 outputs/
+
+.venv-mjlab/
