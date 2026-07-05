@@ -100,28 +100,32 @@ def laptop_fx(a):
     toward Rocky's ~1680 Hz), while the lower 130 Hz edge restores body."""
     if len(a) == 0:
         return a
-    a = _bitcrush(a, bits=9, down_sr=16000)
-    a = np.tanh(a * 1.6) / np.tanh(1.6)                  # mild clipping distortion
-    a = _bandpass(a, lo=130.0, hi=3400.0)               # band-limit LAST (kills alias +
-    #             tames 2-4k presence). 3400 balances centroid (~1480 vs film 1680)
-    #             against presence; espeak concentrates 2-3k formant energy that no
-    #             band-pass fully removes without muddying intelligibility.
+    a = _bitcrush(a, bits=10, down_sr=18000)             # softer crush -> less mangled
+    a = np.tanh(a * 1.4) / np.tanh(1.4)                  # gentler clipping
+    a = _bandpass(a, lo=130.0, hi=4200.0)               # keep enough top for consonant
+    #             clarity (sibilance/'s') while staying band-limited + digitized.
     m = np.abs(a).max()
     return (a / m * 0.95).astype(np.float32) if m > 0 else a
 
 
-def speak_translated(text: str, pitch: int = 46, rate: int = 165,
+def speak_translated(text: str, pitch: int = 46, rate: int = 135,
                      gap_ms: float = 85.0) -> np.ndarray:
     """Rocky's ON-SHIP translator voice: each word synthesized IN ISOLATION (so it
     reads FLAT/declarative — no sentence intonation, tags like 'question' stay
-    deadpan) and concatenated with 35-50ms micro-pauses (discrete data-blocks,
-    hard word cuts), then run through the laptop_fx texture chain."""
+    deadpan) and concatenated with ~85ms micro-pauses (discrete data-blocks, hard
+    word cuts — measured from the film), then run through the laptop_fx texture
+    chain. rate 135 (deliberate, per Rocky's slow cadence) + short edge fades keep
+    each word articulate/intelligible instead of clipped."""
     words = [w.strip(".,!?;:") for w in text.replace(",", " ").split()]
     words = [w for w in words if w]
     gap = np.zeros(int(SR * gap_ms / 1000), dtype=np.float32)
+    fade = max(int(SR * 0.006), 1)                       # 6ms edge fade -> no onset click
     segs = []
     for w in words:
-        wv = speak(w, pitch=pitch, rate=rate, pitch_range=25)   # low range = flat
+        wv = speak(w, pitch=pitch, rate=rate, pitch_range=25).copy()   # low range = flat
+        if len(wv) > 2 * fade:
+            wv[:fade] *= np.linspace(0, 1, fade)
+            wv[-fade:] *= np.linspace(1, 0, fade)
         segs.append(wv)
         segs.append(gap)
     raw = np.concatenate(segs) if segs else np.zeros(0, dtype=np.float32)
