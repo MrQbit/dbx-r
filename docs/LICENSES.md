@@ -17,3 +17,13 @@ Both BDX-R repos are permissively licensed and cleared for reuse. We EXTEND them
 attribution preserved. Vendored read-only via `scripts/fetch_upstream.sh`.
 
 _Populated during the ingest stage (§0.6). Any fetch failure → Appendix A + D-###._
+
+## Rocky neural voice (rocky/audio/neural_tts.py)
+The zero-shot voice-clone approach + the English->Rocky-speak text-transform rules
+are adapted (CC BY-NC 4.0) from:
+- **Pedram Amini** — Rocky-Voice gist (original): https://gist.github.com/pedramamini/fa5f6ef99dae79add220188419230642
+- **Kuberwastaken/rocky-tts** — plug-and-play repo: https://github.com/Kuberwastaken/rocky-tts
+Reference audio (`rocky_training_audio_scrubbed.wav`, from the 2026 film) and the
+Coqui XTTS-v2 model (CPML) are non-commercial; used here for a personal,
+non-commercial hobbyist project only, and are NOT redistributed (gitignored).
+Coqui TTS: MPL-2.0. espeak-ng fallback: GPL-3.0.
