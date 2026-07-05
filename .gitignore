@@ -15,12 +15,14 @@ venv/
 .ruff_cache/
 
 # PROJECT DUET generated artifacts (reproducible via `make all`; never committed)
-runs/                      # RL training runs / TensorBoard events / checkpoints
+# RL training runs / TensorBoard events / checkpoints
+runs/
 orchestrator/heartbeat.log
 orchestrator/stages.state.json
 orchestrator/.env_ready
 orchestrator/.isaac_image_digest
-FAILURE-*.md               # per-track failure files (regenerated each run)
+# per-track failure files (regenerated each run)
+FAILURE-*.md
 weekend.out
 *.onnx
 *.stl
