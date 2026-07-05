@@ -45,3 +45,6 @@ third_party/
 outputs/
 
 .venv-mjlab/
+
+# mjlab / rsl_rl host training logs (runtime)
+logs/
