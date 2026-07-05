@@ -17,6 +17,20 @@ from rocky.audio.synth import SR
 
 _AUDIO_OUTPUT_RETRIEVAL = 1
 _RATE, _PITCH, _RANGE = 1, 3, 4        # espeak_SetParameter ids
+_EVENT_WORD = 1                        # espeakEVENT_WORD
+
+
+class _EId(ctypes.Union):
+    _fields_ = [("name", ctypes.c_char_p), ("string", ctypes.c_char * 8),
+                ("number", ctypes.c_int)]
+
+
+class _EEvent(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_int), ("unique_identifier", ctypes.c_uint),
+                ("text_position", ctypes.c_int), ("length", ctypes.c_int),
+                ("audio_position", ctypes.c_int), ("sample", ctypes.c_int),
+                ("id", _EId)]
+
 
 _lib = None
 _native_sr = SR
@@ -92,41 +106,90 @@ def _bitcrush(a, bits=9, down_sr=16000):
     return a.astype(np.float32)
 
 
-def laptop_fx(a):
-    """Full translator chain, ORDERED from an A/B vs the film's clean Rocky voice:
-    bitcrush/clip FIRST, then band-pass 130-3400 Hz LAST — so the band-pass also
-    removes the sample-and-hold alias images (measured: our presence/air were 3-4x
-    the film's; band-limiting after the crush tames both and darkens the centroid
-    toward Rocky's ~1680 Hz), while the lower 130 Hz edge restores body."""
+def laptop_fx(a, normalize: bool = True):
+    """Full translator chain: bitcrush/clip then band-pass 130-4200 Hz. Applied
+    PER-WORD (see speak_translated) so the band-pass IIR tail can't smear energy
+    across the inter-word silence — the film drops to ABSOLUTE ZERO between words
+    (discrete data-blocks); filtering the whole phrase would fill those gaps with a
+    continuous curve. bitcrush/band-limit give the digitized speaker-cone texture."""
     if len(a) == 0:
         return a
     a = _bitcrush(a, bits=10, down_sr=18000)             # softer crush -> less mangled
     a = np.tanh(a * 1.4) / np.tanh(1.4)                  # gentler clipping
-    a = _bandpass(a, lo=130.0, hi=4200.0)               # keep enough top for consonant
-    #             clarity (sibilance/'s') while staying band-limited + digitized.
+    a = _bandpass(a, lo=130.0, hi=4200.0)               # keep top for consonant clarity
+    if not normalize:
+        return a.astype(np.float32)
     m = np.abs(a).max()
     return (a / m * 0.95).astype(np.float32) if m > 0 else a
 
 
+def speak_with_words(text: str, pitch: int = 46, rate: int = 135,
+                     voice: str = "en", pitch_range: int = 45):
+    """Like speak(), but also returns espeak's WORD-boundary sample positions, so a
+    naturally-articulated phrase can be split into per-word blocks afterward."""
+    lib = _init()
+    chunks, word_samples = [], []
+    CB = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(ctypes.c_short),
+                          ctypes.c_int, ctypes.POINTER(_EEvent))
+
+    def _cb(wav, n, events):
+        if n > 0:
+            chunks.append(np.ctypeslib.as_array(wav, (n,)).copy())
+        if events:
+            i = 0
+            while events[i].type != 0:                   # 0 = LIST_TERMINATED
+                if events[i].type == _EVENT_WORD:
+                    word_samples.append(int(events[i].sample))
+                i += 1
+        return 0
+
+    cb = CB(_cb)
+    lib.espeak_SetSynthCallback(cb)
+    lib.espeak_SetVoiceByName(voice.encode())
+    lib.espeak_SetParameter(_RATE, int(rate), 0)
+    lib.espeak_SetParameter(_PITCH, int(np.clip(pitch, 0, 100)), 0)
+    lib.espeak_SetParameter(_RANGE, int(np.clip(pitch_range, 0, 100)), 0)
+    b = text.encode()
+    lib.espeak_Synth(b, len(b) + 1, 0, 0, 0, 0, None, None)
+    lib.espeak_Synchronize()
+    if not chunks:
+        return np.zeros(0, dtype=np.float32), []
+    audio = np.concatenate(chunks).astype(np.float32) / 32768.0
+    if _native_sr != SR:
+        scale = SR / _native_sr
+        word_samples = [int(s * scale) for s in word_samples]
+        n_out = int(len(audio) * scale)
+        audio = np.interp(np.linspace(0, len(audio), n_out, endpoint=False),
+                          np.arange(len(audio)), audio).astype(np.float32)
+    return audio, sorted(set(w for w in word_samples if 0 < w < len(audio)))
+
+
 def speak_translated(text: str, pitch: int = 46, rate: int = 135,
                      gap_ms: float = 85.0) -> np.ndarray:
-    """Rocky's ON-SHIP translator voice: each word synthesized IN ISOLATION (so it
-    reads FLAT/declarative — no sentence intonation, tags like 'question' stay
-    deadpan) and concatenated with ~85ms micro-pauses (discrete data-blocks, hard
-    word cuts — measured from the film), then run through the laptop_fx texture
-    chain. rate 135 (deliberate, per Rocky's slow cadence) + short edge fades keep
-    each word articulate/intelligible instead of clipped."""
-    words = [w.strip(".,!?;:") for w in text.replace(",", " ").split()]
-    words = [w for w in words if w]
+    """Rocky's ON-SHIP translator voice. Synthesize the WHOLE phrase in one pass
+    (with punctuation stripped so it reads FLAT/declarative — no rising '?', tags
+    stay deadpan) so espeak articulates each word naturally with coarticulation;
+    then SPLIT at word boundaries and rejoin with ~85ms TRUE-ZERO gaps + per-block
+    laptop_fx. Discrete data-blocks (film-measured) AND intelligible words."""
+    clean = " ".join(w.strip(".,!?;:") for w in text.replace(",", " ").split()
+                     if w.strip(".,!?;:"))
+    audio, bounds = speak_with_words(clean, pitch=pitch, rate=rate, pitch_range=45)
+    if len(audio) == 0:
+        return audio
+    starts = [0] + bounds
+    ends = bounds + [len(audio)]
     gap = np.zeros(int(SR * gap_ms / 1000), dtype=np.float32)
-    fade = max(int(SR * 0.006), 1)                       # 6ms edge fade -> no onset click
+    fade = max(int(SR * 0.006), 1)
     segs = []
-    for w in words:
-        wv = speak(w, pitch=pitch, rate=rate, pitch_range=25).copy()   # low range = flat
-        if len(wv) > 2 * fade:
-            wv[:fade] *= np.linspace(0, 1, fade)
-            wv[-fade:] *= np.linspace(1, 0, fade)
-        segs.append(wv)
-        segs.append(gap)
+    for s, e in zip(starts, ends):
+        seg = audio[s:e]
+        if len(seg) < 2 * fade:
+            continue
+        seg = laptop_fx(seg, normalize=False).copy()     # per-block -> gaps stay zero
+        seg[:fade] *= np.linspace(0, 1, fade)
+        seg[-fade:] *= np.linspace(1, 0, fade)
+        segs.append(seg)
+        segs.append(gap.copy())
     raw = np.concatenate(segs) if segs else np.zeros(0, dtype=np.float32)
-    return laptop_fx(raw)
+    m = np.abs(raw).max()
+    return (raw / m * 0.95).astype(np.float32) if m > 0 else raw
