@@ -93,18 +93,25 @@ def _bitcrush(a, bits=9, down_sr=16000):
 
 
 def laptop_fx(a):
-    """Full translator chain: band-pass + bitcrush/downsample + soft-clip drive."""
+    """Full translator chain, ORDERED from an A/B vs the film's clean Rocky voice:
+    bitcrush/clip FIRST, then band-pass 130-3400 Hz LAST — so the band-pass also
+    removes the sample-and-hold alias images (measured: our presence/air were 3-4x
+    the film's; band-limiting after the crush tames both and darkens the centroid
+    toward Rocky's ~1680 Hz), while the lower 130 Hz edge restores body."""
     if len(a) == 0:
         return a
-    a = _bandpass(a)
     a = _bitcrush(a, bits=9, down_sr=16000)
     a = np.tanh(a * 1.6) / np.tanh(1.6)                  # mild clipping distortion
+    a = _bandpass(a, lo=130.0, hi=3400.0)               # band-limit LAST (kills alias +
+    #             tames 2-4k presence). 3400 balances centroid (~1480 vs film 1680)
+    #             against presence; espeak concentrates 2-3k formant energy that no
+    #             band-pass fully removes without muddying intelligibility.
     m = np.abs(a).max()
     return (a / m * 0.95).astype(np.float32) if m > 0 else a
 
 
 def speak_translated(text: str, pitch: int = 46, rate: int = 165,
-                     gap_ms: float = 42.0) -> np.ndarray:
+                     gap_ms: float = 85.0) -> np.ndarray:
     """Rocky's ON-SHIP translator voice: each word synthesized IN ISOLATION (so it
     reads FLAT/declarative — no sentence intonation, tags like 'question' stay
     deadpan) and concatenated with 35-50ms micro-pauses (discrete data-blocks,
