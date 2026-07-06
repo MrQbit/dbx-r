@@ -1,0 +1,230 @@
+{
+  "pitch": 1.5,
+  "r_core": 62.0,
+  "envelope": 250.0,
+  "leg_centers": [
+    -142.0,
+    -70.0,
+    2.0,
+    74.0,
+    146.0
+  ],
+  "gap_cuts": [
+    -124.0,
+    -55.0,
+    24.0,
+    95.0,
+    174.0
+  ],
+  "master_has_fingers": false,
+  "parts": {
+    "thorax": {
+      "x": 100.8,
+      "y": 103.6,
+      "z": 127.5,
+      "fits": true,
+      "watertight": true,
+      "wall_mm": 3.4,
+      "shell": "native_dome",
+      "cavities": [
+        "jetson_tray",
+        "battery_6s"
+      ]
+    },
+    "leg1": {
+      "center_deg": -142.0,
+      "bend_radii_mm": [
+        78.9,
+        97.9
+      ],
+      "segments": {
+        "coxa": {
+          "wall_mm": null,
+          "x": 22.5,
+          "y": 19.5,
+          "z": 55.5,
+          "fits": true,
+          "watertight": true
+        },
+        "femur": {
+          "wall_mm": null,
+          "x": 28.5,
+          "y": 46.5,
+          "z": 67.5,
+          "fits": true,
+          "watertight": true
+        },
+        "tibia": {
+          "wall_mm": null,
+          "x": 46.5,
+          "y": 58.5,
+          "z": 46.5,
+          "fits": true,
+          "watertight": true
+        }
+      },
+      "hand_grafted": false,
+      "servo_pockets": {
+        "coxa_femur_joint": false,
+        "femur_tibia_joint": false
+      }
+    },
+    "leg2": {
+      "center_deg": -70.0,
+      "bend_radii_mm": [
+        76.0,
+        94.1
+      ],
+      "segments": {
+        "coxa": {
+          "wall_mm": null,
+          "x": 28.5,
+          "y": 25.5,
+          "z": 40.5,
+          "fits": true,
+          "watertight": true
+        },
+        "femur": {
+          "wall_mm": null,
+          "x": 41.4,
+          "y": 25.6,
+          "z": 42.6,
+          "fits": true,
+          "watertight": true
+        },
+        "tibia": {
+          "wall_mm": null,
+          "x": 43.6,
+          "y": 27.9,
+          "z": 38.2,
+          "fits": true,
+          "watertight": true
+        }
+      },
+      "hand_grafted": true,
+      "servo_pockets": {
+        "coxa_femur_joint": true,
+        "femur_tibia_joint": true
+      }
+    },
+    "leg3": {
+      "center_deg": 2.0,
+      "bend_radii_mm": [
+        77.6,
+        95.9
+      ],
+      "segments": {
+        "coxa": {
+          "wall_mm": null,
+          "x": 19.5,
+          "y": 13.5,
+          "z": 55.5,
+          "fits": true,
+          "watertight": true
+        },
+        "femur": {
+          "wall_mm": null,
+          "x": 19.5,
+          "y": 43.5,
+          "z": 67.5,
+          "fits": true,
+          "watertight": true
+        },
+        "tibia": {
+          "wall_mm": null,
+          "x": 47.4,
+          "y": 50.3,
+          "z": 57.7,
+          "fits": true,
+          "watertight": true
+        }
+      },
+      "hand_grafted": true,
+      "servo_pockets": {
+        "coxa_femur_joint": false,
+        "femur_tibia_joint": false
+      }
+    },
+    "leg4": {
+      "center_deg": 74.0,
+      "bend_radii_mm": [
+        78.9,
+        101.9
+      ],
+      "segments": {
+        "coxa": {
+          "wall_mm": null,
+          "x": 19.5,
+          "y": 22.5,
+          "z": 52.5,
+          "fits": true,
+          "watertight": true
+        },
+        "femur": {
+          "wall_mm": null,
+          "x": 20.8,
+          "y": 9.7,
+          "z": 37.5,
+          "fits": true,
+          "watertight": true
+        },
+        "tibia": {
+          "wall_mm": null,
+          "x": 51.0,
+          "y": 39.3,
+          "z": 46.5,
+          "fits": true,
+          "watertight": true
+        }
+      },
+      "hand_grafted": true,
+      "servo_pockets": {
+        "coxa_femur_joint": true,
+        "femur_tibia_joint": true
+      }
+    },
+    "leg5": {
+      "center_deg": 146.0,
+      "bend_radii_mm": [
+        82.9,
+        102.6
+      ],
+      "segments": {
+        "coxa": {
+          "wall_mm": null,
+          "x": 25.5,
+          "y": 25.5,
+          "z": 55.5,
+          "fits": true,
+          "watertight": true
+        },
+        "femur": {
+          "wall_mm": null,
+          "x": 24.6,
+          "y": 31.2,
+          "z": 42.0,
+          "fits": true,
+          "watertight": true
+        },
+        "tibia": {
+          "wall_mm": null,
+          "x": 61.0,
+          "y": 85.6,
+          "z": 53.0,
+          "fits": true,
+          "watertight": true
+        }
+      },
+      "hand_grafted": true,
+      "servo_pockets": {
+        "coxa_femur_joint": true,
+        "femur_tibia_joint": true
+      }
+    }
+  },
+  "notes": [
+    "RS00 servo is \u00d860mm; leg segment min cross-sections are ~10-61mm, so a FULLY ENCLOSED servo cavity does not fit inside a leg. The \u00d860 pockets that carved cleanly are open joint SADDLES; at this scale the RS00 must mount as the external structural hub bridging two segments, not buried inside one."
+  ],
+  "oversize_parts": [],
+  "runtime_s": 5.8
+}
