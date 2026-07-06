@@ -17,6 +17,7 @@ from common.cad_lib.torque import check_rocky
 def test_rocky_torque_passes_by_construction():
     result = check_rocky(load_params("rocky"))
     assert result.passed
-    # D-031: EduLite on the compact light body runs at ~1.64x continuous ratio (61%
-    # utilization) with 5.5x peak headroom — a deliberate 1.5x margin, not the old 1.8x.
-    assert result.continuous_ratio >= 1.5
+    # D-032: at x1.2 (Jetson-carrier fit) EduLite runs at ~1.28x continuous ratio (78%
+    # util) with 2.1x peak headroom — its ceiling. Below this the build must not exceed
+    # ~6kg. (Was 1.64x at 272mm; the x1.2 upscale spent the margin to fit the electronics.)
+    assert result.continuous_ratio >= 1.25

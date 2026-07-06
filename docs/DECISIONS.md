@@ -386,3 +386,14 @@ RS00->EduLite, design_target 11->5.5kg, continuous_margin 1.8->1.5 (justified by
 headroom). Supersedes D-028/D-030. 20 DOF (all-5 fingers, canon) stays — it's servo-agnostic.
 Note (STL agent): even the master's own legs are proportionally short (~stubby squat) — a
 normalization-accuracy question to revisit; EduLite's smaller knuckle helps regardless.
+
+## D-032 — Scale spidery Rocky x1.2 (272->326mm) so the Jetson carrier fits
+Buildability gate (operator won't train a robot we can't build): the movie-accurate
+~272mm body's clean interior (~58mm) is too narrow for the standard Jetson Orin Nano
+carrier (63mm even on-edge) — deepening couldn't fix a WIDTH problem. Operator chose a
+modest x1.2 upscale over a custom carrier PCB: body 326mm, interior ~70mm, Jetson
+carrier fits on-edge with 3.3mm walls. Legs stay slender (Ø46 knuckle on 131mm femur =
+85mm neck). HONEST torque cost: EduLite drops from 61%->78% continuous util (margin
+1.64->1.28x, still 2.1x peak headroom) — near its ceiling; the build must stay <=6kg or
+it needs a stronger micro-QDD. Supersedes the 272mm size in D-031 (EduLite + slender-leg
+findings still hold). Blender segmentation re-runs at x1.2; electronics-fit gate re-checked.
