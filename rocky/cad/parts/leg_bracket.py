@@ -43,7 +43,8 @@ POCK_D = SVH + 1.0                                  # pocket depth (body H + lea
 
 # --- Beam (the structural spine that carries the three pockets) -------------
 WALL = 4.0                                          # side wall each side of a pocket
-FLOOR = 9.0                                         # solid floor beneath the pockets
+FLOOR = 5.0                                         # floor beneath pockets (was 9; lightened)
+SKIN = 4.0                                          # skin left around lightening windows
 BEAM_W = POCK_Y + 2 * WALL                          # cross-section across Y (~60.4)
 BEAM_H = POCK_D + FLOOR                             # spine thickness in Z (~44)
 END_WALL = 12.0                                     # solid root flange behind the coxa pocket
@@ -83,6 +84,19 @@ def _needs_split() -> bool:
 def _servo_pocket(x: float) -> Part:
     """A slide-fit EduLite pocket cut from the top (+Z) face at station x."""
     return Pos(x, 0, BEAM_H - POCK_D / 2) * Box(POCK_X, POCK_Y, POCK_D)
+
+
+def _lightening(x_tibia: float, x_tip: float):
+    """Through-Y window in the solid tibia link (turns the heaviest solid run into
+    an I-beam), leaving SKIN top/bottom + a solid foot-boss region. Returns the cut
+    Part or None if there isn't enough room to keep min-wall."""
+    start = x_tibia + POCK_X / 2 + S.MIN_WALL_STRUCTURAL_MM
+    end = x_tip - 16.0                              # keep the foot-mount region solid
+    wx = end - start
+    wz = BEAM_H - 2 * SKIN
+    if wx < 18.0 or wz < 10.0:
+        return None
+    return Pos((start + end) / 2, 0, BEAM_H / 2) * Box(wx, BEAM_W + 4, wz)
 
 
 def _pivot_knuckles(x: float) -> tuple[Part, Part]:
@@ -138,6 +152,11 @@ def leg_bracket() -> Part:
 
     # Foot mount at the tibia tip (foot bolts UP into the tip; slide clearance).
     beam -= Pos(x_tip - 8.0, 0, BEAM_H / 2) * Cylinder(radius=FOOT_HOLE / 2, height=BEAM_H + 2)
+
+    # Lightening: I-beam the long solid tibia link (biggest single mass).
+    win = _lightening(x_tibia, x_tip)
+    if win is not None:
+        beam -= win
 
     return beam
 

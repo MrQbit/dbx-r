@@ -51,3 +51,6 @@ logs/
 
 # copyrighted movie reference clips (private A/B analysis only — never commit)
 reference/
+
+# film-derived voice-clone audio — never commit (copyright)
+docs/media/*.wav

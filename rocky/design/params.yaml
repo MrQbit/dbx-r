@@ -14,8 +14,8 @@ limb_angle_deg: 72            # limb 0 = heading (0deg), then +72 each
 # fits the 250 mm print envelope in one piece and hides the electronics. Mass is
 # motor-dominated (~4 kg of 17 servos) so it stays ~5 kg even at this size.
 dimensions:
-  carapace_dia_mm: 165         # circumscribed diameter (was 220)
-  dome_height_mm: 88           # ~0.5x width (squat river-stone silhouette, D-006)
+  carapace_dia_mm: 180         # nudged 165->180 for fan+Jetson+battery packing (D-021)
+  dome_height_mm: 100          # nudged 88->100 for Jetson clearance under the dome apex
   limb_reach_mm: 186
   coxa_mm: 41
   femur_mm: 72

@@ -205,3 +205,13 @@ not just a seed set.
   vent + 2 diagonal bolt bosses; (b) the IMU boss is offset -X of the pack, not at the
   exact centroid the battery bay occupies; (c) the Jetson body overhangs the tub rim
   into the dome (only its standoffs are printed). All QA-clean.
+
+## D-021 — Rocky: nudge dome 165->180 / 88->100 mm + lighten leg brackets
+Two operator-approved refinements after the structural CAD flags (D-020):
+- **Dome nudge** carapace_dia 165->180, dome_height 88->100 mm — buys packing/cooling
+  room for the 40 mm fan beside the 90 mm Jetson + 70 mm battery, and vertical
+  clearance so the Jetson no longer overhangs the tub rim. Still far under the
+  original 220 mm; legs/servos/torque unchanged (shell-only), so NO retrain.
+- **Leg-bracket lightening**: floor 9->5 mm + a through-Y window I-beaming the long
+  solid tibia link. Mass 456 -> 315 g each (-31%; 5x = 1.58 kg, was 2.28 kg) at 100%
+  infill. Real prints at 15-30% infill are far lighter again. gate-2 stays 9/9.
