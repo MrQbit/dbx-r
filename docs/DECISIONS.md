@@ -150,3 +150,15 @@ iter ~354 with `normal expects std >= 0.0` — a PPO policy-std NaN blowup (the 
 6 Nm dynamics let some envs reach extreme states). The identical PPO config trained
 the first Rocky + BDX fine, so it's numerical instability, not a config bug. Halved
 learning_rate 1e-3 -> 5e-4 (gentler updates) and relaunched. Watch iter ~354.
+
+## D-017 — BDX-A: add the 2 ear/antenna actuators (16 DOF), NO retrain
+Research (arXiv 2501.05204 + BDX-R GitHub) confirmed the real Disney BDX and Kayden
+Knapik's BDX-R are 16 DOF = 14 locomotion + 2 EAR actuators (+ LED eyes, passive
+ankle roll via rounded soles). Our 14-DOF layout matched Open Duck Mini, not BDX-R —
+so we were MISSING the ears. Adopted the upstream BDX-R ear meshes (Left_Ear/
+Right_Ear/Right_Ear_Motor, already vendored, fixed in the locomotion URDF). Actuate
+them as a DECOUPLED expressive channel (bdx/persona.py: emotion->ear pose + LED eye
+state), driven by persona, NOT the RL policy. Ears carry ~no load + are unrelated to
+gait, so the trained 14-DOF locomotion policy stands — NO retrain (operator-confirmed).
+The park-vs-demo "moves different" feeling = this expressive layer (Disney puppeteers
+additive head/gaze/ear offsets on top of the RL gait), not a DOF/robot difference.

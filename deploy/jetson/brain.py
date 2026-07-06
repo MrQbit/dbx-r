@@ -110,18 +110,32 @@ def rocky_voice():
 
 
 def bdx_voice():
-    """BDX droidspeak — beep/boop sound effects mapped from the intent/emotion."""
-    import sys, os
+    """BDX droidspeak — beep/boop sound effects + the 2-ear/LED-eye EXPRESSIVE
+    channel (bdx.persona), all driven by the same emotion. Ears/eyes are decoupled
+    from the locomotion policy (no retrain — see D-017)."""
+    import sys, os, time as _t
     sys.path.insert(0, os.path.expanduser("~/duet"))
     from bdx.audio import droidspeak as ds
+    from bdx import persona
     import sounddevice as sd
     from rocky.audio.synth import SR
 
+    def _drive_ears_eyes(emo, dur):
+        # TODO: 2 small ear servos (CAN/PWM) + LED eye strip. Here we just compute
+        # the targets so the wiring is a drop-in (bdx.persona is the source of truth).
+        eyes = persona.eye_state(emo)                      # -> LED color/brightness
+        t0 = _t.time()
+        while _t.time() - t0 < dur:
+            l, r = persona.ear_pose(emo, _t.time())        # -> 2 ear-servo targets (rad)
+            # ear_bus.command(l, r); led.set(**eyes)
+            _t.sleep(0.03)
+
     def say(text):
-        # simple sentiment -> emotion; real system maps a response policy's intent
         emo = "happy" if any(w in text.lower() for w in ("yes", "good", "amaze")) else \
               "alarmed" if any(w in text.lower() for w in ("no", "stop", "danger")) else "curious"
         a = ds.emote(emo, seed=len(text))
+        import threading
+        threading.Thread(target=_drive_ears_eyes, args=(emo, len(a) / SR), daemon=True).start()
         sd.play(a, SR); sd.wait()
     return say
 
