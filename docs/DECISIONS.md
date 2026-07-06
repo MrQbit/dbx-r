@@ -174,3 +174,34 @@ Completing the movie-accuracy set (no retrain, all decoupled from the RL gait):
   head-pitch/yaw offsets ON TOP of the locomotion policy's head targets + continuous
   ear/eye animation. This is Disney's architecture (operator offsets on top of RL) and
   the reason the park droid reads "alive" vs the bare research gait — implemented, no retrain.
+
+## D-019 — Fit-test coupon servo box: STS3215 -> Robstride EduLite-05
+The coupon plate (`common/cad_lib/coupons.py`) slide-fit pocket must validate the
+servo ROCKY-5 actually uses. `standards.SERVO_BOX_*` still described the legacy
+STS3215 (45.2 x 24 x 32); updated to the EduLite-05 box (52 x 52 x 34, matching
+`components.SERVO`) so the human prints a coupon that verifies the real servo drop-in.
+The coupon plate grew (90x50 -> 120x64) to seat the larger square pocket with a valid
+land. `components.py` stays the single source of truth for all CAD provisions; these
+constants only feed the coupon.
+
+## D-020 — Structural CAD: per-leg limb bracket + core electronics tub
+Authored the missing load-path parts so the ROCKY-5 registry is a printable robot,
+not just a seed set.
+- **leg_bracket** (qty 5, PETG): one rigid frame per leg hosting the three EduLite-05
+  servo pockets (coxa/femur/tibia) inline along +X, two 625ZZ pitch-pivot knuckles,
+  and M3 heat-set bosses (coxa-root -> core_plate + a servo hold-down tie). At the
+  tightened params the coxa segment (41 mm) is SHORTER than a servo (52 mm), so the
+  coxa->femur pocket pitch is FLOORED to a non-overlap value (~57 mm) that keeps a
+  >= min-wall land; femur/tibia spacing tracks the real lengths. The whole frame is
+  239 mm along +X — inside the 250 mm envelope, so it prints in ONE piece (no dovetail
+  split needed at this scale; `_needs_split()` guards a future larger scale).
+- **core_tub** (qty 1, PETG): a ROUND (not pentagonal) hollow tub, ~3.4 mm wall, sized
+  to sit inside the 165 mm carapace above core_plate. Round because at this small dome
+  the 90 mm Jetson + 70 mm pack nearly span it and a pentagon's flats pinch floor
+  features. Hosts the Jetson tray (raised standoffs, board clears the rim into the dome
+  apex), battery bay (walled, low for CoM), IMU boss, a 40 mm fan mount, and wiring
+  pass-throughs. **Packing constraints (need human review):** (a) the 40 mm fan's full
+  32 mm 4-bolt floor pattern does NOT fit beside the pack — realized as a floor exhaust
+  vent + 2 diagonal bolt bosses; (b) the IMU boss is offset -X of the pack, not at the
+  exact centroid the battery bay occupies; (c) the Jetson body overhangs the tub rim
+  into the dome (only its standoffs are printed). All QA-clean.

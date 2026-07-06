@@ -2,7 +2,7 @@
 
 Three fit-test features, all driven by common/cad_lib/standards.py so a single
 clearance edit + `make regen-cad` re-cuts them (the one sanctioned human edit):
-  * servo slide-fit pocket (STS3215 body drops in)
+  * servo slide-fit pocket (Robstride EduLite-05 body drops in, 52 x 52 x 34)
   * M3 heat-set insert boss hole
   * 625ZZ bearing press-fit seat
 
@@ -16,8 +16,8 @@ from build123d import Box, Cylinder, Pos, Part
 from common.cad_lib import standards as S
 from common.cad_lib.part_meta import Insert, PartMeta
 
-PLATE_L = 90.0
-PLATE_W = 50.0
+PLATE_L = 120.0  # widened to seat the 52 x 52 EduLite pocket with a valid land
+PLATE_W = 64.0
 PLATE_T = 9.0   # >=2.4 mm floor under the deepest (5.5 mm) pocket
 
 META = PartMeta(
@@ -41,15 +41,15 @@ def part() -> Part:
     sw = S.SERVO_BOX_L_MM + 2 * S.FIT_SLIDE_MM
     sd = S.SERVO_BOX_W_MM + 2 * S.FIT_SLIDE_MM
     pocket_depth = 5.0
-    p -= Pos(-18, 0, z_top - pocket_depth / 2) * Box(sw, sd, pocket_depth)
+    p -= Pos(-30, 0, z_top - pocket_depth / 2) * Box(sw, sd, pocket_depth)
 
     # M3 heat-set boss hole (through), press class for the brass insert.
     m3_dia = S.M3_INSERT_HOLE_DIA_MM + 2 * S.FIT_PRESS_MM
-    p -= Pos(30, 12, 0) * Cylinder(radius=m3_dia / 2, height=PLATE_T + 2)
+    p -= Pos(38, 15, 0) * Cylinder(radius=m3_dia / 2, height=PLATE_T + 2)
 
     # 625ZZ bearing press-fit seat (partial depth).
     seat_dia = S.BEARING_625ZZ_OD_MM + 2 * S.FIT_PRESS_MM
     seat_depth = S.BEARING_625ZZ_W_MM + 0.5
-    p -= Pos(30, -12, z_top - seat_depth / 2) * Cylinder(radius=seat_dia / 2, height=seat_depth)
+    p -= Pos(38, -15, z_top - seat_depth / 2) * Cylinder(radius=seat_dia / 2, height=seat_depth)
 
     return p

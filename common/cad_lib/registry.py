@@ -21,6 +21,11 @@ _PARTS: dict[str, list[str]] = {
     ],
     "rocky": [
         "rocky.cad.parts.core_plate",
+        # Structural load path: the electronics tub (Jetson/battery/IMU/fan) that
+        # sits on the core plate, and the per-leg limb bracket (qty 5) that hosts
+        # the three EduLite-05 servos + inter-segment pivots from carapace to foot.
+        "rocky.cad.parts.core_tub",
+        "rocky.cad.parts.leg_bracket",
         # Interchangeable 3-pronged limbs (movie): a symmetric 3-prong foot on
         # every leg (qty 5) and the one culturally-marked primary limb segment
         # (base-3 ruler + Eridian marriage symbol, engraved shallow so QA passes).

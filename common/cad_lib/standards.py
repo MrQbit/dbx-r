@@ -37,11 +37,16 @@ DENSITY_PETG = 1.27
 DENSITY_PLA = 1.24
 DENSITY_TPU = 1.21
 
-# --- Servo mass model (§5): STS3215 as a rigid box -------------------------
-SERVO_MASS_G = 60.0
-SERVO_BOX_L_MM = 45.2
-SERVO_BOX_W_MM = 24.0
-SERVO_BOX_H_MM = 32.0
+# --- Servo box (§5): Robstride EduLite-05 as a rigid box -------------------
+# ROCKY-5's actuator (D-013). Mirrors components.SERVO (52 x 52 x 34, 242 g) so
+# the fit-test coupon slide-fit pocket matches the servo the robot actually uses
+# (was the legacy STS3215 45.2 x 24 x 32 — D-020). components.py stays the single
+# source of truth for CAD provisions; these constants only feed the coupon plate
+# (D-019).
+SERVO_MASS_G = 242.0
+SERVO_BOX_L_MM = 52.0
+SERVO_BOX_W_MM = 52.0
+SERVO_BOX_H_MM = 34.0
 
 # --- Print envelope (§8): Bambu P2S safe build volume ----------------------
 PRINT_ENVELOPE_MM = (250.0, 250.0, 250.0)
