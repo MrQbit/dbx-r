@@ -30,6 +30,9 @@ _PARTS: dict[str, list[str]] = {
         # every leg (qty 5) and the one culturally-marked primary limb segment
         # (base-3 ruler + Eridian marriage symbol, engraved shallow so QA passes).
         "rocky.cad.parts.foot",
+        # Front-leg manipulators (D-008): a 3-finger grip hand-foot on legs 1 & 4
+        # (qty 2), one grip servo driving 3 stony fingers (open=flat foot / grasp).
+        "rocky.cad.parts.grip_hand",
         "rocky.cad.parts.limb_marked",
         # Single-piece rock dome — fits the 250mm P2S envelope (211mm). The 2-piece
         # split (carapace_cap/skirt) is now validated (seam-flush displacement +

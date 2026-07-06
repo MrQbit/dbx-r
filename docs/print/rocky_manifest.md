@@ -15,14 +15,30 @@ carapace circumscribed dia **165 mm**, legs ~×0.75, EduLite-05 servos, mass tar
 |---|---|---:|---|:--:|---|---|---|:--:|
 | `core_plate` | PETG | 1 | 149.2 × 156.9 × 4.0 | ✅ | none | flat on bed, as modeled (pentagon face down) | M3 heat-set ×5 (coxa mounts) | PASS (min-wall 4.00) |
 | `core_tub` | PETG | 1 | 123.9 × 124.0 × 31.4 | ✅ | tree | floor down on bed, open top up (walls/standoffs self-support; tree under the fan bolt bosses) | M3 heat-set ×4 (Jetson standoffs), M2 self-tap ×2 (IMU) | PASS (min-wall 2.90) |
-| `leg_bracket` | PETG | 5 | 239.4 × 76.4 × 44.0 | ✅ | tree | flat bottom on bed, servo pockets up; tree under the side pivot-knuckle bores | M3 heat-set ×3 (coxa-root + tie), 625ZZ ×4 (pitch pivots) | PASS (min-wall 3.90) |
+| `leg_bracket` | PETG | 5 | 230.4 × 70.4 × 50.0 | ✅ | tree | flat bottom on bed, round servo seats up; tree under the side pivot-knuckle bores | M3 heat-set ×3 (coxa-root + tie), 625ZZ ×4 (pitch pivots), servo flange ×6/seat (M3+M4 clearance, bolt into servo) | PASS (min-wall 3.70) |
 | `limb_marked` | PETG | 1 | 22.0 × 16.0 × 72.0 | ✅ | none | upright along Z; engraved +X face vertical (no support on the ternary/marriage relief) | M2 self-tap ×1 (foot boss) | PASS (min-wall 2.60) |
 | `foot` | PETG* | 5 | 40.7 × 47.0 × 26.6 | ✅ | tree | hub axis vertical, prongs up; tree supports under the 35° splayed prongs | M3 heat-set ×1 (tibia bolt) | PASS (min-wall 3.00) |
+| `grip_hand` | PETG | 2 | 129.7 × 148.8 × 24.0 (open) | ✅ | tree | palm base down, fingers splayed flat on the bed; tree under the finger shards | grip-servo flange ×6 (M3+M4, Ø41.5 PCD), 625ZZ pivot pin ×3 | PASS (min-wall 4.00) |
 | `carapace` | PLA | 1 | 153.1 × 158.4 × 93.5 | ✅ | tree | rim-down (open mouth on the plate), apex up; tree supports for the crown overhang | — | PASS (min-wall 3.68) |
 | `belly_rx_plate` | PETG | 1 | 76.0 × 76.0 × 9.0 | ✅ | none | flip pocket-side **up** on the bed → self-supporting Qi pocket | M3 heat-set ×3 (under core plate) | PASS (min-wall 3.00) |
 | `charging_base` | PETG | 1 | 129.9 × 130.0 × 22.0 | ✅ | none | pad flat on bed, TX pocket opens up (self-supporting) | M3 heat-set ×4 (TX + feet) | PASS (min-wall 4.00) |
 
-Total registered printed mass (unit×qty, solid-volume × density = 100 % infill upper bound): core_plate 78.3 g + **core_tub 130.3 g** + **5×leg_bracket 2279 g** + 5×foot 70.5 g + tibia 32.0 g + carapace 140.9 g + belly 34.2 g + dock 135.6 g ≈ **3.0 kg of plastic** (was ~491 g for the seed set). With the 17 EduLite servos (~4.1 kg) that trends the built robot toward ~7 kg at 100 % infill — **above the 5 kg design target (D-014)**. The solid `leg_bracket` beam (456 g each) dominates the growth: real prints use 15–30 % infill (far lighter), but the bracket should still be lightened (side windows / lower infill) before the G1 torque re-check — see "Still needs a decision". Numbers per `docs/reports/mass_rocky.md`.
+**Real EduLite mounts (D-023).** Both servo-hosting parts now key off the datasheet
+flange in `common/cad_lib/edulite.py` instead of a square slot: `leg_bracket`'s three
+joint seats are each a round **Ø46 (+slide) housing pocket + Ø41.5 PCD bolt ring (M3+M4)
++ Ø24 output-collar bore** through the floor (so the output turns freely), and `grip_hand`
+mounts its grip servo on the palm top face via the same Ø41.5 PCD flange. Round seats leave
+the bracket's square corners solid, so it stays one-piece (230 mm < 250) and slightly
+heavier than the old slot (420 g vs the D-021 lightened 315 g) — see "Still needs a decision".
+
+**Grip hand-foot (D-008, D-023).** New part on the two front legs (`manipulators.legs [1,4]`,
+qty 2): a stony palm carrying **three triangular Eridian-stone fingers driven by ONE grip
+servo** (`servo_ids [16,17]`) through a hidden central crown-gear synchroniser. `grip 0.0 rad`
+= fingers flat/splayed → a broad tripod **sole the robot stands on** (129.7 × 148.8 × 24 mm);
+`grip 1.4 rad` = fingers swung up/in → a **cradle grasp** (85 × 89 × 62 mm). Registered pose
+is open/flat; preview (both poses): `docs/media/rocky_grip_hand.png`.
+
+Total registered printed mass (unit×qty, solid-volume × density = 100 % infill upper bound): core_plate 93.9 g + core_tub 160.2 g + **5×leg_bracket 2100 g** + 5×foot 70.5 g + **2×grip_hand 227 g** + tibia 32.0 g + carapace 172.8 g + belly 34.2 g + dock 135.6 g ≈ **3.0 kg of plastic**. With the 17 EduLite servos (~4.1 kg) that trends the built robot toward ~7 kg at 100 % infill — **above the 5 kg design target (D-014)**. The `leg_bracket` beam (420 g each) still dominates: real prints use 15–30 % infill (far lighter), but the bracket should stay lightened before the G1 torque re-check — see "Still needs a decision". Numbers per `docs/reports/mass_rocky.md`.
 
 \* **Foot filament note:** the generator currently tags the 3-prong claw `foot` as **PETG** (it is the structural end-effector). The movie-accurate **TPU hemispherical sole** (`foot_dia_mm: 19`, params §dimensions) is a separate soft cap that is **not yet modeled** as its own part — see "Still needs a decision" below. Print the claw in PETG; the TPU sole prints on the external TPU spool once authored.
 
@@ -40,7 +56,7 @@ The single-piece `carapace` (153 × 158 × 93 mm) fits the envelope with wide ma
 ## Print plates / swap schedule (by `plate_group`)
 
 - **rocky_structure** — `core_plate`, `core_tub`, 5× `leg_bracket`, `belly_rx_plate` (PETG). The five 239 mm leg brackets are the bulk of the plastic — each fills most of a plate on its own (tree supports under the pivot bores).
-- **rocky_limbs** — `limb_marked`, 5× `foot` (PETG). Feet fill one plate (tree supports).
+- **rocky_limbs** — `limb_marked`, 5× `foot`, 2× `grip_hand` (PETG). Feet + the two grip hands (open/flat, ~130 × 149 mm each) fill this plate group (tree supports under the splayed finger shards).
 - **rocky_shells** — `carapace` (PLA). Long print (~53 k tris, craggy skin). Split alternates go here if swapped in.
 - **charging_base** — `charging_base` (PETG), prints alongside structure.
 
@@ -52,7 +68,7 @@ BOM boxes come from `common/cad_lib/components.py` (single source of truth). Siz
 
 | BOM component | Box (mm) | Provision | Realized in a printed part? |
 |---|---|---|---|
-| EduLite-05 servo | 52 × 52 × 34 | pocket | ✅ `leg_bracket` — 3 slide-fit pockets/leg (52.4 × 52.4 sq, 35 mm deep), ×5 legs = **15 servo pockets** |
+| EduLite-05 servo | Ø46 × 44 | pocket | ✅ `leg_bracket` — 3 round Ø46.4 (+slide) housing seats/leg, 45 mm deep, each with the Ø41.5 PCD flange (M3+M4) + Ø24 output bore, ×5 = **15 seats**; + 2 grip servos on `grip_hand` palms (Ø41.5 PCD flange) |
 | Jetson Orin compact carrier | 90 × 63 × 30 | tray | ✅ `core_tub` — 4 raised standoffs (84 × 50 pattern, M3), board sits above the pack and clears the rim into the dome apex |
 | Battery 3S bay | 70 × 38 × 20 | bay | ✅ `core_tub` — walled bay, **72 × 40 interior** (loose +1 mm/side), 20 mm deep, low on the floor for CoM |
 | IMU BNO055 | 20 × 27 × 4 | boss | ✅ `core_tub` — 22 × 29 pad + 2× M2 (offset −X of the pack; see note) |
@@ -62,12 +78,13 @@ BOM boxes come from `common/cad_lib/components.py` (single source of truth). Siz
 
 Preview of the two new structural parts: `docs/media/rocky_structural.png`.
 
-**Honest status:** the load path is now authored end to end — `core_plate` → `core_tub` (electronics) and `core_plate` → `leg_bracket` (×5, servos) → `foot`. All 8 registered Rocky parts (+ the shared coupon) pass mesh QA and **`make gate-2` is green (9/9)**. Cavities are driven from `components.py`, so re-sourcing a module resizes the print. Remaining gaps are packaging/finish decisions, not missing structure. The coupon fit-test now uses the EduLite 52 × 52 × 34 box (D-019), not the legacy STS3215.
+**Honest status:** the load path is now authored end to end — `core_plate` → `core_tub` (electronics) and `core_plate` → `leg_bracket` (×5, servos) → `foot` / `grip_hand` (front pair). All 9 registered Rocky parts (+ the shared coupon) pass mesh QA and **`make gate-2` is green (9/9 pytest)**. Servo seats key off the real datasheet flange (`common/cad_lib/edulite.py`), driven from `components.py`, so re-sourcing a module resizes the print. Remaining gaps are packaging/finish decisions, not missing structure.
 
 ## Still needs a decision (human next actions, ranked)
 
-1. **Lighten `leg_bracket`** — the solid 239 × 76 × 44 beam is 456 g each (2.28 kg for 5) at 100 % infill, pushing the built robot toward ~7 kg (over the 5 kg target, D-014). Add side lightening windows and/or print at 15–30 % infill before the G1 torque re-check consumes `mass_rocky.md`.
+1. **Lighten `leg_bracket`** — the 230 × 70 × 50 beam is 420 g each (2.10 kg for 5) at 100 % infill, pushing the built robot toward ~7 kg (over the 5 kg target, D-014). The round Ø46 seats added back some corner mass vs the D-021 lightened slot (315 g); keep the tibia I-beam window and print at 15–30 % infill, and consider windowing the coxa/femur band, before the G1 torque re-check consumes `mass_rocky.md`.
 2. **Fan packaging** — a 40 mm fan can't floor-mount with its full 4-bolt pattern beside the 90 mm Jetson + 70 mm pack in the 165 mm dome. Current tub gives a 2-bolt diagonal mount + vent; confirm that holds, or move the fan to the carapace / onto the Jetson heatsink.
 3. **IMU placement** — the boss is offset −X of the pack (the battery bay owns the centroid). Confirm the small offset is acceptable for the BNO055 (`forward_axis +X`) or relocate onto a bridge over the pack.
-4. **TPU hemispherical foot sole** (`foot_dia_mm 19`) — model as its own soft part on the TPU spool, or confirm the PETG claw is the final foot.
-5. **Audio driver vent** — `components.py` places a 40 mm audio driver on `base_link`; not yet realized as printed geometry (skirt grilles live on the carapace).
+4. **Grip-hand synchroniser is an assembly, not a print** — `grip_hand` models the palm, the EduLite grip-servo flange, the three finger-pivot hubs (with Ø5 pin bores) and the finger shards as ONE fused solid in the open pose. The crown-gear/finger-pinion set that turns one servo into three synchronised fingers, the pins, and the finger↔palm split are **not modeled** (the printed pose is a static demonstrator / foot). Confirm the crown-gear synchroniser (vs a 3-bar linkage), then author the fingers as separate prints + the gear parts before any functional grip demo. Note the grasp is a **cradle** (1.4 rad < 90°, fingers never pass vertical), not a closing fist — fine for the foot/stand role and light objects; widen `grip_limit_rad` if a firmer grasp is wanted (would need a retrain).
+5. **TPU hemispherical foot sole** (`foot_dia_mm 19`) — model as its own soft part on the TPU spool, or confirm the PETG claw is the final foot.
+6. **Audio driver vent** — `components.py` places a 40 mm audio driver on `base_link`; not yet realized as printed geometry (skirt grilles live on the carapace).

@@ -7,11 +7,15 @@ EduLite-05 QDD actuators of that leg — the coxa (yaw), femur (pitch) and tibia
 bosses that bolt the bracket to the core plate and hold each servo down.
 
 Fully parametric off params.yaml segment lengths (`coxa_mm` / `femur_mm` /
-`tibia_mm`) and the EduLite servo box from components.py (52 x 52 x 34 mm, the
-single source of truth). The three servo pockets are laid out inline along the
-leg-reach axis (+X); their centres are spaced by the segment lengths, floored to
-a non-overlap pitch so a valid >= min-wall land always separates adjacent
-pockets. The tibia link then runs the last `tibia_mm` out to the foot mount.
+`tibia_mm`) and the EduLite servo from components.py (Ø46 x 44 mm QDD, the single
+source of truth). Each of the three joint seats is the REAL EduLite mount from
+common.cad_lib.edulite: a round Ø46 (+slide) housing pocket, the Ø41.5 PCD bolt
+ring (M3+M4), and a Ø24 output-collar bore through the floor so the output turns
+freely (D-023) — not the old square drop-in slot. The three seats are laid out
+inline along the leg-reach axis (+X); their centres are spaced by the segment
+lengths, floored to a non-overlap pitch so a valid >= min-wall land always
+separates adjacent pockets. The tibia link then runs the last `tibia_mm` out to
+the foot mount.
 
 Envelope: at the tightened params (coxa 41 / femur 72 / tibia 72) the whole leg
 frame is ~230 mm along +X — inside the 250 mm P2S envelope, so it prints in ONE
@@ -24,6 +28,7 @@ from __future__ import annotations
 from build123d import Box, Cylinder, Pos, Rotation, Part
 
 from common.cad_lib import standards as S
+from common.cad_lib import edulite as E
 from common.cad_lib.components import SERVO
 from common.cad_lib.part_meta import Insert, PartMeta
 from common.params import load_params
@@ -35,10 +40,14 @@ COXA = float(_P["dimensions"]["coxa_mm"])
 FEMUR = float(_P["dimensions"]["femur_mm"])
 TIBIA = float(_P["dimensions"]["tibia_mm"])
 
-# --- EduLite-05 servo pocket (single source of truth = components.SERVO) ----
-SVX, SVY, SVH = SERVO.dims_mm                       # (52, 52, 34)
-POCK_X = SVX + 2 * S.FIT_SLIDE_MM                   # slide-fit body drop-in (per side)
-POCK_Y = SVY + 2 * S.FIT_SLIDE_MM
+# --- EduLite-05 servo seat (single source of truth = components.SERVO) -------
+# The servo is a Ø46 round QDD (datasheet, D-022), not a square box: each joint
+# seat is now a ROUND Ø46 housing pocket + the real Ø41.5 PCD flange (M3+M4) +
+# a Ø24 output-collar bore through the floor so the output can rotate (E.*).
+SVX, SVY, SVH = SERVO.dims_mm                       # (46, 46, 44)
+POCK_DIA = S.EDULITE_HOUSING_DIA_MM + 2 * S.FIT_SLIDE_MM   # round Ø46 slide-fit seat
+POCK_X = POCK_DIA                                   # footprint along X/Y (round)
+POCK_Y = POCK_DIA
 POCK_D = SVH + 1.0                                  # pocket depth (body H + lead-in)
 
 # --- Beam (the structural spine that carries the three pockets) -------------
@@ -82,8 +91,26 @@ def _needs_split() -> bool:
 
 
 def _servo_pocket(x: float) -> Part:
-    """A slide-fit EduLite pocket cut from the top (+Z) face at station x."""
-    return Pos(x, 0, BEAM_H - POCK_D / 2) * Box(POCK_X, POCK_Y, POCK_D)
+    """The real EduLite seat at station x, cut from the top (+Z) face:
+
+      * round Ø46 (+slide) housing pocket, POCK_D deep, for the servo body/rim;
+      * Ø41.5 PCD bolt ring (M3+M4) through the pocket floor into the servo's
+        threaded flange;
+      * Ø24 (+loose) output-collar bore through the floor so the output rotates
+        below the beam.
+
+    The Ø46 seat leaves the beam's square corners solid (more material than the
+    old square slot), so the envelope is unchanged and the part stays one-piece.
+    """
+    floor_z = BEAM_H - POCK_D                       # pocket floor height (= FLOOR)
+    # Round body pocket: open at the top face (z=BEAM_H), floor at floor_z.
+    seat = E.housing_pocket(POCK_D, fit="slide")    # mating face at z=0
+    seat = Pos(x, 0, BEAM_H) * seat                 # drop mating face onto the top
+    # Flange bolts + output bore punch DOWN through the floor (floor_z -> below).
+    thru = floor_z + 2.0
+    flange = E.bolt_holes(thru) + E.output_bore(thru, fit="loose")
+    flange = Pos(x, 0, floor_z) * flange            # cuts z=floor_z down through
+    return seat + flange
 
 
 def _lightening(x_tibia: float, x_tip: float):
@@ -171,6 +198,10 @@ META = PartMeta(
     inserts=(
         Insert("m3_heatset", 3, "2 coxa-root (core_plate) + 1 servo hold-down tie"),
         Insert("bearing_625zz", 4, "two pitch pivots (femur/tibia), 2 seats each"),
+        # 3 servos x 6 flange fasteners on the Ø41.5 PCD; M3+M4 clearance holes,
+        # bolts thread into the servo's own flange (no bracket-side inserts).
+        Insert("m4_clearance", 9, "servo flange bolts (3/servo, PCD)"),
+        Insert("m3_clearance", 9, "servo flange bolts (3/servo, PCD)"),
     ),
     clearances={"servo_pocket": "slide", "pivot_seat": "press", "foot_mount": "slide"},
 )

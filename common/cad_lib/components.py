@@ -113,8 +113,8 @@ AUDIO_AMP = Component("max98357a", "audio", (17.0, 13.0, 3.0), 2.0, "tray",
                       ("i2s",), 1.5, "I2S mono amp")
 
 # Rocky front-leg manipulator (D-008): 3 triangular stony fingers + grip linkage.
-GRIP_HAND = Component("grip_hand_3finger", "actuator", (46.0, 46.0, 26.0), 30.0, "pocket",
-                      (), 1.5, "3-finger grip hand-foot on the 2 front legs")
+GRIP_HAND = Component("grip_hand_3finger", "actuator", (90.0, 90.0, 62.0), 114.0, "pocket",
+                      (), 1.5, "3-finger grip hand-foot on the 2 front legs (D-023 printed mass)")
 
 # BDX-A head expression details (movie-accuracy — backlit eyes + antennae).
 EYE_LED = Component("eye_led", "sensor", (12.0, 12.0, 6.0), 4.0, "window",

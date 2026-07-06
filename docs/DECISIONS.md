@@ -225,3 +225,24 @@ the under-volted 3S/12V pack with a 6S (22.2V) Li-ion — within EduLite's 15-60
 ample for Rocky's <1 Nm loads; 12-13S/48V is the drop-in for max rated performance.
 Battery bay 70x38x20 -> 85x40x25, XT30 -> XT60. Design is being LOCKED before the
 manipulation/avoidance retrain (operator: don't train the wrong build twice).
+
+## D-023 — Real EduLite-05 mount + Rocky front-leg grip hand-foot
+Locked the two coupled front-limb CAD tasks that finish Rocky's leg/manipulator design.
+- **Real EduLite interface** (`common/cad_lib/edulite.py`, single source of truth):
+  round Ø46 (+slide) housing seat + Ø41.5 PCD bolt ring + Ø24 output-collar bore.
+  The datasheet gives the PCD and "M3+M4 at 30deg" but not the exact bolt COUNT, so we
+  realise a symmetric **6-bolt ring at 60deg pitch (offset 30deg, alternating M4/M3)**,
+  every bolt on the 30deg grid. `leg_bracket`'s three joint seats were upgraded from a
+  square drop-in slot to this seat (round Ø46 pocket + PCD flange + Ø24 output bore
+  through the floor). Bracket stays one-piece (230mm < 250) and 420 g each (round seats
+  add corner mass vs the D-021 315 g slot); min-wall 3.70, gate-2 green.
+- **grip_hand** (new part, qty 2, legs 1 & 4): stony palm + 3 triangular Eridian-stone
+  fingers driven by ONE grip servo (IDs 16/17) via a hidden central crown-gear
+  synchroniser. grip 0.0 = fingers FLAT/splayed (stand-on foot, 130x149x24); grip 1.4 =
+  fingers up/in (cradle grasp, 85x89x62). Fingers are lofted tapered triangular shards
+  with 2.5mm edge fillets (weathered-stone look AND clears the acute-wedge that trips the
+  min-wall ray screen). Modeled as one fused solid in the open pose (like `foot.py`); the
+  functional split (separate finger prints + gears + pins) and the fact that 1.4 rad gives
+  a cradle not a fist are logged in the manifest "needs a decision" list. min-wall 4.00.
+- QA: all 9 registered Rocky parts pass; `make gate-2` green (9/9 pytest). Preview:
+  `docs/media/rocky_grip_hand.png` (matplotlib Agg, open + closed).
