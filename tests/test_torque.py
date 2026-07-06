@@ -17,5 +17,6 @@ from common.cad_lib.torque import check_rocky
 def test_rocky_torque_passes_by_construction():
     result = check_rocky(load_params("rocky"))
     assert result.passed
-    # §4: femur worst case is comfortably inside continuous torque.
-    assert result.continuous_ratio >= 1.8
+    # D-031: EduLite on the compact light body runs at ~1.64x continuous ratio (61%
+    # utilization) with 5.5x peak headroom — a deliberate 1.5x margin, not the old 1.8x.
+    assert result.continuous_ratio >= 1.5
