@@ -14,20 +14,23 @@ limb_angle_deg: 72            # limb 0 = heading (0deg), then +72 each
 # thorax — the tightened 180 mm parametric parts looked like a boxy tripod, not the
 # organic pentaradial Eridian. At movie size the organic legs are thick enough to
 # hide the servos, but the longer levers need Robstride RS00 (EduLite fails torque).
-dimensions:
-  carapace_dia_mm: 272         # native STL thorax (movie-accurate; operator choice)
-  dome_height_mm: 151          # pentagonal outcropping (the 5 breathing slits)
-  limb_reach_mm: 281
-  coxa_mm: 62
-  femur_mm: 109
-  tibia_mm: 109
-  stance_height_mm: 202        # neutral crab stance
-  footprint_dia_mm: 484
-  foot_dia_mm: 29              # each leg tip is a 3-finger hand (not a simple foot)
+dimensions:                    # CANON LABRADOR SIZE (D-030): scaled 272->400 (x1.47).
+  # At 272mm three Ø60 RS00 knuckles merged into boulder legs; at Labrador scale the
+  # leg is long enough for SPACED knuckles + slender stone segments (movie-accurate)
+  # AND matches the book ("Labrador-sized"). Bigger/heavier; parts split for the printer.
+  carapace_dia_mm: 400         # pentagonal thorax
+  dome_height_mm: 222          # pentagonal outcropping (the 5 breathing slits)
+  limb_reach_mm: 413
+  coxa_mm: 91
+  femur_mm: 160
+  tibia_mm: 160
+  stance_height_mm: 297        # neutral crab stance
+  footprint_dia_mm: 712        # ~0.7 m span (Labrador-sized)
+  foot_dia_mm: 43              # each leg tip is a 3-finger hand
 
-mass_budget_kg: 9.0           # bigger movie-size robot: 15 RS00 legs (~3.5 kg) + 5 grip
-#                               servos + STL-derived shell/legs + electronics (D-028)
-design_target_kg: 8.0         # G1 torque check + TRAINING mass at movie proportions
+mass_budget_kg: 13.0          # Labrador-size: 15 RS00 (~4.5 kg) + STL shell/legs +
+#                               5 grip servos + electronics ~= 11-12 kg (D-030)
+design_target_kg: 11.0        # G1 torque check + TRAINING mass at Labrador scale
 
 battery:                       # 6S for the 48V-class EduLite QDD motors (D-022 power fix)
   chemistry: li-ion
@@ -86,11 +89,12 @@ grip_servo:
   torque_stall_nm: 1.8
   bus: {type: pwm}
 
-# --- Torque check (§4): femur worst case at MOVIE proportions ---------------
-# Static worst case ~1.4 N·m (272 mm / 109 mm femur / ~8 kg / dynamic 2x). RS00 14
-# continuous / 17 peak clears it with big margin; EduLite would fail (need >=2.5).
+# --- Torque check (§4): femur worst case at CANON LABRADOR scale ------------
+# Static worst case ~2.9 N·m (400 mm / 160 mm femur / ~11 kg / dynamic 2x). RS00 14
+# continuous / 17 peak still clears it (~2.7x continuous margin) — the reason we
+# stayed on RS00 not EduLite. Bigger robot -> bigger lever + mass -> higher torque.
 torque_check:
-  femur_worst_case_nm: 1.4
+  femur_worst_case_nm: 2.9
   continuous_margin: 1.8
   stall_margin: 3.0
 

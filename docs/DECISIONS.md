@@ -365,3 +365,11 @@ between. Buildable + movie-plausible (reads organic, not mechanical). The knuckl
 the structural hub bridging two segments; slender segments cantilever from it. Refine
 segment_rocky_stl.py to add the knuckles + pose the crab stance + close the dome with
 5 breathing slits + real 3-finger hands at the tips.
+
+## D-030 — Scale Rocky to canon Labrador size (272 -> 400mm)
+The 272mm "movie proportions" made the legs too short for 3 spaced RS00 knuckles — they
+merged into boulder-cluster legs (not the elegant slender crab). Operator: scale up to
+the true canon Labrador size (~400mm thorax, ~712mm span, x1.47). Now each leg is long
+enough for spaced knuckles + slender stone segments between = movie-accurate AND matches
+the book. Cost: ~11-12kg, parts exceed the 250mm printer -> dovetail splits required.
+RS00 torque re-checked at 11kg / 160mm femur (~2.9 N·m worst case): PASS (~2.7x margin).
