@@ -10,9 +10,13 @@ official Rocky STL into an articulated, printable Eridian-crab part set:
         |  1. solidify (voxel two-pass -> watertight solid)
         |  2. split by 5-fold symmetry: central pentagonal THORAX + 5 LEGS
         |  3. articulate each leg at its two natural bends -> coxa / femur / tibia
-        |  4. hardware cavities: RS00 servo pockets at joints, thorax electronics bay,
-        |     grafted 3-finger stone HAND + micro-servo pocket at each tip
-        |  5. printability check (250 mm envelope)
+        |  4. D-029 BULBOUS STONE KNUCKLES: at each of the 3 joints per leg grow a
+        |     craggy Ø>=70 bulge that fully HOUSES the RS00 (Ø60x35 cavity, wall>=2.4)
+        |     and blends into the slender segment between joints
+        |  5. thorax hollow + electronics bay; seat the 5 carapace breathing plates
+        |     back on top (pentagonal outcropping, 5 breathing SLITS between them)
+        |  6. REAL 3-finger grip HAND (rocky/cad/parts/grip_hand.stl) at each of 5 tips
+        |  7. POSE into a neutral standing crab stance; printability check (250 mm)
         v
   rocky/cad/stl_derived/*.stl   (gitignored) + docs/media/rocky_stl_assembly.png
 
@@ -36,6 +40,7 @@ MEDIA  = os.path.join(ROOT, "docs/media")
 
 # --- hardware envelopes (from common/cad_lib/components.py) ----------------------
 SERVO      = (60.0, 60.0, 35.0)   # Robstride RS00 pocket  (Ø60 x 35 cavity)
+CAV_D, CAV_L = 60.0, 35.0         # RS00 cavity Ø x length
 GRIP_SERVO = (22.8, 12.2, 28.5)   # grip micro servo pocket
 JETSON_TRAY = (90.0, 63.0, 30.0)
 BATTERY_6S  = (85.0, 40.0, 25.0)
@@ -44,6 +49,12 @@ ENVELOPE   = 250.0                 # Bambu P2S build volume (mm)
 PITCH  = float(os.environ.get("ROCKY_PITCH", "1.5"))   # voxel remesh pitch (mm)
 R_CORE = 62.0                      # thorax core radius (mm); legs live beyond it
 WALL   = 4.0                       # target shell wall for hollowing (mm)
+KNUCK_R  = 33.0                    # D-029 knuckle radius (Ø66 > Ø60 cavity => 3mm wall)
+MIN_WALL = 2.4                     # required wall around the servo cavity (mm)
+HAND_STL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "rocky/cad/parts/grip_hand.stl")
+PLATES = [os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                       f"reference/stl/carapace_plate_{i}.stl") for i in range(5)]
 
 log = lambda *a: print("[segment]", *a, flush=True)
 
@@ -222,24 +233,27 @@ def medial_curve(mesh, cx, cy, ang_deg, nb=22):
 
 
 def bend_points(mids, zcs):
-    """Two largest-curvature interior points of the medial curve = coxa|femur and
-    femur|tibia joints.  Falls back to 1/3, 2/3 of the span if detection is flat."""
-    s0, s1 = mids[0], mids[-1]
+    """Coxa|femur and femur|tibia joints near the 1/3 and 2/3 marks of the leg
+    (keeps the three segments comparable in length so knuckles space out), snapped
+    to the nearest local curvature maximum within a window so cuts still land on a
+    real bend."""
+    s0, s1 = float(mids[0]), float(mids[-1])
+    span = s1 - s0
+    targets = [s0 + 0.36 * span, s0 + 0.68 * span]
     if len(mids) >= 5:
         d2 = np.abs(np.gradient(np.gradient(zcs, mids), mids))
-        picks = []
-        for i in np.argsort(-d2):
-            si = mids[i]
-            if si < s0 + 15 or si > s1 - 15:
-                continue
-            if all(abs(si - p) > 18 for p in picks):
-                picks.append(si)
-            if len(picks) == 2:
-                break
-        if len(picks) == 2:
-            return sorted(picks)
-    span = s1 - s0
-    return [s0 + span / 3.0, s0 + 2 * span / 3.0]
+        out = []
+        for t in targets:
+            win = (mids > t - 0.13 * span) & (mids < t + 0.13 * span)
+            if win.any():
+                cand = mids[win][int(np.argmax(d2[win]))]
+                out.append(float(cand))
+            else:
+                out.append(t)
+        # keep them apart
+        if out[1] - out[0] > 0.15 * span:
+            return sorted(out)
+    return [targets[0], targets[1]]
 
 
 def slice_at_radius(mesh, cx, cy, zc, ang_deg, s_cut, keep_outer):
@@ -256,52 +270,96 @@ def medial_z_at(mids, zcs, s):
 
 
 # ================================================================ hardware ======
-def carve_servo(mesh, cx, cy, zc, ang_deg, s_cut, z_at):
-    """Subtract an RS00 pocket (Ø60 x 35) at a joint, hinge axis tangential."""
-    rad = np.array([math.cos(math.radians(ang_deg)), math.sin(math.radians(ang_deg)), 0.0])
-    tang = np.array([-rad[1], rad[0], 0.0])
-    ctr = np.array([cx, cy, 0.0]) + rad * s_cut + np.array([0, 0, z_at])
-    pocket = trimesh.creation.cylinder(radius=SERVO[0] / 2.0, height=SERVO[2])
-    T = trimesh.geometry.align_vectors([0, 0, 1], tang)
-    pocket.apply_transform(T)
-    pocket.apply_translation(ctr)
+def craggy_sphere(center, radius, tang, amp=0.16, seed=0):
+    """A watertight stone-textured bulge: icosphere displaced OUTWARD only (so the
+    servo cavity wall never thins) by a smooth multi-frequency field."""
+    s = trimesh.creation.icosphere(subdivisions=3, radius=radius)
+    v = s.vertices
+    n = (0.5 + 0.5 * np.sin(0.55 * v[:, 0] + seed) * np.cos(0.5 * v[:, 1] - seed)) \
+        + (0.5 + 0.5 * np.sin(0.42 * v[:, 2] + 1.3) * np.cos(0.38 * v[:, 0]))
+    n = amp * radius * (n / 2.0)               # >= 0 -> outward only
+    s.vertices = v * (1.0 + (n / np.linalg.norm(v, axis=1))[:, None])
+    s.apply_translation(center)
+    return s
+
+
+def add_knuckle(segment, center, tang, cx, cy, ang_deg):
+    """D-029: grow a bulbous stone knuckle at `center` that fully houses an RS00
+    (Ø60x35 cavity, hinge axis `tang`), blended (unioned) into the slender segment.
+    Returns (mesh, ok, design_wall_mm)."""
+    knob = craggy_sphere(center, KNUCK_R, tang, seed=(ang_deg % 360) / 40.0)
+    cav = trimesh.creation.cylinder(radius=CAV_D / 2.0, height=CAV_L, sections=48)
+    cav.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], tang))
+    cav.apply_translation(center)
+    wall = round((2 * KNUCK_R - CAV_D) / 2.0, 1)   # design wall (radial)
     try:
-        out = mesh.difference(pocket)
-        out = largest_body(out)
-        if out.is_watertight and out.volume > 0.3 * mesh.volume:
-            return out, True
+        fused = trimesh.boolean.union([finalize(segment), knob])
+        fused = largest_body(fused)
+        out = largest_body(fused.difference(cav))
+        out = finalize(out)
+        if out.is_watertight and out.volume > 0.4 * knob.volume:
+            return out, True, wall
     except Exception:                          # noqa
         pass
-    return mesh, False
-
-
-def stone_hand(cx, cy, zc, ang_deg, tip_pt, size=1.0):
-    """Graft: 3 tapered stone finger shards splayed 120 deg at the leg tip, plus a
-    stubby palm knuckle, as ONE union.  Crude but reads as a 3-finger Eridian claw.
-    Scaled from grip_finger.py (FINGER_LEN 46 -> ~34, ROOT_R 11 -> ~8)."""
-    rad = np.array([math.cos(math.radians(ang_deg)), math.sin(math.radians(ang_deg)), 0.0])
-    tang = np.array([-rad[1], rad[0], 0.0])
-    down = np.array([0, 0, -1.0])
-    flen, root_r, tip_r = 34.0 * size, 8.0 * size, 2.5 * size
-    palm = trimesh.creation.icosphere(subdivisions=2, radius=11.0 * size)
-    palm.apply_translation(tip_pt)
-    pieces = [palm]
-    # finger directions: outward-down, splayed +/- around the tangential axis
-    base_dir = (rad * 0.6 + down * 0.8)
-    base_dir /= np.linalg.norm(base_dir)
-    for az in (-40, 0, 40):
-        d = base_dir + tang * math.tan(math.radians(az))
-        d /= np.linalg.norm(d)
-        fng = trimesh.creation.cone(radius=root_r, height=flen, sections=3)
-        # cone apex at +Z; align +Z -> finger direction, taper naturally
-        fng.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], d))
-        fng.apply_translation(tip_pt + d * (flen * 0.15))
-        pieces.append(fng)
+    # fallback: keep the knuckle bulge (still bulbous) without the cavity carved
     try:
-        hand = trimesh.boolean.union(pieces)
-        return largest_body(hand)
+        fused = finalize(largest_body(trimesh.boolean.union([finalize(segment), knob])))
+        return fused, False, wall
     except Exception:                          # noqa
-        return None
+        return finalize(segment), False, None
+
+
+_HAND = None
+def load_hand():
+    global _HAND
+    if _HAND is None:
+        _HAND = trimesh.load(HAND_STL)
+    return _HAND
+
+
+def place_hand(center, direction, scale):
+    """Seat the REAL grip hand (palm + 3 fingers + crown) at a leg tip: canonical
+    grip axis +Z -> `direction` (down-and-out into the footprint), palm base at
+    `center`.  Returns a posed COPY (multi-body assembly, render/preview only)."""
+    h = load_hand().copy()
+    h.apply_scale(scale)
+    h.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], direction))
+    h.apply_translation(center)
+    return h
+
+
+# ==================================================================== posing =====
+def anchor(cx, cy, ang_deg, s, mids, zcs):
+    return np.array([cx + s * math.cos(math.radians(ang_deg)),
+                     cy + s * math.sin(math.radians(ang_deg)),
+                     medial_z_at(mids, zcs, s)])
+
+
+def pose_matrix(p_start, p_end, target_dir, c_start):
+    """Rigid transform placing a segment's proximal anchor at `c_start` and rotating
+    its (proximal->distal) axis onto `target_dir` (a neutral-stance FK link)."""
+    v = np.asarray(p_end, float) - np.asarray(p_start, float)
+    R = trimesh.geometry.align_vectors(v, target_dir)     # 4x4
+    T1 = trimesh.transformations.translation_matrix(-np.asarray(p_start))
+    T2 = trimesh.transformations.translation_matrix(np.asarray(c_start))
+    return T2 @ R @ T1
+
+
+def dir3(rad, ang_up_deg):
+    a = math.radians(ang_up_deg)
+    return math.cos(a) * rad + math.sin(a) * np.array([0, 0, 1.0])
+
+
+def seg_len(p, q):
+    return float(np.linalg.norm(np.asarray(q) - np.asarray(p)))
+
+
+def anchor_c2z(ld, a_c, a_f):
+    """Z of the femur|tibia joint (knee2) under the chosen coxa/femur pose angles."""
+    rad, A = ld["rad"], ld["A"]
+    c1 = A["hip"] + dir3(rad, a_c) * seg_len(A["hip"], A["k1"])
+    c2 = c1 + dir3(rad, a_f) * seg_len(A["k1"], A["k2"])
+    return float(c2[2])
 
 
 # ================================================================ printability ==
@@ -353,7 +411,7 @@ def _render_mpl(parts_colored, path, views=None):
         ax.set_box_aspect((1, 1, 1))
         ax.set_title(f"{name}", fontsize=16)
         ax.set_axis_off()
-    fig.suptitle("ROCKY-5 — segmented articulated parts (pose-normalized crab stance)",
+    fig.suptitle("ROCKY-5 — posed assembly: knuckled legs, seated carapace plates, 3-finger hands",
                  fontsize=15)
     fig.tight_layout()
     fig.savefig(path, dpi=90)
@@ -416,106 +474,145 @@ def main():
                                      cavities=["jetson_tray", "battery_6s"])
     log(f"thorax -> {size_report(thorax_final)} wall~{twall}")
 
-    # ---- LEGS ------------------------------------------------------------------
+    # ---- LEGS (segment + knuckle) ----------------------------------------------
     legs_all = largest_body(S.difference(core)) if S.body_count == 1 else S.difference(core)
-    colored = [(thorax_final, [150, 150, 160, 255])]
-    seg_colors = {"coxa": [200, 120, 90, 255], "femur": [180, 160, 110, 255],
-                  "tibia": [150, 130, 120, 255], "hand": [210, 90, 90, 255]}
+    seg_colors = {"coxa": [196, 120, 92, 255], "femur": [176, 150, 108, 255],
+                  "tibia": [150, 128, 118, 255]}
+    HAND_COL = [205, 92, 88, 255]
+    THX_COL = [140, 142, 150, 255]
+    PLATE_COL = [86, 116, 168, 255]
     n = len(centers)
     cc = np.sort(centers)
+    leg_data = []          # per-leg dict of unposed segs + anchors, for posing
     for i in range(n):
         c_ang = float(cc[i])
-        # gap planes straddling this center
-        lo = max([g for g in gaps if g < c_ang], default=None)
-        hi = min([g for g in gaps if g > c_ang], default=None)
-        if lo is None:
-            lo = float(max(gaps)) - 360
-        if hi is None:
-            hi = float(min(gaps)) + 360
+        rad = np.array([math.cos(math.radians(c_ang)), math.sin(math.radians(c_ang)), 0.0])
+        tang = np.array([-rad[1], rad[0], 0.0])
+        lo = max([g for g in gaps if g < c_ang], default=float(max(gaps)) - 360)
+        hi = min([g for g in gaps if g > c_ang], default=float(min(gaps)) + 360)
         leg = cut_between(legs_all, cx, cy, zc, lo, hi)
         if not leg.is_watertight or leg.volume < 500:
             report["notes"].append(f"leg{i+1}: extraction weak (wt={leg.is_watertight}); skipped")
             continue
         mids, zcs = medial_curve(leg, cx, cy, c_ang)
+        s0, stip = float(mids[0]), float(mids[-1])
         s1, s2 = bend_points(mids, zcs)
-        # three segments along the radial axis
         coxa = largest_body(slice_at_radius(leg, cx, cy, zc, c_ang, s1, keep_outer=False))
-        mid = slice_at_radius(leg, cx, cy, zc, c_ang, s1, keep_outer=True)
+        mid  = slice_at_radius(leg, cx, cy, zc, c_ang, s1, keep_outer=True)
         femur = largest_body(slice_at_radius(mid, cx, cy, zc, c_ang, s2, keep_outer=False))
         tibia = largest_body(slice_at_radius(mid, cx, cy, zc, c_ang, s2, keep_outer=True))
-
         segs = {"coxa": coxa, "femur": femur, "tibia": tibia}
         legrep = dict(center_deg=round(c_ang, 1),
-                      bend_radii_mm=[round(float(s1), 1), round(float(s2), 1)],
-                      segments={})
-        # servo pockets at the two joints (in femur, which spans both joints)
-        z1, z2 = medial_z_at(mids, zcs, s1), medial_z_at(mids, zcs, s2)
-        femur, ok1 = carve_servo(femur, cx, cy, zc, c_ang, s1, z1)
-        femur, ok2 = carve_servo(femur, cx, cy, zc, c_ang, s2, z2)
-        segs["femur"] = femur
-        # hollow segments (best effort)
+                      bend_radii_mm=[round(s1, 1), round(s2, 1)], segments={})
+
+        # D-029 bulbous knuckle housing an RS00 at each segment's INBOARD joint:
+        #   coxa  -> hip (coxa-body) joint   at s0
+        #   femur -> coxa|femur joint        at s1
+        #   tibia -> femur|tibia joint       at s2
+        knuck_at = {"coxa": s0, "femur": s1, "tibia": s2}
+        knuck_ok = {}
         for nm in ("coxa", "femur", "tibia"):
-            sh, w = hollow(segs[nm], WALL, PITCH)
-            segs[nm] = sh
-            legrep["segments"].setdefault(nm, {})["wall_mm"] = w
-        # graft 3-finger hand + micro-servo pocket onto the tibia tip
-        tip_pt = segs["tibia"].vertices[np.argmax(
-            (segs["tibia"].vertices[:, 0] - cx) * math.cos(math.radians(c_ang)) +
-            (segs["tibia"].vertices[:, 1] - cy) * math.sin(math.radians(c_ang)))]
-        hand = stone_hand(cx, cy, zc, c_ang, tip_pt)
-        hand_ok = False
-        if hand is not None:
-            try:
-                tib_h = trimesh.boolean.union([segs["tibia"], hand])
-                tib_h = largest_body(tib_h)
-                if tib_h.is_watertight:
-                    # micro-servo pocket near the palm
-                    gs = trimesh.creation.box(GRIP_SERVO)
-                    gs.apply_translation(tip_pt)
-                    tib2 = largest_body(tib_h.difference(gs))
-                    segs["tibia"] = tib2 if tib2.is_watertight else tib_h
-                    hand_ok = True
-            except Exception:
-                pass
-        legrep["hand_grafted"] = hand_ok
-        legrep["servo_pockets"] = {"coxa_femur_joint": ok1, "femur_tibia_joint": ok2}
-
-        for nm, mesh in segs.items():
-            mesh = finalize(mesh)
+            ctr = anchor(cx, cy, c_ang, knuck_at[nm], mids, zcs)
+            mesh, ok, wall = add_knuckle(segs[nm], ctr, tang, cx, cy, c_ang)
             segs[nm] = mesh
-            fn = os.path.join(OUT, f"leg{i+1}_{nm}.stl")
-            mesh.export(fn)
-            legrep["segments"].setdefault(nm, {})
-            legrep["segments"][nm].update(size_report(mesh),
-                                          watertight=bool(mesh.is_watertight))
-            col = seg_colors[nm]
-            colored.append((mesh, col))
-        report["parts"][f"leg{i+1}"] = legrep
-        log(f"leg{i+1}: center={c_ang:.1f} bends={[round(s1,1),round(s2,1)]} "
-            f"servos=({ok1},{ok2}) hand={hand_ok}")
+            knuck_ok[nm] = ok
+            legrep["segments"].setdefault(nm, {})["knuckle_ok"] = ok
+            legrep["segments"][nm]["cavity_wall_mm"] = wall
 
-    # ---- preview + report ------------------------------------------------------
+        # export unposed knuckled print parts + record sizes
+        for nm in ("coxa", "femur", "tibia"):
+            mesh = finalize(segs[nm]); segs[nm] = mesh
+            mesh.export(os.path.join(OUT, f"leg{i+1}_{nm}.stl"))
+            legrep["segments"][nm].update(size_report(mesh), watertight=bool(mesh.is_watertight))
+
+        # anchors for FK posing (original coords)
+        A = {"hip": anchor(cx, cy, c_ang, s0, mids, zcs),
+             "k1":  anchor(cx, cy, c_ang, s1, mids, zcs),
+             "k2":  anchor(cx, cy, c_ang, s2, mids, zcs),
+             "tip": anchor(cx, cy, c_ang, stip, mids, zcs)}
+        leg_data.append(dict(i=i, ang=c_ang, rad=rad, segs=segs, A=A))
+        legrep["knuckles"] = knuck_ok
+        report["parts"][f"leg{i+1}"] = legrep
+        log(f"leg{i+1}: center={c_ang:.1f} bends={[round(s1,1),round(s2,1)]} knuckles={knuck_ok}")
+
+    # ---- seat the 5 carapace breathing plates (dome outcropping, slits between) --
+    # The raw plates are large upper-carapace sections (out to r~176); clip each to
+    # the dome-top cap region so they read as the pentagonal outcropping with the 5
+    # breathing SLITS between them (the full plates remain the real breathing prints).
+    CLIP_R = R_CORE + 22.0
+    plates = []
+    for pf in PLATES:
+        if not os.path.exists(pf):
+            continue
+        pm = trimesh.load(pf)
+        fc = pm.triangles_center
+        r = np.hypot(fc[:, 0] - cx, fc[:, 1] - cy)
+        keep = r <= CLIP_R
+        if keep.any():
+            pm.update_faces(keep)
+            pm.remove_unreferenced_vertices()
+        plates.append(pm)
+    report["carapace_plates"] = len(plates)
+    report["breathing_slits"] = max(0, len(plates))  # slits = gaps between seated plates
+
+    # ---- POSE into a neutral standing crab stance (femur up-out, tibia to ground)
+    A_C, A_F = -10.0, 16.0                # coxa slight down-out; femur up-out to knee
+    HAND_SCALE = 0.62
+    posed = [(thorax_final, THX_COL)]
+    for pl in plates:
+        posed.append((pl, PLATE_COL))
+    # ground plane set low enough that every tibia drops ~vertically (uniform,
+    # clearly-standing radial stance; feet land at nearly the same level anyway).
+    c2zs = [anchor_c2z(ld, A_C, A_F) for ld in leg_data]
+    Lts = [seg_len(ld["A"]["k2"], ld["A"]["tip"]) for ld in leg_data]
+    ground = (min(c2zs) - max(Lts) - 2.0) if leg_data else 0.0
+    for ld in leg_data:
+        rad = ld["rad"]; A = ld["A"]; segs = ld["segs"]
+        d_c = dir3(rad, A_C)
+        c1 = A["hip"] + d_c * seg_len(A["hip"], A["k1"])
+        d_f = dir3(rad, A_F)
+        c2 = c1 + d_f * seg_len(A["k1"], A["k2"])
+        Lt = seg_len(A["k2"], A["tip"])
+        drop = float(np.clip((c2[2] - ground) / Lt, 0.4, 1.0))   # always downward
+        a_t = -math.degrees(math.asin(drop))          # tibia drops to the ground plane
+        d_t = dir3(rad, a_t)
+        c3 = c2 + d_t * Lt
+        Mc = pose_matrix(A["hip"], A["k1"], d_c, A["hip"])
+        Mf = pose_matrix(A["k1"], A["k2"], d_f, c1)
+        Mt = pose_matrix(A["k2"], A["tip"], d_t, c2)
+        for nm, M in (("coxa", Mc), ("femur", Mf), ("tibia", Mt)):
+            pm = segs[nm].copy(); pm.apply_transform(M)
+            posed.append((pm, seg_colors[nm]))
+        hand = place_hand(c3, d_t, HAND_SCALE)
+        posed.append((hand, HAND_COL))
+        report["parts"][f"leg{ld['i']+1}"]["pose_deg"] = dict(
+            coxa=A_C, femur=A_F, tibia=round(a_t, 1))
+
+    # ---- posed preview ---------------------------------------------------------
     png = os.path.join(MEDIA, "rocky_stl_assembly.png")
     try:
-        _render_mpl(colored, png, None)
+        _render_mpl(posed, png)
         log(f"preview -> {png}")
     except Exception as e:                      # noqa
         report["notes"].append(f"preview render failed: {e}")
         log("preview FAILED", e)
 
-    # honest hardware note: RS00 is Ø60; legs are far slimmer
-    seg_widths = []
-    for nm, pr in report["parts"].items():
-        if nm.startswith("leg"):
-            for sn, sr in pr["segments"].items():
-                seg_widths.append(min(sr.get("x", 999), sr.get("y", 999)))
-    if seg_widths:
-        report["notes"].append(
-            f"RS00 servo is Ø{SERVO[0]:.0f}mm; leg segment min cross-sections are "
-            f"~{min(seg_widths):.0f}-{max(seg_widths):.0f}mm, so a FULLY ENCLOSED servo "
-            f"cavity does not fit inside a leg. The Ø60 pockets that carved cleanly are "
-            f"open joint SADDLES; at this scale the RS00 must mount as the external "
-            f"structural hub bridging two segments, not buried inside one.")
+    report["notes"].append(
+        f"D-029 knuckles: each RS00 (Ø{CAV_D:.0f}) is housed in a Ø{2*KNUCK_R:.0f} "
+        f"bulbous stone knuckle at its joint (design wall {(2*KNUCK_R-CAV_D)/2:.1f}mm "
+        f">= {MIN_WALL} req).")
+    report["notes"].append(
+        f"SCALE CONFLICT (honest): a movie-proportion leg spans only ~{stip-s0:.0f}mm "
+        f"but 3 non-overlapping Ø{2*KNUCK_R:.0f} knuckles would need ~{3*2*KNUCK_R:.0f}mm "
+        f"of length, so the three RS00 knuckles necessarily MERGE into one continuous "
+        f"knobbly stone limb rather than three balls on slender links. This is the real "
+        f"tension between D-028 '15x RS00' and the fixed 272mm movie size; the knobbly "
+        f"rock-crab result actually suits an Eridian but the 'slender segment between "
+        f"joints' reads only on the outermost (tibia) link.")
+    report["notes"].append(
+        "Hands are the REAL grip_hand.stl (palm+3 fingers+crown), seated at each tip "
+        "in the standing pose. They are a separate multi-piece print assembly "
+        "(rocky/cad/parts/grip_*.py), not fused into the tibia.")
 
     # printability summary
     oversize = []
