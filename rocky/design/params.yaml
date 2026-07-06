@@ -14,20 +14,20 @@ limb_angle_deg: 72            # limb 0 = heading (0deg), then +72 each
 # thorax — the tightened 180 mm parametric parts looked like a boxy tripod, not the
 # organic pentaradial Eridian. At movie size the organic legs are thick enough to
 # hide the servos, but the longer levers need Robstride RS00 (EduLite fails torque).
-dimensions:                    # SPIDERY x1.2 (D-032): scaled the compact body up ~20%.
-  # WHY: the movie-accurate ~272mm body's clean interior (~58mm) is too narrow for the
-  # standard Jetson Orin Nano carrier (63mm even on-edge). x1.2 -> ~70mm interior fits
-  # it with 3.3mm walls, no custom PCB. Legs stay slender (Ø46 knuckle on a 131mm femur
-  # = 85mm neck). Keep the body LIGHT — EduLite is near its ceiling at this scale.
-  carapace_dia_mm: 326         # pentagonal thorax (fits the Jetson carrier at x1.2)
-  dome_height_mm: 181
-  limb_reach_mm: 337
-  coxa_mm: 74
-  femur_mm: 131                # slender with the Ø46 knuckle (85mm neck)
-  tibia_mm: 131
-  stance_height_mm: 242
-  footprint_dia_mm: 581
-  foot_dia_mm: 35             # each leg tip is a 3-finger hand
+dimensions:                    # RECONCILED to the OFFICIAL SCULPT (D-034): the printed
+  # robot is derived 1:1 from the official Rocky figure (reference/self_print_rocky),
+  # segmented + symmetric-reposed in Blender. These are the ACTUAL built dimensions —
+  # train what you print. The chunky official body (191mm) fits the Jetson easily
+  # (11mm walls); the shorter sculpt legs make EduLite comfortable again (2.3x margin).
+  carapace_dia_mm: 191         # official pentagonal thorax (holds Jetson+battery)
+  dome_height_mm: 138
+  limb_reach_mm: 201           # hip r86 -> foot r201
+  coxa_mm: 60
+  femur_mm: 73                 # sculpt-derived (shorter -> low torque -> EduLite comfy)
+  tibia_mm: 105
+  stance_height_mm: 145        # hip z; foot 64mm below hip
+  footprint_dia_mm: 402        # sculpt-accurate (NOT stretched to an arbitrary target)
+  foot_dia_mm: 35             # sculpt-native craggy claw / 3-finger tip
 
 mass_budget_kg: 6.5           # KEEP LIGHT: 15 EduLite (~3.6kg) + micro grips + hollow STL
 #                               shell + electronics ~= 5.9kg. Above ~6kg EduLite is over.
@@ -90,14 +90,13 @@ grip_servo:
   torque_stall_nm: 1.8
   bus: {type: pwm}
 
-# --- Torque check (§4): femur worst case at x1.2 spidery (D-032) ------------
-# Static hold ~1.41 N·m (326mm / 131mm femur / 5.9kg / 5-leg share). EduLite 1.8
-# continuous holds it at 78% util (1.28x margin) with 2.1x PEAK headroom — near its
-# CEILING but valid for a light prototype. margin 1.25 reflects this honestly; do NOT
-# let the build exceed ~6kg or EduLite is over (would then need a stronger micro-QDD).
+# --- Torque check (§4): femur worst case, OFFICIAL SCULPT geometry (D-034) ---
+# Static hold ~0.80 N·m (73mm sculpt femur / 6kg / 5-leg share). The shorter sculpt
+# leg (vs my 131mm parametric) drops the lever, so EduLite is COMFORTABLE again:
+# 1.8 continuous / 0.80 = 2.25x margin (off its x1.2 ceiling), ~7x peak headroom.
 torque_check:
-  femur_worst_case_nm: 1.41
-  continuous_margin: 1.25
+  femur_worst_case_nm: 0.80
+  continuous_margin: 1.5
   stall_margin: 3.0
 
 # --- Carapace procedural displacement (§4) ---------------------------------

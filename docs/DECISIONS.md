@@ -397,3 +397,49 @@ carrier fits on-edge with 3.3mm walls. Legs stay slender (Ø46 knuckle on 131mm 
 1.64->1.28x, still 2.1x peak headroom) — near its ceiling; the build must stay <=6kg or
 it needs a stronger micro-QDD. Supersedes the 272mm size in D-031 (EduLite + slender-leg
 findings still hold). Blender segmentation re-runs at x1.2; electronics-fit gate re-checked.
+
+## D-033 — Rebuild ROCKY-5 CAD from the OFFICIAL statue master (segment real posed sculpt)
+Operator supplied the official movie-accurate figure. Chose master =
+`reference/self_print_rocky/.../statue_unsupported/statue_unsupported.stl` (assembled,
+single in-pose near-watertight mesh, 129k verts, 100x93x79mm raw) OVER the Action_figure
+part STLs: those are the SAME sculpt but each leg is print-split into A/B[/C] halves and
+laid at independent print origins with NO supplied assembly transforms — reassembling
+them is a blind registration puzzle, whereas the statue is already one clean in-pose mesh.
+Segmented the REAL posed sculpt (Blender planar bisect + EXACT boolean, NO voxel remesh)
+rather than re-synthesizing radial symmetry like the old blender_segment_rocky.py did (that
+hack existed only because rocky_normalized.stl had detached/fused legs; the official master
+is clean). Scale = widest-XY bbox -> 326mm per D-032 (=3.274x), consistent with the prior
+script's 272->326 full-span reading. Consequence: the official master has a chunkier central
+carapace + 3-of-5 legs tucked under in its crouch pose, so the thorax comes out ~191mm (vs
+the old 116mm) — which is why the electronics FIT GATE now PASSES with margin (Jetson-on-edge
+min wall 11.1mm, 6S battery-on-end 29.3mm, both >=3mm; usable interior 63x55x90mm) where the
+old 116mm thorax failed its honest gate. No sphere "knuckles" (they blobbed the legs — the
+natural 62-88mm craggy legs already house the Ø46 EduLite; bored transverse pitch-axis seats
+at hip/knee1/knee2, minimal barrel boss only where a joint is <52mm). Finger call (HONEST):
+canon claw is sculpt-native on the raised manipulator arm; walking-leg tips are blunter
+craggy claws — PRESERVED as-sculpted, NOT re-grafted (grafting smooth prongs would blob the
+stone). All 16 parts (thorax + 5x coxa/femur/tibia) <=250mm -> no dovetail splits needed.
+Generator: scripts/blender_rocky_official.py. Renders: docs/media/rocky_official_assembly*.png.
+
+## D-034 — Re-pose ROCKY-5 to a SYMMETRIC NEUTRAL walking stance (instance ONE clean leg 5x)
+The D-033 master is a DYNAMIC ACTION pose: legs asymmetric, 3 of 5 tucked under the body so
+they segmented short/partial (leg2 fragmentary). A walking robot needs true 5-fold radial
+symmetry (params.yaml: 5 identical limbs @72deg, limb0 = +X heading; matches the training
+URDF/mjcf coxa_yaw+femur_pitch+tibia_pitch chain). FIX (extended blender_rocky_official.py,
+still bisect+boolean ONLY, no remesh): (1) isolate all 5 posed legs, score by reach*sqrt(verts),
+pick the ONE cleanest fully-extended leg = az -40 (score 14051 vs 6.5-7.6k for the tucked ones);
+(2) segment it ONCE into coxa/femur/tibia at its curvature bends, keeping the craggy sculpt +
+EduLite Ø46x44 transverse pitch seats + grip-micro cavity + sculpt-native claw tip; (3) re-pose
+by forward-kinematics about the two joint pivots (rotate each segment about Y = the real pitch
+axis to an absolute neutral tilt: coxa -4deg, femur +26deg to a raised knee, tibia -62deg to the
+ground) with the coxa root seated R_CORE-8 into the thorax socket; (4) INSTANCE that single
+posed leg 5x at exactly 0/72/144/216/288deg -> 5 IDENTICAL legs on a common ground ring. The
+thorax is re-cut at the SAME symmetric azimuths (pentagonal sockets) and radially trimmed with a
+cylinder (R_CORE+3) + keep-largest-component to drop the posed-leg-root STUBS the symmetric planes
+would otherwise sever (this is what restored the fit-gate GATE_both_fit=True; jet 11.1 / bat 29.3mm).
+Result: top view = 5 identical legs at exact 72deg, craggy carapace on top, all feet planted; body
+sits level at stance height. HONEST shortfall: footprint dia = 402mm vs the params 581mm target —
+the sculpt-derived leg is shorter than the parametric 336mm reach and I did NOT stretch it (would
+distort the movie geometry); reported in-report. Export = 4 unique STLs (thorax + coxa/femur/tibia),
+print BOM x1/x5/x5/x5 = 16 parts, all <=250mm. Old per-leg leg{1-5}_*.stl in stl_derived are
+SUPERSEDED (kept per the no-delete-STL rule; the canonical print set is the 4 unique files).
