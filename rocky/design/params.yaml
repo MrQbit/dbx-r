@@ -9,26 +9,25 @@ limb_count: 5
 limb_angle_deg: 72            # limb 0 = heading (0deg), then +72 each
 
 # --- Canonical dimensions (§4), millimetres --------------------------------
-# TIGHTENED to smallest-that-fits (D-014): carapace 220->165 mm (x0.75). Shorter
-# leg levers keep the cheaper EduLite-05 servos torque-valid (D-013); shell now
-# fits the 250 mm print envelope in one piece and hides the electronics. Mass is
-# motor-dominated (~4 kg of 17 servos) so it stays ~5 kg even at this size.
+# MOVIE PROPORTIONS (D-028): reverted the tighten-down. The build now DERIVES from
+# the official Rocky STL (reference/stl/rocky_normalized.stl) at its native ~272 mm
+# thorax — the tightened 180 mm parametric parts looked like a boxy tripod, not the
+# organic pentaradial Eridian. At movie size the organic legs are thick enough to
+# hide the servos, but the longer levers need Robstride RS00 (EduLite fails torque).
 dimensions:
-  carapace_dia_mm: 180         # nudged 165->180 for fan+Jetson+battery packing (D-021)
-  dome_height_mm: 100          # nudged 88->100 for Jetson clearance under the dome apex
-  limb_reach_mm: 186
-  coxa_mm: 41
-  femur_mm: 72
-  tibia_mm: 72
-  stance_height_mm: 134        # neutral
-  footprint_dia_mm: 320
-  foot_dia_mm: 19              # TPU hemispherical
+  carapace_dia_mm: 272         # native STL thorax (movie-accurate; operator choice)
+  dome_height_mm: 151          # pentagonal outcropping (the 5 breathing slits)
+  limb_reach_mm: 281
+  coxa_mm: 62
+  femur_mm: 109
+  tibia_mm: 109
+  stance_height_mm: 202        # neutral crab stance
+  footprint_dia_mm: 484
+  foot_dia_mm: 29              # each leg tip is a 3-finger hand (not a simple foot)
 
-mass_budget_kg: 6.5           # realistic: 17 EduLite (~4.1 kg) dominate; parts @~30%
-#                               infill (~1.3 kg) + electronics (~0.5 kg) ~= 6.0 kg (D-026)
-design_target_kg: 6.0         # G1 torque check + TRAINING mass — matches the real build
-#                               (was 5.0 aspiration; servo mass is unavoidable). Torque
-#                               still clears with huge margin (0.96 vs 1.8 N·m continuous).
+mass_budget_kg: 9.0           # bigger movie-size robot: 15 RS00 legs (~3.5 kg) + 5 grip
+#                               servos + STL-derived shell/legs + electronics (D-028)
+design_target_kg: 8.0         # G1 torque check + TRAINING mass at movie proportions
 
 battery:                       # 6S for the 48V-class EduLite QDD motors (D-022 power fix)
   chemistry: li-ion
@@ -50,40 +49,48 @@ dof_template:                  # per-limb joints (i substituted 0..4)
   - {suffix: femur_pitch,  offset: 2, limit_rad: [-1.4,  1.0]}
   - {suffix: tibia_pitch,  offset: 3, limit_rad: [-0.3,  2.0]}
 
-# Front manipulators (D-008): the 2 legs flanking heading limb 0 get a 3-finger
-# grip hand that doubles as a foot (grip open = flat foot). Extra DOF, IDs 16-17,
-# appended after the 15 leg joints. Movie: Rocky manipulates with its front pair.
+# Manipulators (D-028, canon-corrected): EVERY limb ends in a 3-finger hand (book:
+# "on each limb, three triangular fingers") — not just the front pair. All 5 legs are
+# hand-feet (grip open = flat foot to stand; closed = grasp). 5 grip DOF, IDs 16-20,
+# appended after the 15 leg joints -> 20 DOF total. Rocky is pentadextrous.
 manipulators:
-  legs: [1, 4]                 # symmetric about the +X heading (limb 0)
-  grip_limit_rad: [0.0, 1.4]   # 0 = open/flat (stand), 1.4 = closed (grasp)
-  servo_ids: [16, 17]
-  fingers: 3                   # triangular stony fingers (driven together)
+  legs: [0, 1, 2, 3, 4]        # ALL five limbs
+  grip_limit_rad: [0.0, 2.2]   # 0 = open/flat foot (stand); 2.2 rad (126°) = fingers
+  #                              pass vertical into a firm 3-jaw grasp (D-027).
+  servo_ids: [16, 17, 18, 19, 20]
+  fingers: 3                   # triangular stony fingers per hand (driven together)
+  grip_servo: grip_micro       # low-load fingers -> small servo, NOT a leg QDD
 
-# --- Actuator (Robstride EduLite 05, D-013) --------------------------------
-# Switched from RS00 to EduLite 05: the RS00 (14/17 Nm) was ~3x over-specced for a
-# 5-legged 5 kg robot; EduLite 05 (1.8 rated / 6 peak) is torque-valid at the
-# tightened size (shorter femur lever) and SIGNIFICANTLY cheaper (~$80). NOTE:
-# BDX-A CANNOT use these (its hips need 42 Nm) — Rocky-only. Servo change means the
-# RL policy must retrain with effort_limit 6 (queued after the current run).
+# --- Leg actuator (Robstride RS00, D-028) ----------------------------------
+# Reverted EduLite-05 -> RS00: at movie proportions (272 mm, 109 mm femur, ~8 kg) the
+# femur worst case ~1.4 N·m needs >=2.5 N·m continuous with margin — EduLite (1.8) FAILS.
+# RS00 (14/17 N·m) clears it easily and re-unifies the servo family with BDX-A.
 servo:
-  model: robstride_edulite05
-  voltage_v: 48                # EduLite rated 48 V (15-60 V)
-  gear_ratio: 9                # 9:1 planetary
-  torque_continuous_nm: 1.8    # rated
-  torque_stall_nm: 6.0         # peak
+  model: robstride_rs00
+  voltage_v: 48
+  gear_ratio: 9
+  torque_continuous_nm: 14.0
+  torque_stall_nm: 17.0
   bus: {type: canbus}
-  kp: 40
-  kd: 2.0
-  effort_clamp_nm: 6.0
-  vel_clamp_rad_s: 15.0
+  kp: 60
+  kd: 2.5
+  effort_clamp_nm: 17.0
+  vel_clamp_rad_s: 19.0
   armature: 0.02
   friction: 0.03
 
-# --- Torque check (§4): femur worst case at the tightened size --------------
-# Real static worst case at 72 mm femur / ~5 kg / dynamic 2x ~= 0.8 Nm (was a
-# conservative 1.8 for the larger robot). EduLite 1.8 cont / 6 peak clears it.
+# --- Grip actuator (small servo, D-028) — the 3 fingers per hand are low-load ----
+grip_servo:
+  model: grip_micro            # MG90S/EduLite-class metal-gear micro servo
+  torque_continuous_nm: 0.4
+  torque_stall_nm: 1.8
+  bus: {type: pwm}
+
+# --- Torque check (§4): femur worst case at MOVIE proportions ---------------
+# Static worst case ~1.4 N·m (272 mm / 109 mm femur / ~8 kg / dynamic 2x). RS00 14
+# continuous / 17 peak clears it with big margin; EduLite would fail (need >=2.5).
 torque_check:
-  femur_worst_case_nm: 0.8
+  femur_worst_case_nm: 1.4
   continuous_margin: 1.8
   stall_margin: 3.0
 

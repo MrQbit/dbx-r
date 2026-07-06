@@ -22,12 +22,12 @@ def test_no_todo_markers(robot):
     assert "TODO" not in text, f"{robot} params.yaml still contains a TODO"
 
 
-def test_rocky_expands_to_17_dof():
+def test_rocky_expands_to_20_dof():
     dof = rocky_dof(load_params("rocky"))
-    # 15 leg joints + 2 front-leg grip manipulators (D-008).
-    assert len(dof) == 17
-    assert sorted(d["servo_id"] for d in dof) == list(range(1, 18))
+    # 15 leg joints + 5 grip manipulators — EVERY limb is a 3-finger hand (D-028).
+    assert len(dof) == 20
+    assert sorted(d["servo_id"] for d in dof) == list(range(1, 21))
     assert dof[0]["name"] == "leg0_coxa_yaw"
     assert dof[14]["name"] == "leg4_tibia_pitch"   # last leg joint
     grips = [d["name"] for d in dof if d["name"].endswith("_grip")]
-    assert grips == ["leg1_grip", "leg4_grip"]
+    assert grips == ["leg0_grip", "leg1_grip", "leg2_grip", "leg3_grip", "leg4_grip"]

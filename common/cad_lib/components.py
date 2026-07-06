@@ -72,12 +72,15 @@ JETSON = Component("jetson_orin_nano", "compute", (90.0, 63.0, 30.0), 90.0, "tra
                    "NVIDIA Orin Nano 8GB on compact carrier; ribbon = CSI cam")
 BATTERY = Component("battery_6s", "power", (85.0, 40.0, 25.0), 280.0, "bay",
                     ("xt60",), 2.0, "6S Li-ion pack for the 48V-class QDD motors (D-022)")
-# ROCKY-5 actuator (D-013): Robstride EduLite 05 QDD (1.8 rated / 6 peak Nm, ~$80).
-# Dims CONFIRMED from datasheet (D-022): 46x46 mm square base, 44 mm tall (Ø46 outer
-# housing rim, Ø38.5 pilot). Mounts via a Ø41.5 mm PCD bolt circle (M3+M4 at 30deg);
-# output is a Ø24 mm collar around a Ø19 mm interface. See standards.EDULITE_*.
-SERVO = Component("robstride_edulite05", "actuator", (46.0, 46.0, 44.0), 242.0, "pocket",
-                  ("canbus",), 2.0, "Robstride EduLite 05 QDD (9:1), CAN; Ø41.5 PCD flange")
+# ROCKY-5 LEG actuator (D-028): reverted EduLite-05 -> Robstride RS00 (14/17 N·m) — at
+# movie proportions (272 mm, 109 mm femur) EduLite fails torque. Re-unifies with BDX-A.
+# Dims PROVISIONAL — verify RS00 datasheet; the STL-derived legs hide it either way.
+SERVO = Component("robstride_rs00", "actuator", (60.0, 60.0, 35.0), 300.0, "pocket",
+                  ("canbus",), 2.0, "Robstride RS00 QDD leg actuator (14/17 N·m), CAN")
+# ROCKY-5 GRIP actuator (D-028): the 3 fingers per hand are low-load -> a small
+# metal-gear micro servo (all 5 hands), NOT a leg QDD.
+GRIP_SERVO = Component("grip_micro", "actuator", (22.8, 12.2, 28.5), 13.4, "pocket",
+                       ("pwm",), 1.5, "MG90S-class micro servo; drives one 3-finger hand")
 BUCK = Component("buck_5v5a", "power", (43.0, 21.0, 14.0), 15.0, "tray",
                  ("dupont",), 2.0, "5V/5A to Jetson barrel")
 INA219 = Component("ina219", "sensor", (26.0, 20.0, 4.0), 5.0, "tray",

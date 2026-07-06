@@ -305,3 +305,17 @@ The 5 kg target was aspirational; the honest build is servo-dominated: 17 EduLit
 6.0 + mass_budget_kg 6.5 so the TRAINING mass matches what we print ("train what you
 print"). Torque re-check PASSES with margin (femur worst case ~0.96 vs 1.8 N·m
 continuous, 2.25x). Design is now LOCKED + validated for the retrain.
+
+## D-028 — Movie-accuracy redesign: derive from the official STL (272mm, RS00, 20 DOF)
+Operator review of the assembled render: the tightened 180mm parametric build looked
+like a boxy tripod, NOT the organic pentaradial Eridian. Canon (book + refs, see
+memory rocky-anatomy-canon): pentagonal thorax, 5 bent crab legs, EVERY limb ends in
+3 triangular fingers, 5 breathing slits on top. Corrections:
+- SIZE: revert tighten-down -> native official-STL ~272mm ("movie proportions", operator).
+- SERVO: EduLite-05 FAILS torque at 272mm (need >=2.52 vs 1.8 N·m) -> back to Robstride
+  RS00 (14/17, 10x margin), re-unified with BDX. Grips -> small micro servos (low load).
+- DOF: manipulators on ALL 5 legs (was 2) -> 20 DOF (15 leg + 5 grip). Needs the retrain.
+- CAD: RETIRE the parametric leg_bracket/carapace (they exceed the 250mm envelope + look
+  wrong at movie size) and REBUILD every printed part by segmenting rocky_normalized.stl
+  into articulated legs + 3-finger hands + pentagonal thorax. gate-2 is RED until that
+  rebuild lands — this is a deliberate WIP state, not a weakened gate.

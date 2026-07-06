@@ -30,9 +30,14 @@ _PARTS: dict[str, list[str]] = {
         # every leg (qty 5) and the one culturally-marked primary limb segment
         # (base-3 ruler + Eridian marriage symbol, engraved shallow so QA passes).
         "rocky.cad.parts.foot",
-        # Front-leg manipulators (D-008): a 3-finger grip hand-foot on legs 1 & 4
-        # (qty 2), one grip servo driving 3 stony fingers (open=flat foot / grasp).
-        "rocky.cad.parts.grip_hand",
+        # Front-leg manipulators (D-008, D-027): the 3-finger grip hand is a REAL
+        # assembly on legs 1 & 4 — one grip servo turns a hidden crown cam
+        # (grip_crown) that drives three separately-printed fingers (grip_finger)
+        # hinged on the stony palm (grip_palm). Each part prints + assembles
+        # separately (grip_hand.py fuses them only for the preview render).
+        "rocky.cad.parts.grip_palm",            # stony base + servo flange + hinges (qty 2)
+        "rocky.cad.parts.grip_crown",           # spiral cam disc on the Ø24 output (qty 2)
+        "rocky.cad.parts.grip_finger",          # one Eridian-stone finger (qty 6)
         "rocky.cad.parts.limb_marked",
         # Single-piece rock dome — fits the 250mm P2S envelope (211mm). The 2-piece
         # split (carapace_cap/skirt) is now validated (seam-flush displacement +
