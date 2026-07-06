@@ -356,3 +356,12 @@ memory rocky-anatomy-canon): pentagonal thorax, 5 bent crab legs, EVERY limb end
   wrong at movie size) and REBUILD every printed part by segmenting rocky_normalized.stl
   into articulated legs + 3-finger hands + pentagonal thorax. gate-2 is RED until that
   rebuild lands — this is a deliberate WIP state, not a weakened gate.
+
+## D-029 — Rocky leg joints = bulbous stone knuckles (servo-in-joint)
+Resolves the STL-rebuild tension (RS00 Ø60 won't hide in the 10-60mm slender movie
+legs). Operator choice: house each RS00 in a STONE-TEXTURED BULBOUS KNUCKLE at the
+joint (crab/spider legs naturally have wide joints), with slender stone segments
+between. Buildable + movie-plausible (reads organic, not mechanical). The knuckle is
+the structural hub bridging two segments; slender segments cantilever from it. Refine
+segment_rocky_stl.py to add the knuckles + pose the crab stance + close the dome with
+5 breathing slits + real 3-finger hands at the tips.
