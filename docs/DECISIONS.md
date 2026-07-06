@@ -306,6 +306,43 @@ The 5 kg target was aspirational; the honest build is servo-dominated: 17 EduLit
 print"). Torque re-check PASSES with margin (femur worst case ~0.96 vs 1.8 N·m
 continuous, 2.25x). Design is now LOCKED + validated for the retrain.
 
+## D-027 — Grip hand is a REAL mechanism: split parts + spiral cam + firm grasp
+The grip hand was ONE fused open-pose solid (the crown gear / pinions / pins / finger
+split were only DESCRIBED). Made it a real, printable, trainable mechanism.
+- **Split into 3 registered parts** (each `part()` + `PartMeta`, each prints & assembles
+  separately): `grip_palm` (stony base: bolts to the tibia via the EduLite Ø41.5 PCD
+  flange, houses the grip servo, HIDES the drive in an underside cavity, carries three
+  pin-clevis finger hinges), `grip_crown` (drive disc on the servo Ø24 output collar),
+  and `grip_finger` (one Eridian-stone finger; Ø5 pivot bore + a follower pin on a crank).
+  Qtys derive from params: with D-028 (all 5 legs are hands) -> palm ×5, crown ×5, finger ×15.
+- **CAM, NOT MESHING GEAR TEETH (honest).** The crown is a flat disc with THREE 120°
+  Archimedean spiral grooves; each finger's follower pin rides one groove, so ONE servo
+  turn swings all three fingers in phase. Real bevel/face-gear teeth are the WRONG choice
+  here: at this diameter the module gives ~1.5-2 mm teeth (BELOW the 2.4 mm structural
+  min-wall -> would fail G2), and hand-rolled teeth jam/backlash on an FDM printer. The
+  spiral cam is chunky (all walls ≥ 2.4 mm), backlash-tolerant, prints flat with no
+  supports — exactly the printable synchroniser precedent already set by `carapace_cam`.
+- **Wider grasp for REAL gripping.** `grip_limit_rad` 1.4 -> **2.2 rad (126°)**. At 1.4
+  (<90°) the fingers never passed vertical — only a CRADLE. At 2.2 they swing PAST vertical
+  into a firm 3-jaw close. 0.0 still = flat splayed foot (tripod sole Ø168, the stand pose).
+- **Verified geometry** (fwd kinematics, `docs/reports`): fully-closed (2.2) fingertips sit
+  on a Ø22 circle with **≈ 4.9 mm inter-tip clearance — NO self-collision**. Ø40 / 50 / 60 mm
+  objects are gripped at 1.97 / 1.86 / 1.75 rad (all inside [0, 2.2], tips wrapping past the
+  equator) -> **yes, it holds a 40-60 mm object.** Min graspable ≈ Ø22.
+- **Look.** Fingers stay weathered filleted stone shards; the crown cam is fully hidden in
+  the palm underside cavity between the finger roots — no exposed gear (Rocky reads as rock).
+- **QA/mass.** All three parts pass mesh QA (watertight, ≤250 mm, min-wall 2.90/2.90/2.89 mm).
+  100%-infill masses: palm 89.5 g, crown 61.4 g, finger 9.4 g -> **one hand = 179 g**;
+  reconciled `components.GRIP_HAND` 114 -> 179 g. Preview (exploded + flat foot + Ø50 grasp):
+  `docs/media/rocky_grip_mech.png` (matplotlib Agg, no GL). `grip_hand.py` is now the
+  (unregistered) assembly module that fuses the three parts for the render only.
+- **Needs a decision (human):** (1) D-028 makes the grip a MICRO servo, but the crown bore
+  (Ø24) + palm flange (Ø41.5 PCD) still target the EduLite — re-point the crown collar +
+  servo mount to the micro servo's output/horn (the cam + finger geometry are unaffected).
+  (2) the big Ø108 palm (sized to hide the Ø100 crown) makes the fingers look stubby vs the
+  movie's long claws — when the hand is re-derived from the STL per D-028, shrink the crown/
+  palm (e.g. put the followers inboard via a longer crank + link) for slimmer proportions.
+
 ## D-028 — Movie-accuracy redesign: derive from the official STL (272mm, RS00, 20 DOF)
 Operator review of the assembled render: the tightened 180mm parametric build looked
 like a boxy tripod, NOT the organic pentaradial Eridian. Canon (book + refs, see

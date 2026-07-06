@@ -116,9 +116,12 @@ AUDIO_DRIVER = Component("driver_40mm", "audio", (40.0, 40.0, 22.0), 25.0, "vent
 AUDIO_AMP = Component("max98357a", "audio", (17.0, 13.0, 3.0), 2.0, "tray",
                       ("i2s",), 1.5, "I2S mono amp")
 
-# Rocky front-leg manipulator (D-008): 3 triangular stony fingers + grip linkage.
-GRIP_HAND = Component("grip_hand_3finger", "actuator", (90.0, 90.0, 62.0), 114.0, "pocket",
-                      (), 1.5, "3-finger grip hand-foot on the 2 front legs (D-023 printed mass)")
+# Rocky manipulator hand (D-008, D-027): the REAL split assembly — stony palm +
+# hidden spiral drive crown + three separately-printed fingers. mass_g is the
+# printed assembly (palm 89.5 + crown 61.4 + 3×finger 9.4 = 179 g @100% infill,
+# per docs/reports/mass_rocky.md); the grip micro-servo is the separate grip servo.
+GRIP_HAND = Component("grip_hand_3finger", "actuator", (150.0, 150.0, 55.0), 179.0, "pocket",
+                      (), 1.5, "3-finger grip hand (palm+crown+3 fingers), one per manipulator leg (D-027)")
 
 # ROCKY-5 breathing crown (D-024): ONE micro-servo turns the scroll cam that
 # drives all five carapace petals radially (slow ~0.25 Hz breathing only — a

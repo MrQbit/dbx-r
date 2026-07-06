@@ -18,7 +18,9 @@ carapace circumscribed dia **165 mm**, legs ~×0.75, EduLite-05 servos, mass tar
 | `leg_bracket` | PETG | 5 | 230.4 × 70.4 × 50.0 | ✅ | tree | flat bottom on bed, round servo seats up; tree under the side pivot-knuckle bores | M3 heat-set ×3 (coxa-root + tie), 625ZZ ×4 (pitch pivots), servo flange ×6/seat (M3+M4 clearance, bolt into servo) | PASS (min-wall 3.70) |
 | `limb_marked` | PETG | 1 | 22.0 × 16.0 × 72.0 | ✅ | none | upright along Z; engraved +X face vertical (no support on the ternary/marriage relief) | M2 self-tap ×1 (foot boss) | PASS (min-wall 2.60) |
 | `foot` | PETG* | 5 | 40.7 × 47.0 × 26.6 | ✅ | tree | hub axis vertical, prongs up; tree supports under the 35° splayed prongs | M3 heat-set ×1 (tibia bolt) | PASS (min-wall 3.00) |
-| `grip_hand` | PETG | 2 | 129.7 × 148.8 × 24.0 (open) | ✅ | tree | palm base down, fingers splayed flat on the bed; tree under the finger shards | grip-servo flange ×6 (M3+M4, Ø41.5 PCD), 625ZZ pivot pin ×3 | PASS (min-wall 4.00) |
+| `grip_palm` | PETG | 5 | 107.9 × 108.0 × 26.0 | ✅ | tree | base down, servo flange up; tree under the underside crown cavity + clevis undercuts | grip-servo flange ×6 (M3+M4, Ø41.5 PCD), 625ZZ pivot pin ×3 | PASS (min-wall 3.00) |
+| `grip_crown` | PETG | 5 | 99.9 × 100.0 × 7.0 | ✅ | none | disc flat on bed, spiral grooves up (self-supporting) | press-fit onto Ø24 output collar (no fastener) | PASS (min-wall 2.90) |
+| `grip_finger` | PETG | 15 | 59.5 × 16.0 × 20.0 | ✅ | tree | blade flat on bed; tree under the crank/follower boss | 625ZZ pivot pin ×1, 625ZZ follower pin ×1 | PASS (min-wall 2.89) |
 | `carapace` | PLA | 1 | 153.1 × 158.4 × 93.5 | ✅ | tree | rim-down (open mouth on the plate), apex up; tree supports for the crown overhang | — | PASS (min-wall 3.68) |
 | `carapace_plate` | PLA | 5 | ~63 × 74 × 45 | ✅ | tree | inner (rib) face down on the bed, craggy outer up; tree under the crown overhang | 625ZZ ×1 (cam-follower pin) | PASS (min-wall 3.14) |
 | `carapace_hub` | PETG | 1 | 132 × 132 × 20 | ✅ | tree | disc flat on bed, guide slots/LED ring up (self-supporting); tree under the spring posts | M3 heat-set ×3 (fixing bosses), M2 self-tap ×2 (servo flange) | PASS (min-wall 3.49) |
@@ -34,12 +36,21 @@ mounts its grip servo on the palm top face via the same Ø41.5 PCD flange. Round
 the bracket's square corners solid, so it stays one-piece (230 mm < 250) and slightly
 heavier than the old slot (420 g vs the D-021 lightened 315 g) — see "Still needs a decision".
 
-**Grip hand-foot (D-008, D-023).** New part on the two front legs (`manipulators.legs [1,4]`,
-qty 2): a stony palm carrying **three triangular Eridian-stone fingers driven by ONE grip
-servo** (`servo_ids [16,17]`) through a hidden central crown-gear synchroniser. `grip 0.0 rad`
-= fingers flat/splayed → a broad tripod **sole the robot stands on** (129.7 × 148.8 × 24 mm);
-`grip 1.4 rad` = fingers swung up/in → a **cradle grasp** (85 × 89 × 62 mm). Registered pose
-is open/flat; preview (both poses): `docs/media/rocky_grip_hand.png`.
+**Grip hand — REAL split mechanism (D-008, D-027).** No longer one fused solid: the hand is
+three separately-printed, separately-registered parts — `grip_palm` (stony base: bolts to the
+tibia via the EduLite Ø41.5 PCD flange, houses the grip servo, HIDES the drive in an underside
+cavity, carries three Ø5 pin-clevis finger hinges), `grip_crown` (a flat disc on the servo Ø24
+output collar with **three 120° spiral cam grooves**), and `grip_finger` (one Eridian-stone
+finger; Ø5 pivot bore + a follower pin on a crank). **ONE grip servo turns the crown → its
+three grooves push each finger's follower pin → all three fingers swing in phase.** A spiral
+**cam** is used, NOT meshing gear teeth: at this diameter real teeth would be < 2.4 mm (fail
+min-wall) and jam on FDM; the chunky cam is the printable, backlash-tolerant synchroniser (same
+call as `carapace_cam`). Per D-028 (every limb is a hand) qtys are palm ×5, crown ×5, finger ×15.
+`grip 0.0 rad` = fingers flat/splayed → a broad **tripod sole Ø168 the robot stands on**;
+`grip 2.2 rad` (126°) = fingers **pass vertical into a firm 3-jaw grasp**. Verified: fully-closed
+fingertips sit at Ø22 with **≈ 4.9 mm clearance (no self-collision)**; **Ø40–60 mm objects grip at
+1.75–1.97 rad** (tips wrap past the equator). One hand = **179 g** (palm 89.5 + crown 61.4 +
+3× finger 9.4). Preview (exploded + flat foot + Ø50 grasp): `docs/media/rocky_grip_mech.png`.
 
 **Breathing carapace + hidden LEDs (D-024).** The expressive TOP — makes
 `rocky/carapace.py`'s 5-plate kinematics physical. The dome crown is five 72° petals
@@ -74,7 +85,7 @@ The single-piece `carapace` (153 × 158 × 93 mm) fits the envelope with wide ma
 ## Print plates / swap schedule (by `plate_group`)
 
 - **rocky_structure** — `core_plate`, `core_tub`, 5× `leg_bracket`, `belly_rx_plate`, `carapace_hub`, `carapace_cam` (PETG). The five 239 mm leg brackets are the bulk of the plastic — each fills most of a plate on its own (tree supports under the pivot bores); the breathing hub + scroll cam are small flat discs that tuck alongside.
-- **rocky_limbs** — `limb_marked`, 5× `foot`, 2× `grip_hand` (PETG). Feet + the two grip hands (open/flat, ~130 × 149 mm each) fill this plate group (tree supports under the splayed finger shards).
+- **rocky_limbs** — `limb_marked`, 5× `foot`, and the grip hand set **5× `grip_palm` + 5× `grip_crown` + 15× `grip_finger`** (PETG). Palms (~Ø108) are one-per-plate; the flat crown discs (~Ø100) and the small fingers (~60 mm) nest in the gaps (tree supports under the palm crown-cavity / finger crank bosses).
 - **rocky_shells** — `carapace` (PLA) + 5× `carapace_plate` (PLA breathing crown petals). Long print (~53 k tris, craggy skin). Split alternates go here if swapped in.
 - **charging_base** — `charging_base` (PETG), prints alongside structure.
 
@@ -99,14 +110,23 @@ BOM boxes come from `common/cad_lib/components.py` (single source of truth). Siz
 
 Preview of the two new structural parts: `docs/media/rocky_structural.png`.
 
-**Honest status:** the load path is now authored end to end — `core_plate` → `core_tub` (electronics) and `core_plate` → `leg_bracket` (×5, servos) → `foot` / `grip_hand` (front pair), plus the expressive breathing TOP (`carapace_plate` ×5 / `carapace_hub` / `carapace_cam`). All 12 registered Rocky parts (+ the shared coupon) pass mesh QA and **`make gate-2` is green (9/9 pytest)**. Servo seats key off the real datasheet flange (`common/cad_lib/edulite.py`), driven from `components.py`, so re-sourcing a module resizes the print. Remaining gaps are packaging/finish decisions, not missing structure.
+**Honest status (D-028 WIP).** The grip hand track is complete and QA-clean: `grip_palm`,
+`grip_crown`, `grip_finger` all pass mesh QA (watertight, ≤250 mm, min-wall 3.00/2.90/2.89).
+**`make gate-2` is currently RED**, by D-028's design — the movie-size revert (carapace 272 mm,
+109 mm femur) pushes the OLD parametric `core_plate` (258.7 mm), `leg_bracket` (315.2 mm) and
+`carapace` (261.4 mm) past the 250 mm envelope, and thins `carapace_plate` below its cosmetic
+min-wall. D-028 explicitly retires those parametric parts pending an STL-derived movie-size
+rebuild ("gate-2 is RED until that rebuild lands — a deliberate WIP state, not a weakened
+gate"). The grip parts here are the D-028-aligned realization of "every limb ends in three
+triangular fingers" and are ready to drop onto the rebuilt legs. Older paragraphs below still
+describe the pre-D-028 165 mm/EduLite build and are stale pending that rebuild.
 
 ## Still needs a decision (human next actions, ranked)
 
 1. **Lighten `leg_bracket`** — the 230 × 70 × 50 beam is 420 g each (2.10 kg for 5) at 100 % infill, pushing the built robot toward ~7 kg (over the 5 kg target, D-014). The round Ø46 seats added back some corner mass vs the D-021 lightened slot (315 g); keep the tibia I-beam window and print at 15–30 % infill, and consider windowing the coxa/femur band, before the G1 torque re-check consumes `mass_rocky.md`.
 2. **Fan packaging** — a 40 mm fan can't floor-mount with its full 4-bolt pattern beside the 90 mm Jetson + 70 mm pack in the 165 mm dome. Current tub gives a 2-bolt diagonal mount + vent; confirm that holds, or move the fan to the carapace / onto the Jetson heatsink.
 3. **IMU placement** — the boss is offset −X of the pack (the battery bay owns the centroid). Confirm the small offset is acceptable for the BNO055 (`forward_axis +X`) or relocate onto a bridge over the pack.
-4. **Grip-hand synchroniser is an assembly, not a print** — `grip_hand` models the palm, the EduLite grip-servo flange, the three finger-pivot hubs (with Ø5 pin bores) and the finger shards as ONE fused solid in the open pose. The crown-gear/finger-pinion set that turns one servo into three synchronised fingers, the pins, and the finger↔palm split are **not modeled** (the printed pose is a static demonstrator / foot). Confirm the crown-gear synchroniser (vs a 3-bar linkage), then author the fingers as separate prints + the gear parts before any functional grip demo. Note the grasp is a **cradle** (1.4 rad < 90°, fingers never pass vertical), not a closing fist — fine for the foot/stand role and light objects; widen `grip_limit_rad` if a firmer grasp is wanted (would need a retrain).
+4. **Grip-hand mechanism — DONE (D-027), servo interface needs re-pointing.** The hand is now a real split assembly (`grip_palm` + `grip_crown` + `grip_finger`), one servo → spiral crown cam → three synced fingers, `grip_limit_rad` widened to [0, 2.2] for a firm 3-jaw grasp (holds Ø40–60 mm; closed-pose fingertip clearance ≈ 4.9 mm, no self-collision). Remaining decisions: (a) D-028 makes the grip a **micro servo**, but the crown bore (Ø24) + palm flange (Ø41.5 PCD) still target the EduLite — re-point them to the micro servo's output/horn (cam + finger geometry unaffected); (b) the Ø108 palm (sized to hide the Ø100 crown) reads chunky vs the movie's long claws — slim it when the hand is re-derived from the STL per D-028; (c) the 2.2-rad range is a retrain trigger (new action-space limit).
 5. **TPU hemispherical foot sole** (`foot_dia_mm 19`) — model as its own soft part on the TPU spool, or confirm the PETG claw is the final foot.
 6. **Audio driver vent** — `components.py` places a 40 mm audio driver on `base_link`; not yet realized as printed geometry (skirt grilles live on the carapace).
 7. **Breathing crown integration (D-024)** — the five `carapace_plate` petals are modeled as separate crown wedges at the neutral radial position, and the single-piece `carapace` still models a *closed* dome apex. Before a functional breathing build, decide: truncate `carapace`'s apex to a shoulder ring that seats the five petals, add the petal shingle/overlap tongues (so 20 mm travel opens a glowing seam, not a bald gap), and confirm the MG90S torque budget through the scroll cam (or step up to a small metal-gear standard servo). Speech ripple is LED-only by design — confirm vs a voice-coil if real mechanical jitter is wanted.
