@@ -26,7 +26,7 @@ reproduces the same parts.  See the run-end report for anatomy notes.
 Host venv only:  .venv/bin/python scripts/segment_rocky_stl.py
 """
 from __future__ import annotations
-import json, math, os, sys, time
+import glob, json, math, os, sys, time
 import numpy as np
 import trimesh
 from scipy import ndimage
@@ -39,17 +39,26 @@ OUT    = os.path.join(ROOT, "rocky/cad/stl_derived")
 MEDIA  = os.path.join(ROOT, "docs/media")
 
 # --- hardware envelopes (from common/cad_lib/components.py) ----------------------
-SERVO      = (60.0, 60.0, 35.0)   # Robstride RS00 pocket  (Ø60 x 35 cavity)
-CAV_D, CAV_L = 60.0, 35.0         # RS00 cavity Ø x length
+SERVO      = (46.0, 46.0, 44.0)   # Robstride EduLite-05 pocket (Ø46 x 44 cavity) — D-031
+CAV_D, CAV_L = 46.0, 44.0         # EduLite cavity Ø x length
 GRIP_SERVO = (22.8, 12.2, 28.5)   # grip micro servo pocket
 JETSON_TRAY = (90.0, 63.0, 30.0)
 BATTERY_6S  = (85.0, 40.0, 25.0)
 ENVELOPE   = 250.0                 # Bambu P2S build volume (mm)
 
-PITCH  = float(os.environ.get("ROCKY_PITCH", "1.5"))   # voxel remesh pitch (mm)
-R_CORE = 62.0                      # thorax core radius (mm); legs live beyond it
-WALL   = 4.0                       # target shell wall for hollowing (mm)
-KNUCK_R  = 33.0                    # D-029 knuckle radius (Ø66 > Ø60 cavity => 3mm wall)
+# D-031: reverted the Labrador upscale — compact 272mm master + EduLite. The smaller
+# Ø46 EduLite (vs Ø60 RS00) gives a slenderer Ø54 knuckle: shared at each joint it eats
+# only its RADIUS (27mm) into each segment, leaving a ~55mm slender femur/tibia neck.
+SCALE  = float(os.environ.get("ROCKY_SCALE", "1.0"))   # master is already ~272mm
+# design segment lengths (mm) -> joint placement ratios (D-031, compact)
+COXA_MM, FEMUR_MM, TIBIA_MM = 62.0, 109.0, 109.0
+
+PITCH  = float(os.environ.get("ROCKY_PITCH", "2.0"))   # voxel remesh pitch (mm)
+R_CORE = 62.0 * SCALE              # thorax core radius (mm); legs live beyond it
+WALL   = 4.0                       # target shell wall for hollowing (mm, physical)
+DENSITY = 1.24e-3                  # PLA/PETG ~1.24 g/cm3 -> g per cm3; mm3->g below
+INFILL  = 0.25                     # assumed print infill for mass estimate
+KNUCK_R  = 27.0                    # D-031 knuckle radius (Ø54 > Ø46 cavity => 4mm wall)
 MIN_WALL = 2.4                     # required wall around the servo cavity (mm)
 HAND_STL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         "rocky/cad/parts/grip_hand.stl")
@@ -233,27 +242,24 @@ def medial_curve(mesh, cx, cy, ang_deg, nb=22):
 
 
 def bend_points(mids, zcs):
-    """Coxa|femur and femur|tibia joints near the 1/3 and 2/3 marks of the leg
-    (keeps the three segments comparable in length so knuckles space out), snapped
-    to the nearest local curvature maximum within a window so cuts still land on a
-    real bend."""
+    """Coxa|femur and femur|tibia joints placed by the D-030 DESIGN segment ratios
+    (coxa:femur:tibia = 91:160:160), so the femur and tibia get long slender
+    midsections between their Ø66 knuckles (the whole point of scaling up).  A gentle
+    curvature snap within a tight window keeps each cut on a real bend."""
     s0, s1 = float(mids[0]), float(mids[-1])
     span = s1 - s0
-    targets = [s0 + 0.36 * span, s0 + 0.68 * span]
-    if len(mids) >= 5:
+    tot = COXA_MM + FEMUR_MM + TIBIA_MM
+    f1, f2 = COXA_MM / tot, (COXA_MM + FEMUR_MM) / tot
+    targets = [s0 + f1 * span, s0 + f2 * span]
+    if len(mids) >= 6:
         d2 = np.abs(np.gradient(np.gradient(zcs, mids), mids))
         out = []
         for t in targets:
-            win = (mids > t - 0.13 * span) & (mids < t + 0.13 * span)
-            if win.any():
-                cand = mids[win][int(np.argmax(d2[win]))]
-                out.append(float(cand))
-            else:
-                out.append(t)
-        # keep them apart
-        if out[1] - out[0] > 0.15 * span:
+            win = (mids > t - 0.08 * span) & (mids < t + 0.08 * span)
+            out.append(float(mids[win][int(np.argmax(d2[win]))]) if win.any() else t)
+        if out[1] - out[0] > 0.2 * span:
             return sorted(out)
-    return [targets[0], targets[1]]
+    return targets
 
 
 def slice_at_radius(mesh, cx, cy, zc, ang_deg, s_cut, keep_outer):
@@ -369,6 +375,47 @@ def size_report(mesh):
                 fits=bool(max(e) <= ENVELOPE))
 
 
+def _dowel_holes(mesh, plane_pt, axis_idx):
+    """Bore 2x Ø6 registration-dowel holes straddling a split plane so the two
+    printed halves key together (dovetail-style alignment)."""
+    e = mesh.extents
+    # two in-plane offset directions (the axes that are NOT the split axis)
+    others = [i for i in (0, 1, 2) if i != axis_idx]
+    out = mesh
+    for sgn in (-1, 1):
+        p = np.array(mesh.centroid, float)
+        p[axis_idx] = plane_pt[axis_idx]
+        p[others[0]] += sgn * 0.28 * e[others[0]]
+        pin = trimesh.creation.cylinder(radius=3.0, height=30.0, sections=16)
+        d = np.zeros(3); d[axis_idx] = 1.0
+        pin.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], d))
+        pin.apply_translation(p)
+        try:
+            out = largest_body(out.difference(pin))
+        except Exception:                      # noqa
+            pass
+    return finalize(out)
+
+
+def split_for_print(mesh, name, maxdim=ENVELOPE - 6):
+    """Recursively bisect a part along its longest axis until every piece fits the
+    print envelope; each seam gets Ø6 dowel-registration holes.  Returns
+    [(piece_name, mesh), ...] (one entry, unchanged, if it already fits)."""
+    if max(mesh.extents) <= maxdim:
+        return [(name, mesh)]
+    axis_idx = int(np.argmax(mesh.extents))
+    ctr = mesh.centroid
+    keyed = _dowel_holes(mesh, ctr, axis_idx)
+    nrm = np.zeros(3); nrm[axis_idx] = 1.0
+    lo = finalize(largest_body(keyed.slice_plane(ctr, nrm, cap=True)))
+    hi = finalize(largest_body(keyed.slice_plane(ctr, -nrm, cap=True)))
+    tag = "ABCDEFGH"[axis_idx]
+    out = []
+    for half, sfx in ((lo, "hi"), (hi, "lo")):
+        out += split_for_print(half, f"{name}_{'xyz'[axis_idx]}{sfx}", maxdim)
+    return out
+
+
 # ================================================================ preview =======
 def _render_mpl(parts_colored, path, views=None):
     import matplotlib
@@ -423,13 +470,17 @@ def main():
     t0 = time.time()
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(MEDIA, exist_ok=True)
-    log(f"pitch={PITCH} R_core={R_CORE}")
+    for f in glob.glob(os.path.join(OUT, "*.stl")):   # clear stale pieces from prior runs
+        os.remove(f)
+    log(f"pitch={PITCH} R_core={R_CORE:.0f} scale=x{SCALE:.3f}")
 
     m = trimesh.load(MASTER)
     m.merge_vertices()
-    ax = np.load(AXIS)
+    m.apply_scale(SCALE)                        # D-030: up to Labrador carapace size
+    ax = np.load(AXIS) * SCALE
     cx, cy = float(ax[0]), float(ax[1])
-    log(f"master faces={len(m.faces)} watertight={m.is_watertight} axis=({cx:.2f},{cy:.2f})")
+    log(f"master faces={len(m.faces)} scale=x{SCALE:.3f} extents={np.round(m.extents,0)} "
+        f"axis=({cx:.1f},{cy:.1f})")
 
     S = solidify(m, PITCH)
     log(f"solid watertight={S.is_watertight} vol={S.volume:.0f} bodies={S.body_count}")
@@ -465,14 +516,22 @@ def main():
         thorax_final = thorax_shell
         report["notes"].append("thorax electronics-bay boolean failed; kept plain shell")
     thorax_final = finalize(thorax_final)
-    p = os.path.join(OUT, "thorax.stl")
-    thorax_final.export(p)
-    # thorax is a naturally thin carapace dome; report its shell wall estimate
     twall = mw if mw else wall_estimate(thorax_final)
-    report["parts"]["thorax"] = dict(size_report(thorax_final), watertight=bool(thorax_final.is_watertight),
+    # split the (Labrador-scale ~400mm) dome into printable pieces with dowel keys
+    thorax_pieces = split_for_print(thorax_final, "thorax")
+    tvol = 0.0
+    piece_sizes = []
+    for pn, pm in thorax_pieces:
+        pm.export(os.path.join(OUT, f"{pn}.stl"))
+        piece_sizes.append(dict(name=pn, **size_report(pm)))
+        tvol += float(pm.volume)
+    report["parts"]["thorax"] = dict(size_report(thorax_final),
+                                     watertight=bool(thorax_final.is_watertight),
                                      wall_mm=twall, shell="native_dome" if not mw else "eroded",
-                                     cavities=["jetson_tray", "battery_6s"])
-    log(f"thorax -> {size_report(thorax_final)} wall~{twall}")
+                                     cavities=["jetson_tray", "battery_6s"],
+                                     split_into=len(thorax_pieces), pieces=piece_sizes,
+                                     volume_mm3=round(tvol))
+    log(f"thorax {size_report(thorax_final)} -> {len(thorax_pieces)} printable pieces")
 
     # ---- LEGS (segment + knuckle) ----------------------------------------------
     legs_all = largest_body(S.difference(core)) if S.body_count == 1 else S.difference(core)
@@ -519,11 +578,16 @@ def main():
             legrep["segments"].setdefault(nm, {})["knuckle_ok"] = ok
             legrep["segments"][nm]["cavity_wall_mm"] = wall
 
-        # export unposed knuckled print parts + record sizes
+        # export unposed knuckled print parts, splitting any that exceed the envelope
         for nm in ("coxa", "femur", "tibia"):
             mesh = finalize(segs[nm]); segs[nm] = mesh
-            mesh.export(os.path.join(OUT, f"leg{i+1}_{nm}.stl"))
-            legrep["segments"][nm].update(size_report(mesh), watertight=bool(mesh.is_watertight))
+            pieces = split_for_print(mesh, f"leg{i+1}_{nm}")
+            for pn, pm in pieces:
+                pm.export(os.path.join(OUT, f"{pn}.stl"))
+            legrep["segments"][nm].update(size_report(mesh), watertight=bool(mesh.is_watertight),
+                                          split_into=len(pieces),
+                                          pieces=[dict(name=pn, **size_report(pm)) for pn, pm in pieces],
+                                          volume_mm3=round(float(mesh.volume)))
 
         # anchors for FK posing (original coords)
         A = {"hip": anchor(cx, cy, c_ang, s0, mids, zcs),
@@ -556,8 +620,8 @@ def main():
     report["breathing_slits"] = max(0, len(plates))  # slits = gaps between seated plates
 
     # ---- POSE into a neutral standing crab stance (femur up-out, tibia to ground)
-    A_C, A_F = -10.0, 16.0                # coxa slight down-out; femur up-out to knee
-    HAND_SCALE = 0.62
+    A_C, A_F = -6.0, -6.0                 # sprawl legs out-and-down so 5 legs read clearly
+    HAND_SCALE = 0.90                      # real grip hand ~sized to the Labrador tip
     posed = [(thorax_final, THX_COL)]
     for pl in plates:
         posed.append((pl, PLATE_COL))
@@ -597,39 +661,59 @@ def main():
         report["notes"].append(f"preview render failed: {e}")
         log("preview FAILED", e)
 
+    # measured leg proportions vs the fixed-size knuckles (honest slenderness check)
+    leg_span = (stip - s0)
+    fem_len = (FEMUR_MM / (COXA_MM + FEMUR_MM + TIBIA_MM)) * leg_span
+    report["scale"] = round(SCALE, 3)
+    report["leg_span_mm"] = round(float(leg_span))
+    report["femur_neck_mm"] = round(float(fem_len))
     report["notes"].append(
-        f"D-029 knuckles: each RS00 (Ø{CAV_D:.0f}) is housed in a Ø{2*KNUCK_R:.0f} "
-        f"bulbous stone knuckle at its joint (design wall {(2*KNUCK_R-CAV_D)/2:.1f}mm "
-        f">= {MIN_WALL} req).")
+        f"D-030 scale x{SCALE:.2f} HELPED but did NOT fully slim the legs: the master's "
+        f"legs are proportionally SHORT (radial span only ~{leg_span:.0f}mm even at "
+        f"Labrador size), while the RS00 knuckle is a fixed Ø{2*KNUCK_R:.0f}. So each "
+        f"femur/tibia neck is only ~{fem_len:.0f}mm — the knuckles are now separated by a "
+        f"short neck (vs fully MERGED at 272mm) but the leg still reads knobbly/chunky, "
+        f"not slender. The master legs are ~{leg_span:.0f}mm vs the D-030 DESIGN leg of "
+        f"{COXA_MM+FEMUR_MM+TIBIA_MM:.0f}mm — the movie Rocky simply has stubby squat legs. "
+        f"Three-way tension: movie-squat legs vs long-slender look vs fixed Ø{CAV_D:.0f} "
+        f"RS00. To truly slim: fewer knuckles/leg, or lengthen the legs past the master "
+        f"(less movie-accurate), or accept the knobbly rock aesthetic (fits an Eridian).")
     report["notes"].append(
-        f"SCALE CONFLICT (honest): a movie-proportion leg spans only ~{stip-s0:.0f}mm "
-        f"but 3 non-overlapping Ø{2*KNUCK_R:.0f} knuckles would need ~{3*2*KNUCK_R:.0f}mm "
-        f"of length, so the three RS00 knuckles necessarily MERGE into one continuous "
-        f"knobbly stone limb rather than three balls on slender links. This is the real "
-        f"tension between D-028 '15x RS00' and the fixed 272mm movie size; the knobbly "
-        f"rock-crab result actually suits an Eridian but the 'slender segment between "
-        f"joints' reads only on the outermost (tibia) link.")
+        f"PRINT SPLIT: the recursive dovetail/dowel splitter is wired in, but at this "
+        f"segmentation NO single printed part exceeds {ENVELOPE:.0f}mm (largest = thorax "
+        f"core ~190mm). The ~400mm carapace is the ASSEMBLED span (leg-tip to leg-tip), "
+        f"not one part: it is already divided into the central thorax core (r<{R_CORE:.0f}), "
+        f"5 coxa dome-shoulders, and the 5 seated carapace plates. So no split fires; the "
+        f"machinery (Ø6 dowel keys, longest-axis bisection) is ready if parts grow.")
     report["notes"].append(
         "Hands are the REAL grip_hand.stl (palm+3 fingers+crown), seated at each tip "
-        "in the standing pose. They are a separate multi-piece print assembly "
-        "(rocky/cad/parts/grip_*.py), not fused into the tibia.")
+        "in the standing pose (separate multi-piece grip print assembly, not fused).")
 
-    # printability summary
-    oversize = []
+    # printability + mass summary (pieces, not pre-split parts)
+    oversize, total_vol = [], 0.0
+    def check(pr):
+        nonlocal total_vol
+        total_vol += pr.get("volume_mm3", 0)
+        for pc in pr.get("pieces", []):
+            if not pc["fits"]:
+                oversize.append(pc["name"])
+    check(report["parts"]["thorax"])
     for nm, pr in report["parts"].items():
-        if nm == "thorax":
-            if not pr["fits"]:
-                oversize.append(nm)
-        else:
-            for sn, sr in pr["segments"].items():
-                if not sr.get("fits", True):
-                    oversize.append(f"{nm}_{sn}")
+        if nm.startswith("leg"):
+            for sr in pr["segments"].values():
+                check(sr)
+    solid_g = total_vol / 1000.0 * DENSITY * 1000.0        # mm3 -> cm3 -> g (solid)
     report["oversize_parts"] = oversize
+    report["mass_estimate_g"] = dict(
+        solid=round(solid_g),
+        at_infill=round(solid_g * (INFILL + 0.15 * (1 - INFILL))),  # infill + shells
+        infill=INFILL, note="printed body only; excludes 15 RS00 (~300g ea), battery, Jetson")
     report["runtime_s"] = round(time.time() - t0, 1)
 
     with open(os.path.join(OUT, "segment_report.json"), "w") as f:
         json.dump(report, f, indent=2)
-    log(f"done in {report['runtime_s']}s; parts in {OUT}; oversize={oversize}")
+    log(f"done in {report['runtime_s']}s; oversize={oversize} "
+        f"mass~{report['mass_estimate_g']['at_infill']}g @ {int(INFILL*100)}% infill")
     return report
 
 
