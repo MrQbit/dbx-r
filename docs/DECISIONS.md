@@ -297,3 +297,11 @@ before energising. (2) BNO055 IMU read (ang_vel + projected gravity). (3) The #1
 dumps the policy's EXACT observation term order + dims to <robot>_obs_spec.json;
 brain.build_obs assembles the on-robot obs from that spec (canonical fallback if absent).
 Remaining TODO is only wiring-specific (mic/speaker ids, VAD, velocity-command source).
+
+## D-026 — Reconcile design mass to the real build (5.0 -> 6.0 kg) before training
+The 5 kg target was aspirational; the honest build is servo-dominated: 17 EduLite
+(~4.1 kg, unavoidable) + printed parts at ~30% infill (~1.3 kg) + electronics/battery
+(~0.5 kg) ~= 6.0 kg (8.4 kg only at an unrealistic 100% infill). Set design_target_kg
+6.0 + mass_budget_kg 6.5 so the TRAINING mass matches what we print ("train what you
+print"). Torque re-check PASSES with margin (femur worst case ~0.96 vs 1.8 N·m
+continuous, 2.25x). Design is now LOCKED + validated for the retrain.

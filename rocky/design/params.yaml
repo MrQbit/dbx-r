@@ -24,8 +24,11 @@ dimensions:
   footprint_dia_mm: 320
   foot_dia_mm: 19              # TPU hemispherical
 
-mass_budget_kg: 5.0           # motor-dominated (17 x ~240 g ~= 4 kg); smaller shell
-design_target_kg: 5.0         # mass for G1 torque check (D-014)
+mass_budget_kg: 6.5           # realistic: 17 EduLite (~4.1 kg) dominate; parts @~30%
+#                               infill (~1.3 kg) + electronics (~0.5 kg) ~= 6.0 kg (D-026)
+design_target_kg: 6.0         # G1 torque check + TRAINING mass — matches the real build
+#                               (was 5.0 aspiration; servo mass is unavoidable). Torque
+#                               still clears with huge margin (0.96 vs 1.8 N·m continuous).
 
 battery:                       # 6S for the 48V-class EduLite QDD motors (D-022 power fix)
   chemistry: li-ion
