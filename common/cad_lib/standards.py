@@ -20,6 +20,17 @@ M3_INSERT_HOLE_DIA_MM = 4.0
 M3_INSERT_BOSS_DEPTH_MM = 5.8
 # Shell fasteners are M2 (self-tapping into printed bosses).
 M2_INSERT_HOLE_DIA_MM = 1.7  # self-tap pilot for M2 into plastic
+M4_INSERT_HOLE_DIA_MM = 5.5  # M4 clearance (servo flange bolts)
+
+# --- Robstride EduLite 05 mounting (datasheet, D-022) ----------------------
+# Round QDD: Ø46 housing rim, Ø38.5 pilot, mounts on a Ø41.5 PCD bolt circle with
+# M3+M4 at 30deg; output is a Ø24 collar around a Ø19 interface.
+EDULITE_HOUSING_DIA_MM = 46.0
+EDULITE_PILOT_DIA_MM = 38.5
+EDULITE_PCD_MM = 41.5
+EDULITE_OUTPUT_COLLAR_DIA_MM = 24.0
+EDULITE_OUTPUT_IFACE_DIA_MM = 19.0
+EDULITE_HEIGHT_MM = 44.0
 
 # --- Bearings --------------------------------------------------------------
 # 625ZZ (5 x 16 x 5 mm) at passive pivots.

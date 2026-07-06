@@ -50,11 +50,10 @@ robot's carapace was already sized (D-015) around its ~90×63 footprint.
 
 ---
 
-## 3. Power (both robots, same pack — params §3.2)
+## 3. Power (D-022 — resolved)
 | Part | Qty | ~$ | Notes |
 |---|---|---|---|
-| 3S Li-ion pack ≥2600 mAh + BMS, XT30 | 1 | 35 | 12.6 V; **NOTE: EduLite/Robstride want ~48 V** — see ⚠ below |
-| ⚠ **48 V supply** for the QDD motors | 1 | 40 | The QDD motors are 48 V-class. Either a **6S (25 V) or higher LiPo** or a **boost to 48 V**. Reconcile the pack voltage with the motor rating before buying — the 3S/12 V pack in params is under-volted for these motors. |
+| **6S Li-ion pack ≥3500 mAh + BMS, XT60** | 1 | 55 | **22.2 V nominal** — within EduLite's 15–60 V window (rated 48 V). Rocky's worst case is 0.8 N·m so it needs nowhere near 48 V; 6S is the practical pick (lighter/cheaper/safer than a 13S/48 V pack). For **max rated** servo performance, a **12–13S (44–48 V)** pack drops in. Fixes the old 3S/12 V under-volt. |
 | Buck 5 V/5 A (to Jetson) | 1 | 12 | powers the carrier |
 | INA219 current/voltage monitor | 1 | 5 | telemetry |
 | E-stop switch (latching, 22 mm) | 1 | 10 | safety |

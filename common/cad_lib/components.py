@@ -69,13 +69,14 @@ class Placement:
 JETSON = Component("jetson_orin_nano", "compute", (90.0, 63.0, 30.0), 90.0, "tray",
                    ("usb", "eth", "i2c", "i2s", "gpio", "ribbon"), 4.0,
                    "NVIDIA Orin Nano 8GB on compact carrier; ribbon = CSI cam")
-BATTERY = Component("battery_3s", "power", (70.0, 38.0, 20.0), 150.0, "bay",
-                    ("xt30",), 2.0, "3S Li-ion >=2600 mAh + BMS (params §3.2)")
-# ROCKY-5 actuator (D-013): Robstride EduLite 05 QDD (1.8 rated / 6 peak Nm, ~$80) —
-# torque-valid at the tightened size, far cheaper than RS00. BDX-A keeps the
-# higher-torque Robstride (42 Nm hips). Dims PROVISIONAL — verify EduLite datasheet.
-SERVO = Component("robstride_edulite05", "actuator", (52.0, 52.0, 34.0), 242.0, "pocket",
-                  ("canbus",), 2.0, "Robstride EduLite 05 QDD (9:1), CAN bus")
+BATTERY = Component("battery_6s", "power", (85.0, 40.0, 25.0), 280.0, "bay",
+                    ("xt60",), 2.0, "6S Li-ion pack for the 48V-class QDD motors (D-022)")
+# ROCKY-5 actuator (D-013): Robstride EduLite 05 QDD (1.8 rated / 6 peak Nm, ~$80).
+# Dims CONFIRMED from datasheet (D-022): 46x46 mm square base, 44 mm tall (Ø46 outer
+# housing rim, Ø38.5 pilot). Mounts via a Ø41.5 mm PCD bolt circle (M3+M4 at 30deg);
+# output is a Ø24 mm collar around a Ø19 mm interface. See standards.EDULITE_*.
+SERVO = Component("robstride_edulite05", "actuator", (46.0, 46.0, 44.0), 242.0, "pocket",
+                  ("canbus",), 2.0, "Robstride EduLite 05 QDD (9:1), CAN; Ø41.5 PCD flange")
 BUCK = Component("buck_5v5a", "power", (43.0, 21.0, 14.0), 15.0, "tray",
                  ("dupont",), 2.0, "5V/5A to Jetson barrel")
 INA219 = Component("ina219", "sensor", (26.0, 20.0, 4.0), 5.0, "tray",

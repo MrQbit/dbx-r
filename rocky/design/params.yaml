@@ -27,14 +27,17 @@ dimensions:
 mass_budget_kg: 5.0           # motor-dominated (17 x ~240 g ~= 4 kg); smaller shell
 design_target_kg: 5.0         # mass for G1 torque check (D-014)
 
-battery:                       # same pack as bdx_a
+battery:                       # 6S for the 48V-class EduLite QDD motors (D-022 power fix)
   chemistry: li-ion
-  cells: 3
-  capacity_mah_min: 2600
-  connector: XT30
+  cells: 6                      # was 3S/12V — under-volted the 15-60V (rated 48V) motors
+  nominal_v: 22.2               # 6S Li-ion; well within EduLite 15-60V, ample for <1 Nm loads
+  capacity_mah_min: 3500
+  connector: XT60
   bms: true
-  bay_mm: [70, 38, 20]
+  bay_mm: [85, 40, 25]         # 6S pack (was 70x38x20)
   bay_foam_tolerance_mm: 2
+  # NOTE: 6S (22V) is the practical pick — Rocky's worst case is 0.8 Nm so it needs
+  # nowhere near 48V; for max rated servo performance a 12-13S (44-48V) pack drops in.
 
 # --- Degrees of freedom (15, §4): per limb i in 0..4 -----------------------
 # Servo IDs = 3i+1, 3i+2, 3i+3. Generated from the template below by the

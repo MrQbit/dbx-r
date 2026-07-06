@@ -215,3 +215,13 @@ Two operator-approved refinements after the structural CAD flags (D-020):
 - **Leg-bracket lightening**: floor 9->5 mm + a through-Y window I-beaming the long
   solid tibia link. Mass 456 -> 315 g each (-31%; 5x = 1.58 kg, was 2.28 kg) at 100%
   infill. Real prints at 15-30% infill are far lighter again. gate-2 stays 9/9.
+
+## D-022 — Lock EduLite-05 real dimensions + Rocky power fix
+Operator supplied the EduLite-05 datasheet: 46x46 mm square base, 44 mm tall (was a
+provisional 52x52x34), Ø46 housing rim / Ø38.5 pilot, Ø41.5 mm PCD mount (M3+M4 at
+30deg), Ø24/Ø19 output collar. Updated components.SERVO + standards.EDULITE_* and
+regenerated — all servo seats now key off the real box (gate-2 9/9). Power: replaced
+the under-volted 3S/12V pack with a 6S (22.2V) Li-ion — within EduLite's 15-60V window,
+ample for Rocky's <1 Nm loads; 12-13S/48V is the drop-in for max rated performance.
+Battery bay 70x38x20 -> 85x40x25, XT30 -> XT60. Design is being LOCKED before the
+manipulation/avoidance retrain (operator: don't train the wrong build twice).
