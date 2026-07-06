@@ -373,3 +373,16 @@ the true canon Labrador size (~400mm thorax, ~712mm span, x1.47). Now each leg i
 enough for spaced knuckles + slender stone segments between = movie-accurate AND matches
 the book. Cost: ~11-12kg, parts exceed the 250mm printer -> dovetail splits required.
 RS00 torque re-checked at 11kg / 160mm femur (~2.9 N·m worst case): PASS (~2.7x margin).
+
+## D-031 — Revert to EduLite + compact light body (undo the RS00/Labrador cascade)
+Operator caught that the RS00->Labrador escalation was driven by TWO of my mistakes, not
+physics: (1) I treated the 1.8x continuous safety margin as a hard wall — EduLite actually
+holds the 272mm leg at ~72% continuous with 3.3x peak headroom; (2) I double-counted the
+knuckle crowding (a joint knuckle is SHARED, eats D/2 into each segment, not a full D), so
+EduLite's Ø46 knuckle leaves a slender 63-74mm femur/tibia at 272mm — not a boulder.
+The real design lever is DECOUPLING body size from leg length (operator): a compact LIGHT
+body keeps EduLite torque-valid; the legs read slender on their own. Reverted: 400->272mm,
+RS00->EduLite, design_target 11->5.5kg, continuous_margin 1.8->1.5 (justified by peak
+headroom). Supersedes D-028/D-030. 20 DOF (all-5 fingers, canon) stays — it's servo-agnostic.
+Note (STL agent): even the master's own legs are proportionally short (~stubby squat) — a
+normalization-accuracy question to revisit; EduLite's smaller knuckle helps regardless.

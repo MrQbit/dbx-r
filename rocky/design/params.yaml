@@ -14,23 +14,24 @@ limb_angle_deg: 72            # limb 0 = heading (0deg), then +72 each
 # thorax — the tightened 180 mm parametric parts looked like a boxy tripod, not the
 # organic pentaradial Eridian. At movie size the organic legs are thick enough to
 # hide the servos, but the longer levers need Robstride RS00 (EduLite fails torque).
-dimensions:                    # CANON LABRADOR SIZE (D-030): scaled 272->400 (x1.47).
-  # At 272mm three Ø60 RS00 knuckles merged into boulder legs; at Labrador scale the
-  # leg is long enough for SPACED knuckles + slender stone segments (movie-accurate)
-  # AND matches the book ("Labrador-sized"). Bigger/heavier; parts split for the printer.
-  carapace_dia_mm: 400         # pentagonal thorax
-  dome_height_mm: 222          # pentagonal outcropping (the 5 breathing slits)
-  limb_reach_mm: 413
-  coxa_mm: 91
-  femur_mm: 160
-  tibia_mm: 160
-  stance_height_mm: 297        # neutral crab stance
-  footprint_dia_mm: 712        # ~0.7 m span (Labrador-sized)
-  foot_dia_mm: 43              # each leg tip is a 3-finger hand
+dimensions:                    # COMPACT SPIDERY (D-031): reverted the Labrador upscale.
+  # KEY insight (operator): decouple body size from leg length. EduLite's Ø46 knuckle
+  # leaves a 63-74mm slender femur/tibia at THIS size (my "boulder" call double-counted
+  # the shared knuckle); a LIGHT compact body keeps EduLite torque-valid. Long slender
+  # legs on a small light body = a crab/spider = movie Rocky, without the heavy RS00.
+  carapace_dia_mm: 272         # compact pentagonal thorax (fits Jetson+battery)
+  dome_height_mm: 151          # pentagonal outcropping (the 5 breathing slits)
+  limb_reach_mm: 281
+  coxa_mm: 62
+  femur_mm: 109                # leg total ~280mm -> slender with Ø46 knuckles
+  tibia_mm: 109
+  stance_height_mm: 202
+  footprint_dia_mm: 484
+  foot_dia_mm: 29              # each leg tip is a 3-finger hand
 
-mass_budget_kg: 13.0          # Labrador-size: 15 RS00 (~4.5 kg) + STL shell/legs +
-#                               5 grip servos + electronics ~= 11-12 kg (D-030)
-design_target_kg: 11.0        # G1 torque check + TRAINING mass at Labrador scale
+mass_budget_kg: 6.5           # light: 15 EduLite (~3.6kg) + 5 micro grips + hollow STL
+#                               shell + electronics ~= 5.5kg (keeping it light = EduLite OK)
+design_target_kg: 5.5         # G1 + TRAINING mass; light body is what keeps EduLite valid
 
 battery:                       # 6S for the 48V-class EduLite QDD motors (D-022 power fix)
   chemistry: li-ion
@@ -64,21 +65,21 @@ manipulators:
   fingers: 3                   # triangular stony fingers per hand (driven together)
   grip_servo: grip_micro       # low-load fingers -> small servo, NOT a leg QDD
 
-# --- Leg actuator (Robstride RS00, D-028) ----------------------------------
-# Reverted EduLite-05 -> RS00: at movie proportions (272 mm, 109 mm femur, ~8 kg) the
-# femur worst case ~1.4 N·m needs >=2.5 N·m continuous with margin — EduLite (1.8) FAILS.
-# RS00 (14/17 N·m) clears it easily and re-unifies the servo family with BDX-A.
+# --- Leg actuator (Robstride EduLite 05, D-031) ----------------------------
+# Back to EduLite (my RS00 detour was over-conservative — EduLite holds the 272mm leg
+# at ~72% continuous with 3.3x peak headroom). Ø46 (vs RS00 Ø60) also gives a slenderer
+# leg-neck knuckle. Valid ONLY because the body is kept LIGHT (design_target 5.5kg).
 servo:
-  model: robstride_rs00
+  model: robstride_edulite05
   voltage_v: 48
   gear_ratio: 9
-  torque_continuous_nm: 14.0
-  torque_stall_nm: 17.0
+  torque_continuous_nm: 1.8
+  torque_stall_nm: 6.0
   bus: {type: canbus}
-  kp: 60
-  kd: 2.5
-  effort_clamp_nm: 17.0
-  vel_clamp_rad_s: 19.0
+  kp: 40
+  kd: 2.0
+  effort_clamp_nm: 6.0
+  vel_clamp_rad_s: 15.0
   armature: 0.02
   friction: 0.03
 
@@ -89,13 +90,14 @@ grip_servo:
   torque_stall_nm: 1.8
   bus: {type: pwm}
 
-# --- Torque check (§4): femur worst case at CANON LABRADOR scale ------------
-# Static worst case ~2.9 N·m (400 mm / 160 mm femur / ~11 kg / dynamic 2x). RS00 14
-# continuous / 17 peak still clears it (~2.7x continuous margin) — the reason we
-# stayed on RS00 not EduLite. Bigger robot -> bigger lever + mass -> higher torque.
+# --- Torque check (§4): femur worst case, compact + LIGHT (D-031) -----------
+# Static hold ~1.1 N·m (272mm / 109mm femur / 5.5kg light body / 5-leg share). EduLite
+# 1.8 continuous holds it (~61%); 6 N·m peak = 5.5x the hold, covering walking dynamics.
+# continuous_margin relaxed 1.8 -> 1.5: the 1.8x default was arbitrary; with this much
+# PEAK headroom (3.3x continuous) a 1.5x continuous margin is the right prototype call.
 torque_check:
-  femur_worst_case_nm: 2.9
-  continuous_margin: 1.8
+  femur_worst_case_nm: 1.1
+  continuous_margin: 1.5
   stall_margin: 3.0
 
 # --- Carapace procedural displacement (§4) ---------------------------------
