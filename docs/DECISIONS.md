@@ -162,3 +162,15 @@ state), driven by persona, NOT the RL policy. Ears carry ~no load + are unrelate
 gait, so the trained 14-DOF locomotion policy stands — NO retrain (operator-confirmed).
 The park-vs-demo "moves different" feeling = this expressive layer (Disney puppeteers
 additive head/gaze/ear offsets on top of the RL gait), not a DOF/robot difference.
+
+## D-018 — BDX-A: passive ankle roll (rounded soles) + LED eyes + expressive layer
+Completing the movie-accuracy set (no retrain, all decoupled from the RL gait):
+- **Passive ankle roll**: the real BDX has NO ankle-roll actuator — it rounds the foot
+  soles so the foot rolls passively. TODO(cad): add a convex TPU sole cap to the BDX
+  feet (a printed part over the upstream foot mesh) — a geometry change, zero actuators.
+- **LED eyes**: bdx/persona.eye_state (color+brightness per emotion) drives an LED ring
+  (BOM: eye_led) — expression without eye motors, mirroring Disney's show functions.
+- **Expressive-offset layer** (deploy/jetson/brain.py): emotion drives ADDITIVE
+  head-pitch/yaw offsets ON TOP of the locomotion policy's head targets + continuous
+  ear/eye animation. This is Disney's architecture (operator offsets on top of RL) and
+  the reason the park droid reads "alive" vs the bare research gait — implemented, no retrain.

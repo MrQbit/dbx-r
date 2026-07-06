@@ -22,6 +22,13 @@ import time
 import numpy as np
 import onnxruntime as ort
 
+# Shared expressive state (thread-safe enough for a single writer). The interaction
+# loop sets the emotion; the locomotion + expressive loops read it. This is Disney's
+# architecture: the RL policy owns the gait; emotion drives ADDITIVE head/gaze offsets
+# + ears + eyes ON TOP — no retrain (the head joints are already in the 14-DOF policy;
+# we just add a small offset to their targets at runtime).
+_STATE = {"emotion": "neutral"}
+
 
 # ----------------------------------------------------------------------------- #
 class Policy:
@@ -70,9 +77,29 @@ def locomotion_loop(cfg, stop):
         obs = np.zeros(cfg["obs_dim"], dtype=np.float32)
         action = pol.act(obs)
         targets = default + cfg["action_scale"] * action
+        # EXPRESSIVE OFFSET (Disney's method): add emotion-driven head pitch/yaw ON TOP
+        # of the policy's head-joint targets. Additive, tiny, runtime -> no retrain.
+        hi = cfg.get("head_idx")
+        if hi:
+            from bdx import persona
+            off = persona.HEAD_OFFSET.get(_STATE["emotion"], persona.HEAD_OFFSET["neutral"])
+            targets[hi["pitch"]] += off["head_pitch"]
+            targets[hi["yaw"]] += off["head_yaw"]
         if bus:
             bus.command(targets)
         time.sleep(max(0, dt - (time.time() - t0)))
+
+
+def expressive_loop(cfg, stop):
+    """BDX only: continuously drive the 2 ears + LED eyes from the current emotion
+    (always animating — 'if BDX stops moving it stops working'). Decoupled channel."""
+    from bdx import persona
+    while not stop.is_set():
+        emo = _STATE["emotion"]
+        l, r = persona.ear_pose(emo, time.time())          # -> 2 ear-servo targets (rad)
+        eyes = persona.eye_state(emo)                      # -> LED color/brightness
+        # TODO: ear_bus.command(l, r); led.set(**eyes)
+        time.sleep(0.03)
 
 
 # ----------------------------------------------------------------------------- #
@@ -133,10 +160,10 @@ def bdx_voice():
     def say(text):
         emo = "happy" if any(w in text.lower() for w in ("yes", "good", "amaze")) else \
               "alarmed" if any(w in text.lower() for w in ("no", "stop", "danger")) else "curious"
+        _STATE["emotion"] = emo               # feeds the locomotion head-offset + ears/eyes
         a = ds.emote(emo, seed=len(text))
-        import threading
-        threading.Thread(target=_drive_ears_eyes, args=(emo, len(a) / SR), daemon=True).start()
         sd.play(a, SR); sd.wait()
+        _STATE["emotion"] = "neutral"          # settle back
     return say
 
 
@@ -144,8 +171,11 @@ ROBOTS = {
     "rocky": dict(policy="rocky.onnx", n_joints=17, obs_dim=250, rate_hz=50,
                   action_scale=0.25, default_pos=[0.0, 0.6, 1.0] * 5 + [0.0, 0.0],
                   voice=rocky_voice),
+    # head_idx: action indices of the head joints for the expressive offset. TODO:
+    # verify against the URDF joint order (Neck_Pitch, Head_Pitch, Head_Yaw, Head_Roll).
     "bdx": dict(policy="bdx.onnx", n_joints=14, obs_dim=250, rate_hz=50,
-                action_scale=0.25, default_pos=[0.0] * 14, voice=bdx_voice),
+                action_scale=0.25, default_pos=[0.0] * 14, voice=bdx_voice,
+                head_idx={"pitch": 11, "yaw": 12}, expressive=True),
 }
 
 
@@ -157,6 +187,8 @@ def main():
     cfg = ROBOTS[args.robot]
     stop = threading.Event()
     threads = [threading.Thread(target=locomotion_loop, args=(cfg, stop), daemon=True)]
+    if cfg.get("expressive"):                # BDX: continuous ear/eye animation
+        threads.append(threading.Thread(target=expressive_loop, args=(cfg, stop), daemon=True))
     if not args.no_voice:
         threads.append(threading.Thread(target=interaction_loop, args=(cfg, stop), daemon=True))
     for t in threads:
