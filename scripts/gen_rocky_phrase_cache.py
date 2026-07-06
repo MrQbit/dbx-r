@@ -7,10 +7,26 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from rocky.audio import neural_tts as nt
 
+# Common-question RESPONSES in Rocky's voice (the instant-play set). Anything not
+# here falls back to live YourTTS. Grouped: social / identity / status / capability /
+# comprehension / emotion / task / movie signatures.
 VOCAB = [
-    "Hello.", "Question?", "Yes.", "No.", "Good good good.", "Amaze amaze amaze!",
-    "I don't understand.", "You sleep now.", "Grace, Rocky save stars.",
-    "I fix ship.", "Fist my bump.", "Danger!", "Thank you, Grace.",
+    # social
+    "Hello.", "Hello, friend.", "Goodbye.", "Thank you.", "Thank you, Grace.",
+    "Friend. Friend.", "Fist my bump.", "Yes.", "No.", "Maybe.",
+    # identity
+    "I am Rocky.", "Rocky. Eridian.", "I am your friend.",
+    # status
+    "Good good good.", "I am well.", "Tired tired.", "Happy happy.",
+    # capability / task
+    "Yes. Rocky can help.", "I fix. I build.", "I look.", "I come.",
+    "Wait.", "Ready ready.", "Follow me.",
+    # comprehension
+    "I don't understand.", "Again? Question?", "I hear you.",
+    # emotion / alert
+    "Amaze amaze amaze!", "Danger!", "Sad.",
+    # movie signatures
+    "Question?", "You sleep now.", "Grace, Rocky save stars.", "I fix ship.",
 ]
 
 if __name__ == "__main__":
