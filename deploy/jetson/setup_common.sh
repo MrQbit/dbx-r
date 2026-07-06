@@ -23,5 +23,7 @@ pip install --upgrade pip
 # fall back to CPU wheel if unavailable.
 pip install onnxruntime-gpu 2>/dev/null || pip install onnxruntime
 pip install numpy python-can faster-whisper sounddevice soundfile scipy
+# IMU (BNO055 over I2C) for the locomotion observation
+pip install adafruit-circuitpython-bno055 adafruit-blinka
 
 echo "=== common setup done. Next: setup_rocky.sh OR setup_bdx.sh ==="

@@ -287,3 +287,13 @@ lighting. Three new registered parts + a small servo + two LED components.
   or step up to a small metal-gear standard servo. (3) petal shingle/overlap geometry
   (currently petals are modeled as separate wedges at neutral; the overlap tongues are
   a finish detail). (4) confirm LED-for-speech vs a voice-coil.
+
+## D-025 — Deploy hardening: real CAN framing + obs-order lock
+Turned the brain.py scaffold into a runnable deploy path. (1) MotorBus now packs the
+8-byte Robstride/EduLite MIT position frame (pos16/vel12/kp12/kd12/torque12, PD gains
+from params) + parses feedback — VERIFY the P/V/KP/KD/T ranges vs the EduLite-05 manual
+before energising. (2) BNO055 IMU read (ang_vel + projected gravity). (3) The #1
+"runs-but-walks-wrong" guard: deploy/jetson/dump_obs_spec.py runs in the container and
+dumps the policy's EXACT observation term order + dims to <robot>_obs_spec.json;
+brain.build_obs assembles the on-robot obs from that spec (canonical fallback if absent).
+Remaining TODO is only wiring-specific (mic/speaker ids, VAD, velocity-command source).

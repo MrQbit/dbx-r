@@ -43,39 +43,146 @@ class Policy:
         return self.sess.run(None, {self.inp: obs[None].astype(np.float32)})[0][0]
 
 
-class MotorBus:
-    """Robstride / EduLite CAN bus. TODO: fill in the vendor CAN framing."""
+# --- Robstride/EduLite MIT-mode CAN framing ---------------------------------
+# QDD motors (Robstride RS/EduLite) accept an 8-byte MIT control frame packing a
+# position target + feed-forward vel/kp/kd/torque. Ranges are MOTOR-SPECIFIC —
+# VERIFY against the EduLite-05 / Robstride manual before energising (D-025).
+P_MIN, P_MAX = -12.5, 12.5      # rad
+V_MIN, V_MAX = -44.0, 44.0      # rad/s
+KP_MIN, KP_MAX = 0.0, 500.0
+KD_MIN, KD_MAX = 0.0, 5.0
+T_MIN, T_MAX = -17.0, 17.0      # N·m (EduLite peak 6; keep headroom in the range)
 
-    def __init__(self, channel="can0", n_joints=17):
+
+def _f2u(x, lo, hi, bits):
+    x = min(max(x, lo), hi)
+    return int((x - lo) * ((1 << bits) - 1) / (hi - lo))
+
+
+def _u2f(u, lo, hi, bits):
+    return u * (hi - lo) / ((1 << bits) - 1) + lo
+
+
+class MotorBus:
+    """Robstride / EduLite CAN bus, MIT position mode. can_id = motor id (params
+    servo_ids). kp/kd default to the params PD gains (40 / 2)."""
+
+    def __init__(self, channel="can0", n_joints=17, ids=None, kp=40.0, kd=2.0):
         import can
+        self.can = can
         self.bus = can.interface.Bus(channel=channel, interface="socketcan")
         self.n = n_joints
+        self.ids = ids or list(range(1, n_joints + 1))
+        self.kp, self.kd = kp, kd
+        self.pos = np.zeros(n_joints)
+        self.vel = np.zeros(n_joints)
 
-    def read_state(self):
-        # TODO: request + parse joint pos/vel frames -> arrays
-        return np.zeros(self.n), np.zeros(self.n)
+    def _frame(self, pos):
+        p = _f2u(pos, P_MIN, P_MAX, 16)
+        v = _f2u(0.0, V_MIN, V_MAX, 12)
+        kp = _f2u(self.kp, KP_MIN, KP_MAX, 12)
+        kd = _f2u(self.kd, KD_MIN, KD_MAX, 12)
+        t = _f2u(0.0, T_MIN, T_MAX, 12)
+        return bytes([p >> 8, p & 0xFF, v >> 4, ((v & 0xF) << 4) | (kp >> 8),
+                      kp & 0xFF, kd >> 4, ((kd & 0xF) << 4) | (t >> 8), t & 0xFF])
 
     def command(self, targets: np.ndarray):
-        # TODO: pack MIT-mode position targets (kp/kd from params) into CAN frames
-        pass
+        for i, mid in enumerate(self.ids):
+            self.bus.send(self.can.Message(arbitration_id=mid, is_extended_id=False,
+                                           data=self._frame(float(targets[i]))))
+
+    def read_state(self):
+        # Non-blocking drain of feedback frames (id | pos16 | vel12 | torque12).
+        while True:
+            msg = self.bus.recv(timeout=0.0)
+            if msg is None:
+                break
+            mid = msg.arbitration_id & 0xFF
+            if mid in self.ids and len(msg.data) >= 5:
+                j = self.ids.index(mid)
+                d = msg.data
+                self.pos[j] = _u2f((d[0] << 8) | d[1], P_MIN, P_MAX, 16)
+                self.vel[j] = _u2f((d[2] << 4) | (d[3] >> 4), V_MIN, V_MAX, 12)
+        return self.pos, self.vel
+
+
+class IMU:
+    """BNO055 over I2C: body angular velocity (rad/s) + gravity direction (unit)."""
+
+    def __init__(self):
+        import board, adafruit_bno055
+        self.s = adafruit_bno055.BNO055_I2C(board.I2C())
+
+    def read(self):
+        gx, gy, gz = self.s.gyro or (0, 0, 0)
+        grav = self.s.gravity or (0, 0, -9.81)
+        g = np.array(grav, dtype=np.float32)
+        n = np.linalg.norm(g) or 1.0
+        return np.array([gx, gy, gz], dtype=np.float32), g / n     # ang_vel, projected_gravity
+
+
+def build_obs(spec, imu_data, cmd, joint_pos, default, joint_vel, last_action, scan):
+    """Assemble the policy obs in the EXACT term order the env used. `spec` is the
+    ordered list of (name, dim) dumped by export_policy.py (obs_spec.json) — the ONE
+    source of truth; the fallbacks below only apply if a term isn't wired yet."""
+    ang_vel, proj_g = imu_data
+    src = {
+        "base_ang_vel": ang_vel,
+        "projected_gravity": proj_g,
+        "velocity_commands": np.asarray(cmd, dtype=np.float32),
+        "joint_pos": (joint_pos - default),        # relative to default (Isaac convention)
+        "joint_pos_rel": (joint_pos - default),
+        "joint_vel": joint_vel,
+        "joint_vel_rel": joint_vel,
+        "actions": last_action,
+        "height_scan": scan,
+    }
+    parts = []
+    for name, dim in spec:
+        v = src.get(name)
+        parts.append(np.asarray(v, dtype=np.float32) if v is not None else np.zeros(dim, np.float32))
+    return np.concatenate(parts)
 
 
 def locomotion_loop(cfg, stop):
+    import json, os
     pol = Policy(cfg["policy"])
+    # obs_spec.json (dumped next to the .onnx by export_policy.py) pins the exact term
+    # order + dims so the on-robot obs matches training. Falls back to the canonical
+    # Isaac velocity order if absent (VERIFY against the env if you rely on it).
+    spec_path = cfg["policy"].replace(".onnx", "_obs_spec.json")
+    if os.path.exists(spec_path):
+        spec = [(t["name"], t["dim"]) for t in json.load(open(spec_path))["terms"]]
+    else:
+        n = cfg["n_joints"]
+        spec = [("base_ang_vel", 3), ("projected_gravity", 3), ("velocity_commands", 3),
+                ("joint_pos", n), ("joint_vel", n), ("actions", n),
+                ("height_scan", cfg["obs_dim"] - (9 + 3 * n))]
+        print(f"[locomotion] no obs_spec.json — using canonical order; VERIFY vs env")
     try:
-        bus = MotorBus(n_joints=cfg["n_joints"])
+        bus = MotorBus(n_joints=cfg["n_joints"], kp=cfg.get("kp", 40.0), kd=cfg.get("kd", 2.0))
     except Exception as e:
         print(f"[locomotion] no CAN bus ({e}); running policy dry (no motor output)")
         bus = None
+    try:
+        imu = IMU()
+    except Exception as e:
+        print(f"[locomotion] no IMU ({e}); using zeros")
+        imu = None
     dt = 1.0 / cfg["rate_hz"]
     default = np.array(cfg["default_pos"], dtype=np.float32)
+    n = cfg["n_joints"]
+    last_action = np.zeros(n, dtype=np.float32)
+    scan_dim = next((d for nm, d in spec if nm == "height_scan"), 0)
     while not stop.is_set():
         t0 = time.time()
-        # TODO: assemble obs in the SAME term order as the Isaac env's policy group
-        # (base ang vel, projected gravity, velocity cmd, joint pos-default, joint vel,
-        #  last action, height scan). For now: zeros -> policy holds default-ish.
-        obs = np.zeros(cfg["obs_dim"], dtype=np.float32)
+        jp, jv = bus.read_state() if bus else (default.copy(), np.zeros(n, np.float32))
+        imu_data = imu.read() if imu else (np.zeros(3, np.float32), np.array([0, 0, -1], np.float32))
+        cmd = _STATE.get("cmd", (0.0, 0.0, 0.0))          # vx, vy, wz from the interaction layer
+        obs = build_obs(spec, imu_data, cmd, jp, default, jv, last_action,
+                        np.zeros(scan_dim, np.float32))
         action = pol.act(obs)
+        last_action = action
         targets = default + cfg["action_scale"] * action
         # EXPRESSIVE OFFSET (Disney's method): add emotion-driven head pitch/yaw ON TOP
         # of the policy's head-joint targets. Additive, tiny, runtime -> no retrain.
