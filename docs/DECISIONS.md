@@ -246,3 +246,44 @@ Locked the two coupled front-limb CAD tasks that finish Rocky's leg/manipulator 
   a cradle not a fist are logged in the manifest "needs a decision" list. min-wall 4.00.
 - QA: all 9 registered Rocky parts pass; `make gate-2` green (9/9 pytest). Preview:
   `docs/media/rocky_grip_hand.png` (matplotlib Agg, open + closed).
+
+## D-024 — Rocky expressive TOP: physical breathing crown + hidden seam LEDs
+Made `rocky/carapace.py`'s 5-plate kinematics PHYSICAL and added Rocky's (faceless)
+lighting. Three new registered parts + a small servo + two LED components.
+- **Breathing mechanism (one servo -> five petals).** The dome crown (z >= 58 mm) is
+  cut into five 72deg petals (`carapace_plate`, PLA, qty 5); each has an underside
+  slider rib carrying a cam-follower pin bore + a return-spring anchor. A central
+  **scroll cam** (`carapace_cam`, a flat disc with five 72deg Archimedean ramp slots)
+  is turned by ONE micro-servo and drives all five follower pins radially IN SYNC —
+  a self-centering 5-jaw scroll-chuck. Return springs pull the petals back (exhale);
+  the cam only pushes out (inhale). The stationary `carapace_hub` carries the servo
+  well, the five radial guide slots, the spring posts, three fixing bosses, and the
+  LED ring seat. Actuator = **MG90S-class micro servo** (`BREATH_SERVO`, 13 g, ~$3),
+  NOT the 242 g EduLite QDD — the QDD is absurd for slowly nudging light cosmetic
+  petals; a scroll cam gives the mechanical advantage a micro-servo needs.
+- **20 mm travel is at the sane upper limit, so petals shingle.** 20 mm radial on a
+  ~45-63 mm crown is a large 30-44% bloom; a pure gap would look broken. The petals
+  overlap and the visible read is a *growing glowing seam*, not a bald hole. The
+  scroll ramp is sized so travel = pitch x (servo_sweep/360): a 180deg sweep gives
+  the full ~20 mm A_BREATH; resting breath uses a smaller sweep.
+- **Speech ripple is NOT mechanical (honest).** A_SPEECH 3 mm @ 22 Hz is beyond ANY
+  servo's (or QDD's) bandwidth. Split the channels: **servo = slow ~0.25 Hz breathing
+  (motion); LEDs = speech ripple (light).** `carapace.speech_led_intensity()` +
+  `SPEECH_IS_MECHANICAL=False` document/realise this. A voice-coil could add real
+  22 Hz micro-jitter later, but LED is the clean split and it is what we recommend.
+- **Hidden lighting (Rocky has no face).** `SEAM_LED` (WS2812, qty 5) sits in the hub
+  ring, split into five arcs by the guide ribs — one per petal seam — so Rocky glows
+  along the gaps as he breathes/speaks, no exposed emitter. `GRILLE_LED` (qty 5)
+  backlights the five skirt sound grilles (reuses the audio apertures). New provision
+  `led_channel` (recessed strip/ring seat). One WS2812 data line drives the whole chain.
+- **QA/mass.** All 12 registered Rocky parts pass mesh QA; `make gate-2` green (9/9
+  pytest). New solid-volume (100% infill upper-bound) mass: `carapace_plate` 82.4 g x5
+  = 412 g, `carapace_hub` 206.8 g, `carapace_cam` 94.0 g. Petals print far lighter at
+  real infill. Preview: `docs/media/rocky_carapace_mech.png` (matplotlib Agg, no GL).
+- **Needs a decision (human):** (1) confirm the crown-petal seam kinematics — the
+  single-piece `carapace` still models a closed dome apex; swap its crown for these
+  five petals (truncate its apex to a shoulder ring) before a functional breathing
+  build. (2) MG90S torque budget vs 5 petals + 5 springs through the scroll — validate
+  or step up to a small metal-gear standard servo. (3) petal shingle/overlap geometry
+  (currently petals are modeled as separate wedges at neutral; the overlap tongues are
+  a finish detail). (4) confirm LED-for-speech vs a voice-coil.

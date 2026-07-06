@@ -20,6 +20,9 @@ carapace circumscribed dia **165 mm**, legs ~×0.75, EduLite-05 servos, mass tar
 | `foot` | PETG* | 5 | 40.7 × 47.0 × 26.6 | ✅ | tree | hub axis vertical, prongs up; tree supports under the 35° splayed prongs | M3 heat-set ×1 (tibia bolt) | PASS (min-wall 3.00) |
 | `grip_hand` | PETG | 2 | 129.7 × 148.8 × 24.0 (open) | ✅ | tree | palm base down, fingers splayed flat on the bed; tree under the finger shards | grip-servo flange ×6 (M3+M4, Ø41.5 PCD), 625ZZ pivot pin ×3 | PASS (min-wall 4.00) |
 | `carapace` | PLA | 1 | 153.1 × 158.4 × 93.5 | ✅ | tree | rim-down (open mouth on the plate), apex up; tree supports for the crown overhang | — | PASS (min-wall 3.68) |
+| `carapace_plate` | PLA | 5 | ~63 × 74 × 45 | ✅ | tree | inner (rib) face down on the bed, craggy outer up; tree under the crown overhang | 625ZZ ×1 (cam-follower pin) | PASS (min-wall 3.14) |
+| `carapace_hub` | PETG | 1 | 132 × 132 × 20 | ✅ | tree | disc flat on bed, guide slots/LED ring up (self-supporting); tree under the spring posts | M3 heat-set ×3 (fixing bosses), M2 self-tap ×2 (servo flange) | PASS (min-wall 3.49) |
+| `carapace_cam` | PETG | 1 | 100 × 100 × 10 | ✅ | none | disc flat on bed, spiral ramps up (self-supporting) | M2 self-tap ×1 (central horn screw) | PASS (min-wall 2.68) |
 | `belly_rx_plate` | PETG | 1 | 76.0 × 76.0 × 9.0 | ✅ | none | flip pocket-side **up** on the bed → self-supporting Qi pocket | M3 heat-set ×3 (under core plate) | PASS (min-wall 3.00) |
 | `charging_base` | PETG | 1 | 129.9 × 130.0 × 22.0 | ✅ | none | pad flat on bed, TX pocket opens up (self-supporting) | M3 heat-set ×4 (TX + feet) | PASS (min-wall 4.00) |
 
@@ -38,7 +41,22 @@ servo** (`servo_ids [16,17]`) through a hidden central crown-gear synchroniser. 
 `grip 1.4 rad` = fingers swung up/in → a **cradle grasp** (85 × 89 × 62 mm). Registered pose
 is open/flat; preview (both poses): `docs/media/rocky_grip_hand.png`.
 
-Total registered printed mass (unit×qty, solid-volume × density = 100 % infill upper bound): core_plate 93.9 g + core_tub 160.2 g + **5×leg_bracket 2100 g** + 5×foot 70.5 g + **2×grip_hand 227 g** + tibia 32.0 g + carapace 172.8 g + belly 34.2 g + dock 135.6 g ≈ **3.0 kg of plastic**. With the 17 EduLite servos (~4.1 kg) that trends the built robot toward ~7 kg at 100 % infill — **above the 5 kg design target (D-014)**. The `leg_bracket` beam (420 g each) still dominates: real prints use 15–30 % infill (far lighter), but the bracket should stay lightened before the G1 torque re-check — see "Still needs a decision". Numbers per `docs/reports/mass_rocky.md`.
+**Breathing carapace + hidden LEDs (D-024).** The expressive TOP — makes
+`rocky/carapace.py`'s 5-plate kinematics physical. The dome crown is five 72° petals
+(`carapace_plate`, PLA, qty 5) driven **synchronously by ONE micro-servo** (`BREATH_SERVO`,
+MG90S-class, 13 g) through a flat **scroll cam** (`carapace_cam`) whose five Archimedean
+ramp slots push each petal's follower pin radially out (**inhale, ~20 mm = A_BREATH**); five
+**return springs** pull them back (**exhale**). The stationary `carapace_hub` carries the
+servo well, the five radial guide slots, the spring posts, three fixing bosses, and a
+recessed **WS2812 ring seat** — the guide ribs split the ring into five arcs, one per petal
+seam (`SEAM_LED`, qty 5), so Rocky glows **along the seams**, never as an exposed emitter
+(he has no face). Five more `GRILLE_LED` backlight the skirt sound grilles. **Honest limit:**
+the servo does the slow ~0.25 Hz breathing only — the **3 mm @ 22 Hz speech ripple is beyond
+any servo's bandwidth, so it is LED-only** (`carapace.speech_led_intensity`), the recommended
+clean split (a voice-coil could add real jitter later). Preview (exhale vs inhale):
+`docs/media/rocky_carapace_mech.png`.
+
+Total registered printed mass (unit×qty, solid-volume × density = 100 % infill upper bound): core_plate 93.9 g + core_tub 160.2 g + **5×leg_bracket 2100 g** + 5×foot 70.5 g + **2×grip_hand 227 g** + tibia 32.0 g + carapace 172.8 g + belly 34.2 g + dock 135.6 g + **breathing TOP (5×carapace_plate 412 g + carapace_hub 206.8 g + carapace_cam 94 g = 713 g)** ≈ **3.7 kg of plastic** (per `mass_rocky.md`). With the 17 EduLite servos (~4.1 kg) that trends the built robot toward ~7 kg at 100 % infill — **above the 5 kg design target (D-014)**. The `leg_bracket` beam (420 g each) still dominates: real prints use 15–30 % infill (far lighter), but the bracket should stay lightened before the G1 torque re-check — see "Still needs a decision". Numbers per `docs/reports/mass_rocky.md`.
 
 \* **Foot filament note:** the generator currently tags the 3-prong claw `foot` as **PETG** (it is the structural end-effector). The movie-accurate **TPU hemispherical sole** (`foot_dia_mm: 19`, params §dimensions) is a separate soft cap that is **not yet modeled** as its own part — see "Still needs a decision" below. Print the claw in PETG; the TPU sole prints on the external TPU spool once authored.
 
@@ -55,9 +73,9 @@ The single-piece `carapace` (153 × 158 × 93 mm) fits the envelope with wide ma
 
 ## Print plates / swap schedule (by `plate_group`)
 
-- **rocky_structure** — `core_plate`, `core_tub`, 5× `leg_bracket`, `belly_rx_plate` (PETG). The five 239 mm leg brackets are the bulk of the plastic — each fills most of a plate on its own (tree supports under the pivot bores).
+- **rocky_structure** — `core_plate`, `core_tub`, 5× `leg_bracket`, `belly_rx_plate`, `carapace_hub`, `carapace_cam` (PETG). The five 239 mm leg brackets are the bulk of the plastic — each fills most of a plate on its own (tree supports under the pivot bores); the breathing hub + scroll cam are small flat discs that tuck alongside.
 - **rocky_limbs** — `limb_marked`, 5× `foot`, 2× `grip_hand` (PETG). Feet + the two grip hands (open/flat, ~130 × 149 mm each) fill this plate group (tree supports under the splayed finger shards).
-- **rocky_shells** — `carapace` (PLA). Long print (~53 k tris, craggy skin). Split alternates go here if swapped in.
+- **rocky_shells** — `carapace` (PLA) + 5× `carapace_plate` (PLA breathing crown petals). Long print (~53 k tris, craggy skin). Split alternates go here if swapped in.
 - **charging_base** — `charging_base` (PETG), prints alongside structure.
 
 Single-material plates as grouped; only filament change is PLA (shells) ↔ PETG (everything else), plus the external TPU spool for the future sole. No mid-print swaps required.
@@ -75,10 +93,13 @@ BOM boxes come from `common/cad_lib/components.py` (single source of truth). Siz
 | 40 mm fan | 40 × 40 × 10 | fan_mount | ⚠️ `core_tub` — 18 mm floor exhaust vent + **2 diagonal M3 bosses** (the full 32 mm 4-bolt square doesn't fit beside the 70 mm pack at this dome size) |
 | Qi RX coil | 55 × 40 × 5 | coil_pocket | ✅ `belly_rx_plate` — pocket = 55.7 × 40.7 (loose +0.35/side), 6 mm depth, mounts + cable pass |
 | Qi TX coil | 60 × 60 × 12 | coil_pocket | ✅ `charging_base` — pocket = 60.7 × 60.7, 13 mm depth, cable channel |
+| Breathing servo MG90S | 22.8 × 12.2 × 28.5 | pocket | ✅ `carapace_hub` — central servo well (+slide) + 2 flange screws + shaft bore up to the cam |
+| Seam LED WS2812 | 50 × 5 × 2 | led_channel | ✅ `carapace_hub` — recessed ring channel, split into 5 arcs by the guide ribs (1 per petal seam) |
+| Grille LED WS2812 | 30 × 5 × 2 | led_channel | ⚠️ reuses the existing 5 skirt sound-grille apertures as backlight seats (no new geometry) |
 
 Preview of the two new structural parts: `docs/media/rocky_structural.png`.
 
-**Honest status:** the load path is now authored end to end — `core_plate` → `core_tub` (electronics) and `core_plate` → `leg_bracket` (×5, servos) → `foot` / `grip_hand` (front pair). All 9 registered Rocky parts (+ the shared coupon) pass mesh QA and **`make gate-2` is green (9/9 pytest)**. Servo seats key off the real datasheet flange (`common/cad_lib/edulite.py`), driven from `components.py`, so re-sourcing a module resizes the print. Remaining gaps are packaging/finish decisions, not missing structure.
+**Honest status:** the load path is now authored end to end — `core_plate` → `core_tub` (electronics) and `core_plate` → `leg_bracket` (×5, servos) → `foot` / `grip_hand` (front pair), plus the expressive breathing TOP (`carapace_plate` ×5 / `carapace_hub` / `carapace_cam`). All 12 registered Rocky parts (+ the shared coupon) pass mesh QA and **`make gate-2` is green (9/9 pytest)**. Servo seats key off the real datasheet flange (`common/cad_lib/edulite.py`), driven from `components.py`, so re-sourcing a module resizes the print. Remaining gaps are packaging/finish decisions, not missing structure.
 
 ## Still needs a decision (human next actions, ranked)
 
@@ -88,3 +109,4 @@ Preview of the two new structural parts: `docs/media/rocky_structural.png`.
 4. **Grip-hand synchroniser is an assembly, not a print** — `grip_hand` models the palm, the EduLite grip-servo flange, the three finger-pivot hubs (with Ø5 pin bores) and the finger shards as ONE fused solid in the open pose. The crown-gear/finger-pinion set that turns one servo into three synchronised fingers, the pins, and the finger↔palm split are **not modeled** (the printed pose is a static demonstrator / foot). Confirm the crown-gear synchroniser (vs a 3-bar linkage), then author the fingers as separate prints + the gear parts before any functional grip demo. Note the grasp is a **cradle** (1.4 rad < 90°, fingers never pass vertical), not a closing fist — fine for the foot/stand role and light objects; widen `grip_limit_rad` if a firmer grasp is wanted (would need a retrain).
 5. **TPU hemispherical foot sole** (`foot_dia_mm 19`) — model as its own soft part on the TPU spool, or confirm the PETG claw is the final foot.
 6. **Audio driver vent** — `components.py` places a 40 mm audio driver on `base_link`; not yet realized as printed geometry (skirt grilles live on the carapace).
+7. **Breathing crown integration (D-024)** — the five `carapace_plate` petals are modeled as separate crown wedges at the neutral radial position, and the single-piece `carapace` still models a *closed* dome apex. Before a functional breathing build, decide: truncate `carapace`'s apex to a shoulder ring that seats the five petals, add the petal shingle/overlap tongues (so 20 mm travel opens a glowing seam, not a bald gap), and confirm the MG90S torque budget through the scroll cam (or step up to a small metal-gear standard servo). Speech ripple is LED-only by design — confirm vs a voice-coil if real mechanical jitter is wanted.

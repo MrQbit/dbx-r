@@ -29,6 +29,7 @@ PROVISIONS = {
     "vent",          # louvered opening for airflow
     "fan_mount",     # square fan bolt pattern + finger guard
     "cable_channel", # routed conduit / grommet pass-through
+    "led_channel",   # recessed strip/ring seat for hidden LEDs (no exposed emitter)
     "window",        # sensor aperture (camera / ToF line of sight)
     "flush_pad",     # surface pad flush-mounted (foot FSR)
     "boss",          # threaded-insert boss cluster
@@ -116,6 +117,20 @@ AUDIO_AMP = Component("max98357a", "audio", (17.0, 13.0, 3.0), 2.0, "tray",
 GRIP_HAND = Component("grip_hand_3finger", "actuator", (90.0, 90.0, 62.0), 114.0, "pocket",
                       (), 1.5, "3-finger grip hand-foot on the 2 front legs (D-023 printed mass)")
 
+# ROCKY-5 breathing crown (D-024): ONE micro-servo turns the scroll cam that
+# drives all five carapace petals radially (slow ~0.25 Hz breathing only — a
+# hobby servo cannot do the 3 mm @ 22 Hz speech ripple; that is LED-only).
+BREATH_SERVO = Component("breath_servo_mg90s", "actuator", (22.8, 12.2, 28.5), 13.4, "pocket",
+                         ("pwm",), 2.0, "MG90S-class micro metal-gear servo; drives the carapace scroll cam")
+
+# ROCKY-5 hidden lighting (D-024) — Rocky has NO face, so light hides in the seams
+# (Eridian-stone glow), never as an exposed emitter. WS2812 addressable (one data
+# line + level shifter drives the whole chain; speech ripple modulates brightness).
+SEAM_LED = Component("seam_led_ws2812", "sensor", (50.0, 5.0, 2.0), 3.0, "led_channel",
+                     ("gpio",), 1.0, "WS2812 strip in the hub ring, backlights one crown petal seam")
+GRILLE_LED = Component("grille_led_ws2812", "sensor", (30.0, 5.0, 2.0), 2.0, "led_channel",
+                       ("gpio",), 1.0, "WS2812 backlight behind a skirt sound grille (reuses the grille aperture)")
+
 # BDX-A head expression details (movie-accuracy — backlit eyes + antennae).
 EYE_LED = Component("eye_led", "sensor", (12.0, 12.0, 6.0), 4.0, "window",
                     ("gpio",), 1.0, "backlit WS2812 behind a translucent eye lens")
@@ -176,6 +191,13 @@ def rocky_components() -> list[Placement]:
         Placement(AUDIO_AMP, "base_link", (20.0, 0.0, 20.0)),
         Placement(TOF, "base_link", (72.0, 0.0, 15.0), qty=5, note="hidden, one per 72deg sector"),
         Placement(FOOT_FSR, "rocky_foot", (0.0, 0.0, -9.0), qty=5, note="one per foot"),
+        # Expressive TOP (D-024): breathing crown mechanism + hidden seam/grille glow.
+        Placement(BREATH_SERVO, "carapace_hub", (0.0, 0.0, 50.0),
+                  note="central scroll-cam servo; slow breathing only (not speech)"),
+        Placement(SEAM_LED, "carapace_hub", (59.0, 0.0, 56.0), qty=5,
+                  note="WS2812 arc per petal seam; glows as the petals breathe/on speech"),
+        Placement(GRILLE_LED, "base_link", (72.0, 0.0, 10.0), qty=5,
+                  note="WS2812 behind each of the 5 skirt sound grilles (hidden backlight)"),
     ]
     return p
 

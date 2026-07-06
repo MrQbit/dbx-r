@@ -40,6 +40,13 @@ _PARTS: dict[str, list[str]] = {
         # interference) but stays UNREGISTERED — redundant while the single piece
         # fits. Swap the two in if a future scale pushes the dome past the envelope.
         "rocky.cad.parts.carapace",             # movie-accurate rock dome (§4)
+        # Expressive breathing TOP (D-024): the dome crown is 5 radial petals
+        # (carapace_plate, qty 5) driven by ONE micro-servo through a scroll cam
+        # (carapace_cam) seated in the hub carrier (carapace_hub), which also holds
+        # the hidden WS2812 seam ring. Makes rocky/carapace.py's kinematics physical.
+        "rocky.cad.parts.carapace_plate",       # 5 breathing crown petals
+        "rocky.cad.parts.carapace_hub",         # servo + radial guides + LED ring seat
+        "rocky.cad.parts.carapace_cam",         # scroll cam: 1 servo -> 5 petals
         "rocky.cad.parts.belly_rx_plate",       # Qi RX mount (wireless charging)
         # Shared wireless-charging dock (both robots dock on it); QA'd here.
         "common.cad_lib.charging_base",

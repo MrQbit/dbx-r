@@ -64,6 +64,30 @@ def plate_offset(i: int, t: float, **kw):
     return (rx * d, ry * d, rz * d)
 
 
+# --- Physical actuation split (D-024) --------------------------------------
+# The printed mechanism (rocky/cad/parts/carapace_{plate,hub,cam}.py) realises
+# ONLY the A_BREATH term: one micro-servo turns a scroll cam that pushes all five
+# petals radially (slow ~0.25 Hz breathing), return springs pull them back.
+#
+# The A_SPEECH term (3 mm @ 22 Hz) is NOT mechanically actuated: no servo — nor a
+# QDD — has the bandwidth to oscillate a shell at 22 Hz, and doing so would be
+# loud and fragile. So the speech ripple is rendered by the hidden seam LEDs
+# (components.SEAM_LED in the hub ring): the same sin(omega_speech t) modulates
+# brightness instead of plate radius. Breathing = motion, speech = light. A
+# voice-coil could add real 22 Hz micro-jitter later, but LED is the clean split.
+SPEECH_IS_MECHANICAL = False
+
+
+def speech_led_intensity(t: float, *, speaking: bool = False) -> float:
+    """Seam-LED brightness in [0,1] carrying the speech ripple the servo can't:
+    |A_speech . sin(omega_speech t)| normalised to A_speech. Zero when silent.
+    Pair with plate_displacement_mm(..., speaking=False) so the plates hold the
+    slow breath while the LEDs shimmer the speech (see D-024)."""
+    if not speaking:
+        return 0.0
+    return abs(math.sin(2 * math.pi * OMEGA_SPEECH_HZ * t))
+
+
 def deform(vertices, i: int, t: float, **kw):
     """Apply the plate-i radial offset to an (N,3) vertex array (numpy or list)."""
     import numpy as np
