@@ -23,7 +23,7 @@ from common.description_gen.settle import run_settle
 # BDX-A is the vendored BDX-R model (validated in test_bdxr.py). Only ROCKY-5 is
 # our params-driven build, so only it flows through this description pipeline.
 ROBOTS = ["rocky"]
-EXPECTED_DOF = {"rocky": 17}   # 15 legs + 2 front grips (D-008)
+EXPECTED_DOF = {"rocky": 25}   # 20 leg joints (4/limb incl. tibia_roll, D-039) + 5 grips
 
 
 @pytest.mark.parametrize("robot", ROBOTS)

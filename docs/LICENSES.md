@@ -27,3 +27,16 @@ Reference audio (`rocky_training_audio_scrubbed.wav`, from the 2026 film) and th
 Coqui XTTS-v2 model (CPML) are non-commercial; used here for a personal,
 non-commercial hobbyist project only, and are NOT redistributed (gitignored).
 Coqui TTS: MPL-2.0. espeak-ng fallback: GPL-3.0.
+
+## Official Rocky sculpture (reference/self_print_rocky/, gitignored)
+The ROCKY-5 cosmetic geometry references the **official "Project Hail Mary" self-print
+Rocky figure** (statue + articulated action-figure STLs), an Amazon MGM Studios movie
+promotional release:
+- Source: https://d95a3luo0amge.cloudfront.net/.../projecthailmary/images/project_hail_mary_self_print_rocky.zip
+- The package ships only print INSTRUCTIONS — **no redistribution license granted.**
+Treated as all-rights-reserved: used for **personal, non-commercial** reference only.
+The STLs (and all meshes derived from them) are **gitignored and NOT redistributed** —
+this repo publishes only our own parametric/mechanism CAD + Blender pipeline scripts,
+not the copyrighted meshes. Anyone building this downloads the official figure directly
+from the source above. Attribution recorded here; **redistribution not claimed** (crediting
+the source is not the same as a license to republish the files).

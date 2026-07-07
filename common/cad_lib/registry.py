@@ -25,7 +25,26 @@ _PARTS: dict[str, list[str]] = {
         # sits on the core plate, and the per-leg limb bracket (qty 5) that hosts
         # the three EduLite-05 servos + inter-segment pivots from carapace to foot.
         "rocky.cad.parts.core_tub",
-        "rocky.cad.parts.leg_bracket",
+        # leg_bracket RETIRED from the print set (D-028 "RETIRE leg_bracket" +
+        # D-036): the monolithic one-piece leg exceeds the 250 mm envelope at the
+        # movie dimensions (273 mm) and was never a real articulated leg. It is
+        # superseded by the mechanism-first chassis below (each part < 250 mm and
+        # the servos actually drive the links). The module + STL are kept for the
+        # legacy assembly render; just not generated/QA'd as a print part.
+        # PHASE-1 mechanism-first leg CHASSIS (operator directive): the real
+        # articulated 3-DOF + grip leg skeleton — servos actually drive the links.
+        # hip yoke (coxa_yaw mount) -> coxa bracket (perpendicular hip cluster,
+        # holds femur_pitch) -> femur link (thigh, knee yoke holds tibia_pitch) ->
+        # tibia link (shank, hand-mount flange). Each pitch joint is carried on
+        # both sides (servo output + a 625ZZ). The cosmetic sculpt shell scales
+        # over this frame in Phase 2. See rocky/cad/parts/leg_geom.py (kinematics).
+        "rocky.cad.parts.leg_hip_yoke",
+        "rocky.cad.parts.coxa_bracket",
+        "rocky.cad.parts.femur_link",
+        # tibia_bracket (D-039): knee-driven carrier of the inline tibia_roll EduLite
+        # (the 4th leg DOF); the shank (tibia_link) rolls off its output.
+        "rocky.cad.parts.tibia_bracket",
+        "rocky.cad.parts.tibia_link",
         # Interchangeable 3-pronged limbs (movie): a symmetric 3-prong foot on
         # every leg (qty 5) and the one culturally-marked primary limb segment
         # (base-3 ruler + Eridian marriage symbol, engraved shallow so QA passes).

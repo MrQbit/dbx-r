@@ -106,17 +106,35 @@ def _bitcrush(a, bits=9, down_sr=16000):
     return a.astype(np.float32)
 
 
-def laptop_fx(a, normalize: bool = True):
-    """Full translator chain: bitcrush/clip then band-pass 130-4200 Hz. Applied
-    PER-WORD (see speak_translated) so the band-pass IIR tail can't smear energy
-    across the inter-word silence — the film drops to ABSOLUTE ZERO between words
-    (discrete data-blocks); filtering the whole phrase would fill those gaps with a
-    continuous curve. bitcrush/band-limit give the digitized speaker-cone texture."""
+def _trim_silence(a, thr=0.02, margin_ms=8):
+    """Trim leading/trailing near-silence from a word block (espeak pads the last
+    word with end-of-phrase silence; short words get dead air) so the ~85ms gaps
+    are the ONLY silence between words."""
     if len(a) == 0:
         return a
-    a = _bitcrush(a, bits=10, down_sr=18000)             # softer crush -> less mangled
+    env = np.abs(a)
+    pk = env.max()
+    if pk < 1e-6:
+        return a
+    above = np.where(env > thr * pk)[0]
+    if len(above) == 0:
+        return a
+    m = int(SR * margin_ms / 1000)
+    return a[max(above[0] - m, 0):min(above[-1] + m, len(a))]
+
+
+def laptop_fx(a, normalize: bool = True, bits: int = 10, lo: float = 130.0,
+              hi: float = 4200.0, down_sr: int = 18000):
+    """Full translator chain: bitcrush/clip then band-pass. Applied PER-WORD (see
+    speak_translated) so the band-pass IIR tail can't smear energy across the
+    inter-word silence — the film drops to ABSOLUTE ZERO between words (discrete
+    data-blocks). bitcrush/band-limit give the digitized speaker-cone texture;
+    higher `hi`/`bits` = clearer, lower = more muffled/lo-fi."""
+    if len(a) == 0:
+        return a
+    a = _bitcrush(a, bits=bits, down_sr=down_sr)
     a = np.tanh(a * 1.4) / np.tanh(1.4)                  # gentler clipping
-    a = _bandpass(a, lo=130.0, hi=4200.0)               # keep top for consonant clarity
+    a = _bandpass(a, lo=lo, hi=hi)                       # keep top for consonant clarity
     if not normalize:
         return a.astype(np.float32)
     m = np.abs(a).max()
@@ -165,15 +183,19 @@ def speak_with_words(text: str, pitch: int = 46, rate: int = 135,
 
 
 def speak_translated(text: str, pitch: int = 46, rate: int = 135,
-                     gap_ms: float = 85.0) -> np.ndarray:
+                     gap_ms: float = 85.0, voice: str = "en-us",
+                     fx: dict | None = None) -> np.ndarray:
     """Rocky's ON-SHIP translator voice. Synthesize the WHOLE phrase in one pass
-    (with punctuation stripped so it reads FLAT/declarative — no rising '?', tags
-    stay deadpan) so espeak articulates each word naturally with coarticulation;
-    then SPLIT at word boundaries and rejoin with ~85ms TRUE-ZERO gaps + per-block
-    laptop_fx. Discrete data-blocks (film-measured) AND intelligible words."""
+    (punctuation stripped -> FLAT/declarative, tags deadpan) so espeak articulates
+    words naturally with coarticulation; then SPLIT at word boundaries, TRIM each
+    block's silence padding, and rejoin with ~85ms TRUE-ZERO gaps + per-block
+    laptop_fx. Discrete data-blocks (film-measured) AND intelligible words.
+    `voice` picks the espeak voice; `fx` overrides laptop_fx params (bits/lo/hi)."""
+    fx = fx or {}
     clean = " ".join(w.strip(".,!?;:") for w in text.replace(",", " ").split()
                      if w.strip(".,!?;:"))
-    audio, bounds = speak_with_words(clean, pitch=pitch, rate=rate, pitch_range=45)
+    audio, bounds = speak_with_words(clean, pitch=pitch, rate=rate,
+                                     pitch_range=45, voice=voice)
     if len(audio) == 0:
         return audio
     starts = [0] + bounds
@@ -182,10 +204,10 @@ def speak_translated(text: str, pitch: int = 46, rate: int = 135,
     fade = max(int(SR * 0.006), 1)
     segs = []
     for s, e in zip(starts, ends):
-        seg = audio[s:e]
+        seg = _trim_silence(audio[s:e])                  # drop espeak's padding
         if len(seg) < 2 * fade:
             continue
-        seg = laptop_fx(seg, normalize=False).copy()     # per-block -> gaps stay zero
+        seg = laptop_fx(seg, normalize=False, **fx).copy()   # per-block -> gaps stay zero
         seg[:fade] *= np.linspace(0, 1, fade)
         seg[-fade:] *= np.linspace(1, 0, fade)
         segs.append(seg)

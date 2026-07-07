@@ -1,0 +1,137 @@
+{
+  "master": "reference/self_print_rocky/rocky-statue-figure-files/statue_unsupported/statue_unsupported.stl",
+  "units": "raw master mm (unscaled)",
+  "figure_dims_mm": [
+    137.0,
+    137.0,
+    79.3
+  ],
+  "vert_count": 129028,
+  "limb_azimuths_deg": [
+    -160,
+    -105,
+    -40,
+    0,
+    125
+  ],
+  "limbs": [
+    {
+      "az": -160,
+      "reach_span_mm": 28.7,
+      "tip_center_xyz": [
+        -40.1,
+        -17.5,
+        18.2
+      ],
+      "tip_bbox_mm": [
+        5.3,
+        10.0,
+        34.3
+      ],
+      "tip_cross_span_TxZ_mm": [
+        10.6,
+        34.3
+      ],
+      "distal_lobes_detected": 1,
+      "tip_vert_samples": 2628
+    },
+    {
+      "az": -105,
+      "reach_span_mm": 33.9,
+      "tip_center_xyz": [
+        -5.0,
+        -48.7,
+        29.3
+      ],
+      "tip_bbox_mm": [
+        13.2,
+        6.7,
+        8.3
+      ],
+      "tip_cross_span_TxZ_mm": [
+        13.9,
+        8.3
+      ],
+      "distal_lobes_detected": 1,
+      "tip_vert_samples": 955
+    },
+    {
+      "az": -40,
+      "reach_span_mm": 49.1,
+      "tip_center_xyz": [
+        53.2,
+        -35.9,
+        72.8
+      ],
+      "tip_bbox_mm": [
+        8.9,
+        8.4,
+        13.5
+      ],
+      "tip_cross_span_TxZ_mm": [
+        8.6,
+        13.5
+      ],
+      "distal_lobes_detected": 1,
+      "tip_vert_samples": 1216
+    },
+    {
+      "az": 0,
+      "reach_span_mm": 40.8,
+      "tip_center_xyz": [
+        54.2,
+        -34.5,
+        72.3
+      ],
+      "tip_bbox_mm": [
+        4.9,
+        6.3,
+        14.4
+      ],
+      "tip_cross_span_TxZ_mm": [
+        6.3,
+        14.4
+      ],
+      "distal_lobes_detected": 1,
+      "tip_vert_samples": 909
+    },
+    {
+      "az": 125,
+      "reach_span_mm": 31.6,
+      "tip_center_xyz": [
+        -27.9,
+        37.1,
+        18.1
+      ],
+      "tip_bbox_mm": [
+        8.6,
+        7.9,
+        36.1
+      ],
+      "tip_cross_span_TxZ_mm": [
+        10.3,
+        36.1
+      ],
+      "distal_lobes_detected": 1,
+      "tip_vert_samples": 3133
+    }
+  ],
+  "tip_closeups": [
+    "docs/media/rocky_tip_limb0_-160_a.png",
+    "docs/media/rocky_tip_limb0_-160_b.png",
+    "docs/media/rocky_tip_limb1_-105_a.png",
+    "docs/media/rocky_tip_limb1_-105_b.png",
+    "docs/media/rocky_tip_limb2_-40_a.png",
+    "docs/media/rocky_tip_limb2_-40_b.png",
+    "docs/media/rocky_tip_limb3_0_a.png",
+    "docs/media/rocky_tip_limb3_0_b.png",
+    "docs/media/rocky_tip_limb4_125_a.png",
+    "docs/media/rocky_tip_limb4_125_b.png"
+  ],
+  "overview_renders": [
+    "docs/media/rocky_profile_iso.png",
+    "docs/media/rocky_profile_front.png",
+    "docs/media/rocky_profile_top.png",
+    "docs/media/rocky_profile_back.png"
+  ]
+}

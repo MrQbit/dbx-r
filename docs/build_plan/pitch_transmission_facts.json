@@ -1,0 +1,147 @@
+{
+  "shell_envelope": {
+    "cosmetic_shell_outer_mm": 44.0,
+    "shell_inner_mm": 39.0,
+    "mechanism_envelope_mm": 29.0,
+    "old_side_cup_dia_mm": 54.0,
+    "note": "mechanism must stay >=5 mm under the shell inner wall (SHELL_GAP)"
+  },
+  "shaft": {
+    "qa": {
+      "name": "femur_shaft_case",
+      "passed": true,
+      "watertight": true,
+      "bbox_mm": [
+        94.5,
+        27.0,
+        29.5
+      ],
+      "min_wall_mm": 3.0,
+      "mass_g": 38.8,
+      "qty": 5,
+      "failures": []
+    },
+    "driveshaft": {
+      "shaft_dia_mm": 6.0,
+      "tube_dia_mm": 12.0,
+      "cvd_cup_dia_mm": 18.0
+    },
+    "bevel": {
+      "module": 1.0,
+      "teeth": 16,
+      "pd_mm": 16.0,
+      "ratio": 1.0,
+      "type": "1:1 miter"
+    },
+    "femur_pitch_cv": {
+      "range_deg": [
+        -80.2,
+        57.3
+      ],
+      "max_bend_deg": 80.2,
+      "single_cvd_limit_deg": 50.0,
+      "needs_double_cardan": true,
+      "per_cardan_deg_if_double": 40.1
+    },
+    "backlash_deg": 2.5,
+    "stations": [
+      {
+        "station": "femur_pitch knuckle (P1) \u2014 CVD cup",
+        "cross_section_mm": 24.0,
+        "envelope_mm": 29.0,
+        "fits_under_shell": true,
+        "note": "double-cardan CVD centred on the pitch axis"
+      },
+      {
+        "station": "femur mid \u2014 shaft tube in strut",
+        "cross_section_mm": 27.0,
+        "envelope_mm": 29.0,
+        "fits_under_shell": true,
+        "note": "\u00d86 shaft in a \u00d812 bore; strut sets the silhouette"
+      },
+      {
+        "station": "knee (P2) \u2014 miter bevel box",
+        "cross_section_mm": 27.0,
+        "envelope_mm": 29.0,
+        "fits_under_shell": true,
+        "note": "M1 16T:16T bevel; box is the widest LEG station"
+      },
+      {
+        "station": "tibia \u2014 driven segment",
+        "cross_section_mm": 24.0,
+        "envelope_mm": 29.0,
+        "fits_under_shell": true,
+        "note": "no shaft below the knee"
+      }
+    ],
+    "hip_cluster_dia_mm": 148.0,
+    "mass_to_body_g_per_leg": 242.0,
+    "mass_to_body_g_all5": 1210.0,
+    "leg_hardware_g": 78.8
+  },
+  "belt": {
+    "qa": {
+      "name": "femur_belt_case",
+      "passed": true,
+      "watertight": true,
+      "bbox_mm": [
+        123.7,
+        29.6,
+        62.0
+      ],
+      "min_wall_mm": 2.9,
+      "mass_g": 77.7,
+      "qty": 5,
+      "failures": []
+    },
+    "belt": {
+      "type": "HTD-5M",
+      "width_mm": 9.0,
+      "pulley_teeth": 15,
+      "pulley_pd_mm": 23.87,
+      "ratio": 1.0,
+      "centre_distance_mm": 73.0,
+      "pitch_length_mm": 221.0,
+      "stock_length_mm": 225.0,
+      "tensioner": "625ZZ idler on the slack side / slotted motor mount"
+    },
+    "backlash_deg": 0.5,
+    "stations": [
+      {
+        "station": "proximal femur \u2014 QDD motor pod",
+        "cross_section_mm": 52.0,
+        "envelope_mm": 29.0,
+        "fits_under_shell": false,
+        "note": "\u00d846 QDD lies inline in the femur \u2014 the belt's shell cost"
+      },
+      {
+        "station": "femur belt run",
+        "cross_section_mm": 37.5,
+        "envelope_mm": 29.0,
+        "fits_under_shell": false,
+        "note": "belt loop height sets the silhouette"
+      },
+      {
+        "station": "knee (P2) \u2014 driven pulley case",
+        "cross_section_mm": 29.6,
+        "envelope_mm": 29.0,
+        "fits_under_shell": false,
+        "note": "slim at the knee"
+      }
+    ],
+    "mass_to_body_g_per_leg": 0.0,
+    "note": "motor stays IN the femur; moves knee->femur-root, not to the body"
+  },
+  "anchors": {
+    "type": "M2.5 brass heat-set insert + M2.5 machine screw (NOT clips)",
+    "per_segment": {
+      "coxa/hip shroud": 2,
+      "femur shell": 2,
+      "tibia shell": 2
+    },
+    "total_bolts_per_leg": 6,
+    "note": "split (2-part) stone shell BOLTS on; heads countersunk + hidden under a crag; unbolt to service the shafts/servos"
+  },
+  "winner": "shaft",
+  "winner_reason": "under the shell-first priority the leg segments must be slim; the shaft keeps only a \u00d812 shaft on the leg (motor in the body) so every leg station fits the \u00d829 envelope, whereas the belt parks a \u00d852 motor pod on the femur that busts it. Cost: ~2.5 deg knee backlash + a double-cardan for femur_pitch."
+}

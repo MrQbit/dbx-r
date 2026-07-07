@@ -1,0 +1,196 @@
+{
+  "master": "reference/self_print_rocky/rocky-statue-figure-files/statue_unsupported/statue_unsupported.stl",
+  "job": "refine ROCKY-5 from OFFICIAL sculpt; fingers sacred, servos hidden",
+  "method": "planar bisect + EXACT boolean only (NO voxel remesh)",
+  "hand_limb": {
+    "azimuth_deg": -33.0,
+    "found": "3-finger manipulator hand on the front raised arm (profiled tip bbox ~8x9x17mm raw); isolated by bisect wedge, instanced 5x so every foot has proper fingers",
+    "isolated_dims_mm": [
+      130.1,
+      55.5,
+      122.2
+    ]
+  },
+  "target_widest_mm": 326.0,
+  "shell_mm": 3.0,
+  "envelope_mm": 250.0,
+  "hardware": {
+    "servo_D_L": [
+      46.0,
+      44.0
+    ],
+    "jetson_on_edge_XYZ": [
+      63.0,
+      30.0,
+      90.0
+    ],
+    "battery_on_end_XYZ": [
+      40.0,
+      25.0,
+      85.0
+    ]
+  },
+  "parts": {
+    "thorax": {
+      "solid_dome_dims_mm": [
+        190.0,
+        166.5,
+        138.4
+      ],
+      "final_dims_mm": [
+        191.7,
+        166.5,
+        137.8
+      ],
+      "hollow": "shell",
+      "shell_mm": 3.0,
+      "cavities": [
+        "jetson_90x63x30_on_edge",
+        "battery_6s_85x40x25_on_end"
+      ],
+      "cavity_note": "Jetson(on-edge)+battery(on-end) bays side-by-side, opening to base hatch",
+      "fits_envelope": true,
+      "nonmanifold_edges": 278,
+      "surface_intact": true,
+      "fit_gate": {
+        "min_wall_jetson_mm": 11.1,
+        "min_wall_battery_mm": 29.3,
+        "jetson_fits_3mm": true,
+        "battery_fits_3mm": true,
+        "GATE_both_fit": true
+      }
+    },
+    "coxa": {
+      "dims_mm": [
+        28.8,
+        38.3,
+        47.7
+      ],
+      "fits_envelope": true,
+      "hollow": "shell",
+      "shell_mm": 3.0,
+      "nonmanifold_edges": 0,
+      "identical_instances": 5,
+      "print_qty": 5
+    },
+    "femur": {
+      "dims_mm": [
+        33.1,
+        51.9,
+        58.6
+      ],
+      "fits_envelope": true,
+      "hollow": "shell",
+      "shell_mm": 3.0,
+      "nonmanifold_edges": 0,
+      "identical_instances": 5,
+      "print_qty": 5
+    },
+    "tibia": {
+      "dims_mm": [
+        74.5,
+        31.3,
+        83.8
+      ],
+      "fits_envelope": true,
+      "hollow": "shell",
+      "shell_mm": 3.0,
+      "nonmanifold_edges": 2,
+      "identical_instances": 5,
+      "print_qty": 5,
+      "fingers": "SACRED 3-finger manipulator hand PRESERVED 1:1 (sculpt-native, distal of the knee2 cut; no graft/cone/cavity/boss)"
+    }
+  },
+  "joints": {
+    "knee1": {
+      "type": "flat_mount_plus_cover",
+      "limb_width_mm": 37.1,
+      "servo": "EduLite \u00d846x44 flat mount at slender joint (limb 37mm < servo 46mm); hidden under cosmetic refined_knee1_cover.stl stone sleeve"
+    },
+    "knee2": {
+      "type": "flat_mount_plus_cover",
+      "limb_width_mm": 48.0,
+      "servo": "EduLite \u00d846x44 flat mount at slender joint (limb 48mm < servo 46mm); hidden under cosmetic refined_knee2_cover.stl stone sleeve"
+    },
+    "hip": {
+      "type": "hidden_in_thorax_socket",
+      "servo": "EduLite \u00d846x44 at the coxa root, tucked inside the thorax leg socket"
+    }
+  },
+  "covers": [
+    {
+      "part": "refined_knee1_cover",
+      "wall_mm": 2.6,
+      "span_mm": 64.0,
+      "note": "thin stone sleeve over the flat joint+servo; outer face = sculpt, clips/bolts on so the assembled robot reads as the sculpt"
+    },
+    {
+      "part": "refined_knee2_cover",
+      "wall_mm": 2.6,
+      "span_mm": 68.0,
+      "note": "thin stone sleeve over the flat joint+servo; outer face = sculpt, clips/bolts on so the assembled robot reads as the sculpt"
+    }
+  ],
+  "scale": 3.274,
+  "figure_dims_mm": [
+    448.6,
+    259.6
+  ],
+  "R_CORE_mm": 94.2,
+  "detected_azimuths_deg": [
+    -160,
+    -105,
+    -40,
+    0,
+    125
+  ],
+  "assembly_azimuths_deg": [
+    0,
+    72,
+    144,
+    216,
+    288
+  ],
+  "parts_fingers_note": "The sacred 3-finger manipulator hand rides the DISTAL end of the tibia segment, entirely beyond the knee2 cut. No graft, no cone, no grip cavity, no servo boss touches it \u2014 preserved 1:1 from the sculpt.",
+  "assembly": {
+    "hand_limb_az": -33.0,
+    "instanced": 5,
+    "azimuths_deg": [
+      0,
+      72,
+      144,
+      216,
+      288
+    ],
+    "pose": "RIGID natural placement (sculpt joint angles preserved; faces mate, no wedge gaps)",
+    "hip_pitch_deg": 69.7,
+    "hip_socket_radius_mm": 74.2,
+    "hip_height_mm": 124.3,
+    "footprint_radius_mm": 188.9,
+    "footprint_dia_mm": 377.8,
+    "target_footprint_dia_mm": 581.0,
+    "symmetry": "true 5-fold radial (5 identical hand-limbs @72deg, each foot a 3-finger hand)"
+  },
+  "splits": "none needed (all parts <= 250mm)",
+  "print_set": {
+    "unique_stls": [
+      "refined_coxa",
+      "refined_femur",
+      "refined_knee1_cover",
+      "refined_knee2_cover",
+      "refined_thorax",
+      "refined_tibia"
+    ],
+    "print_bom": {
+      "refined_thorax": 1,
+      "refined_coxa": 5,
+      "refined_femur": 5,
+      "refined_tibia": 5,
+      "refined_knee1_cover": 5,
+      "refined_knee2_cover": 5
+    },
+    "total_printed_parts": 26,
+    "note": "5 identical hand-limbs -> print coxa/femur/tibia (+covers) x5 from one STL each"
+  },
+  "part_count": 6
+}

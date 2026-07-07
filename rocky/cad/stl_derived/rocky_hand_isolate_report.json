@@ -1,0 +1,23 @@
+{
+  "units": "raw master mm (unscaled, centered)",
+  "arm_azimuth_deg": -33.0,
+  "arm_wedge_halfangle_deg": 42.0,
+  "arm_dims_mm": [
+    39.7,
+    16.9,
+    37.3
+  ],
+  "arm_verts": 12010,
+  "hand_distal_islands": 1,
+  "digits": [
+    {
+      "verts": 2075,
+      "bbox_mm": [
+        7.9,
+        9.1,
+        16.8
+      ]
+    }
+  ],
+  "note": "arm isolated by planar bisect wedge ONLY (no boolean/remesh); 3-finger manipulator hand rides the distal tip intact"
+}

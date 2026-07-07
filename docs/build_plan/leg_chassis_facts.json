@@ -1,0 +1,153 @@
+{
+  "architecture": "D-042 LOCK: hip-cluster QDD (3/leg, in body) + knee driveshaft + inline roll STS",
+  "actuators": {
+    "coxa_yaw": "EduLite-05 QDD (Z), hip cluster / body",
+    "femur_pitch": "EduLite-05 QDD (Y), hip cluster / body, DIRECT drive",
+    "knee": "EduLite-05 QDD, hip cluster / body, REMOTE via double-cardan driveshaft",
+    "tibia_roll": "STS3215 slim serial (X), inline in the shank \u2014 the ONLY leg-mounted servo",
+    "grip": "MG90S-class micro (hidden in the palm)"
+  },
+  "knee_transmission": {
+    "type": "double_cardan_driveshaft",
+    "ratio": 1.0,
+    "backlash_rad": 0.044,
+    "efficiency": 0.9,
+    "shaft_dia_mm": 6.0,
+    "tube_dia_mm": 12.0,
+    "bevel": "M1 16T:16T miter (1:1)",
+    "cvd": "double-cardan centred on femur_pitch axis"
+  },
+  "mass_to_body_g_per_leg": 726.0,
+  "mass_to_body_g_all5": 3630.0,
+  "shell_envelope_dia_mm": 44.0,
+  "poses_scanned": 28,
+  "dof": 4,
+  "roll_pose_rad": {
+    "coxa_yaw": 0.0,
+    "femur_pitch": -0.35,
+    "tibia_pitch": 0.9,
+    "tibia_roll": 1.2
+  },
+  "worst_interference_mm3": {
+    "coxa_bracket|tibia_bracket": 0.0,
+    "coxa_bracket|tibia_link": 3215.35,
+    "femur_link|tibia_link": 0.0,
+    "hip_yoke|femur_link": 0.0,
+    "hip_yoke|tibia_bracket": 0.0,
+    "hip_yoke|tibia_link": 0.0,
+    "femur_link|tibia_bracket": 3598.52,
+    "coxa_bracket|femur_link": 5968.01
+  },
+  "joint_coupling_volume_mm3": {
+    "femur_link|tibia_bracket": 3598.5,
+    "coxa_bracket|femur_link": 5968.0
+  },
+  "coupling_note": "coxa<->femur = coaxial femur_pitch QDD + knee-driveshaft CVD at P1; femur<->tibia_bracket = knee miter-bevel output collar. Both are BOLTED couplings at the shared joint (not free-space clashes). HONEST: the hip-cluster knuckle massing overlaps the femur CV ring by ~5 cm^3 and wants clearance refinement before print (tight coaxial QDD+CVD at P1).",
+  "roll_worst_interference_mm3": 0.0,
+  "free_space_clashes_over_1mm3": [
+    [
+      "-0.9,+1.0,+2.0",
+      "coxa_bracket",
+      "tibia_link",
+      3215.4
+    ],
+    [
+      "+0.0,+1.0,+2.0",
+      "coxa_bracket",
+      "tibia_link",
+      3215.4
+    ],
+    [
+      "+0.9,+1.0,+2.0",
+      "coxa_bracket",
+      "tibia_link",
+      3215.4
+    ]
+  ],
+  "params_joint_limits_rad": {
+    "coxa_yaw": [
+      -0.9,
+      0.9
+    ],
+    "femur_pitch": [
+      -1.4,
+      1.0
+    ],
+    "tibia_pitch": [
+      -0.3,
+      2.0
+    ],
+    "tibia_roll": [
+      -1.5,
+      1.5
+    ]
+  },
+  "collision_free_limits_rad": {
+    "coxa_yaw": [
+      -0.9,
+      0.9
+    ],
+    "femur_pitch": [
+      -1.4,
+      1.0
+    ],
+    "tibia_pitch": [
+      -0.3,
+      2.0
+    ],
+    "tibia_roll": [
+      -1.5,
+      1.5
+    ]
+  },
+  "knee_selfcollision_free_max_rad": 2.0,
+  "reach_envelope": {
+    "radius_mm": [
+      4.0,
+      237.2
+    ],
+    "z_mm": [
+      -166.4,
+      176.1
+    ],
+    "yaw_sweep_deg": 103.1,
+    "yaw_arc_at_neutral_mm": 428.4
+  },
+  "neutral_tip_xyz": [
+    238.0,
+    0.0,
+    0.0
+  ],
+  "roll_pose_tip_xyz": [
+    218.1,
+    0.0,
+    -29.9
+  ],
+  "stations_neutral": {
+    "hip": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "p1": [
+      60.0,
+      0.0,
+      0.0
+    ],
+    "knee": [
+      133.0,
+      0.0,
+      0.0
+    ],
+    "roll": [
+      212.0,
+      0.0,
+      0.0
+    ],
+    "tip": [
+      238.0,
+      0.0,
+      0.0
+    ]
+  }
+}

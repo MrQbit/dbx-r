@@ -1,107 +1,94 @@
-"""ROCKY-5 grip PALM — the stony base of the front-manipulator hand (D-008, D-027).
+"""ROCKY-5 grip PALM — the SLIM wrist of the 2+1 manipulator (D-008, D-027, D-038).
 
-The palm is the fixed member of the grip assembly. It:
-  * BOLTS TO THE TIBIA via the real EduLite Ø41.5 PCD flange on its top face and
-    HOUSES the grip servo (coaxial with the limb) — `common.cad_lib.edulite`;
-  * HIDES THE DRIVE inside a wide stony base: the servo output drops down the
-    centre into an underside cavity that houses the `grip_crown` cam disc, so no
-    gear is ever exposed (Rocky reads as weathered rock, not machine);
-  * CARRIES THE THREE FINGER HINGES: a clevis at each 120° azimuth on the pivot
-    circle (`grip_finger.R_PIV/Z_PIV`) with a Ø5 pin bore, and a radial CRANK SLOT
-    per finger so each finger's crank + follower pin reaches down to the crown.
+OPERATOR REDESIGN (D-038): the old palm was a fat Ø108 crown disc with three
+symmetric fingers. It is now a SLIM tapered WRIST — referenced from the sculpt
+manipulator (docs/media/rocky_hands_before.png) — that:
 
-Shape: a broad base cylinder (the crown housing + the shoulder the fingers rest
-their roots on at grip 0) topped by a tapering stub that seats the servo. Prints
-base-down; the underside crown cavity and the clevis undercuts want tree supports.
+  * BOLTS TO THE TIBIA tip via the real EduLite Ø41.5 PCD flange on a short mount
+    collar (z = 0 face), then tapers to a slim Ø34 wrist (no crown disc);
+  * FUSES THE TWO PRIMARY fingers low on the wrist — they converge into a single
+    spider-leg WALKING TIP (Rocky stands on the fingertips, not the palm) and are
+    rigid so the foot never wobbles under body weight;
+  * CARRIES THE THUMB on a Ø5-pin clevis set slightly higher and opposing the two
+    primaries (`grip_finger.THUMB_PIV`);
+  * HIDES THE DRIVE inside the wrist: a back bay houses the grip micro-servo and its
+    `grip_crown` drive crank, whose follower pin swings the thumb's crank tail. The
+    bay opens on the -X (back) face and is closed by a snap cover — the slim wrist
+    reads as solid weathered stone, no exposed mechanism.
+
+Hand LOCAL frame (see grip_finger): Z = distal/outward, +X = thumb side,
+-X = primary/foot side, Y = lateral. Prints wrist-down; the primaries + thumb clevis
+want tree supports.
 """
 from __future__ import annotations
 
-import math
-
-from build123d import Cylinder, Cone, Box, Pos, Rotation, Part
+from build123d import Box, Cone, Cylinder, Pos, Rotation, Part
 
 from common.cad_lib import standards as S
 from common.cad_lib import edulite as E
 from common.cad_lib.part_meta import Insert, PartMeta
-from rocky.cad.parts.grip_finger import (
-    R_PIV, Z_PIV, PIN_BORE, HUB_R, HUB_L, azimuths, N_HANDS,
-    CRANK_INBOARD, FOLLOW_BOSS_R,
-)
+from rocky.cad.parts import grip_finger as GF
 
-# --- Base (crown housing + finger-root shoulder) ---------------------------
-BASE_R = 54.0                          # Ø108 stony base (hides the Ø100 crown)
-BASE_H = 12.0                          # base cylinder height (z 0 .. BASE_H)
+# --- Wrist body (mount collar -> taper -> slim Ø34 wrist) -------------------
+MOUNT_R = GF.MOUNT_R          # Ø52 collar (catches the tibia Ø41.5 PCD flange)
+COLLAR_H = GF.COLLAR_H
+CONE_TOP_Z = GF.CONE_TOP_Z
+WRIST_R = GF.WRIST_R          # Ø34 slim wrist
+WRIST_TOP_Z = GF.WRIST_TOP_Z
 
-# --- Servo stub (seats the EduLite grip servo, coaxial with the limb) -------
-STUB_R_BOT = 34.0                      # foot of the stub on the base top
-STUB_R_TOP = 27.0                      # top face (Ø54 ≥ Ø46 housing / Ø41.5 PCD)
-STUB_H = 14.0
-Z_TOP = BASE_H + STUB_H                # servo mating face
-
-# --- EduLite grip-servo mount on the top face ------------------------------
-PILOT_DEPTH = 4.0
-BOLT_DEPTH = 6.0                       # blind flange bolts
-OUTPUT_BORE_LEN = STUB_H + BASE_H - 2.0  # centre bore, top face down to the crown cavity
-
-# --- Underside crown cavity (houses grip_crown, hidden) --------------------
-from rocky.cad.parts.grip_crown import CROWN_R, Z_TOP as CROWN_Z_TOP
-CAVITY_R = CROWN_R + 1.0               # running clearance on the crown
-CAVITY_TOP = CROWN_Z_TOP + 0.1        # cavity just clears the crown top ...
-CAVITY_BOT = -1.0                      # ... and opens out the palm underside
-# ceiling left below the base top = BASE_H - CAVITY_TOP (≥ 2.4 mm by construction)
-
-# --- Finger clevis (pin hinge) ---------------------------------------------
-EAR_W = 5.8                            # each clevis ear width (≥ 2.4 mm)
-CLEVIS_GAP = HUB_L + 2 * S.FIT_SLIDE_MM  # slot the finger knuckle drops into
+# --- Thumb clevis (Ø5 pin hinge) -------------------------------------------
+EAR_W = 5.0
+CLEVIS_GAP = GF.HUB_L + 2 * S.FIT_SLIDE_MM     # slot the thumb knuckle drops into
 CLEVIS_SPAN = CLEVIS_GAP + 2 * EAR_W
 
-# --- Crank slot (lets a finger's crank + follower pin reach the crown) ------
-# Narrow slot through the shoulder/ceiling, BETWEEN the two clevis ears, so the
-# finger's crank + follower pin pass down into the crown cavity and swing.
-SLOT_W = 2 * FOLLOW_BOSS_R + 2 * S.FIT_LOOSE_MM   # crank/follower running width
-SLOT_R0 = 24.0                         # covers the follower band (r ≈ 29 → 43)
-SLOT_R1 = 45.0
+# --- Hidden drive bay (servo + crank + thumb tail) --------------------------
+# A blind internal bay (the slim wrist prints as a Y-split clamshell: two mirror
+# halves bolted on the Y=0 plane, so the micro-servo + grip_crown drive crank drop
+# in and the mechanism is fully hidden). It stays inside the round wrist (thick
+# walls everywhere) and its top (z=25) meets the clevis gap (which reaches z≈24) so
+# the thumb's crank tail passes down into the bay and swings on the drive crank.
+BAY_X0 = -12.0                 # stays inside the round wrist (no thin edge slivers)
+BAY_X1 = 12.0                  # reaches under the thumb tail (drive crank lives here)
+BAY_Y = 8.5                   # half-width (Y) — clears the 12.2 mm servo body + crank
+BAY_Z0 = 11.0
+BAY_Z1 = 25.0
+
+# --- Mount flange bolts (Ø41.5 PCD, into the tibia heat-sets) ---------------
+BOLT_DEPTH = COLLAR_H + 4.0
 
 
-def _servo_flange(palm: Part) -> Part:
-    """Cut the EduLite grip-servo mount into the top face (pilot + PCD bolts +
-    output bore down to the crown cavity). Same builders as leg_bracket seats."""
-    palm -= Pos(0, 0, Z_TOP) * E.pilot_recess(PILOT_DEPTH, fit="slide")
-    palm -= Pos(0, 0, Z_TOP - PILOT_DEPTH) * E.bolt_holes(BOLT_DEPTH)
-    palm -= Pos(0, 0, Z_TOP) * E.output_bore(OUTPUT_BORE_LEN, fit="loose", extend_up=1.0)
-    return palm
+def _clevis() -> Part:
+    """Two-ear Ø5-pin clevis at the thumb pivot on a flat PEDESTAL (the pedestal's
+    flat faces tie the round ears to the round wrist without a tangent feather-edge).
+    The thumb knuckle drops in the central gap."""
+    px, _py, pz = GF.THUMB_PIV
+    ear = Pos(px, 0, pz) * Rotation(90, 0, 0) * Cylinder(radius=GF.HUB_R, height=CLEVIS_SPAN)
+    ped = Pos(px - 5.0, 0, pz - 8.0) * Box(2 * GF.HUB_R + 6, CLEVIS_SPAN, 22)  # into the wrist
+    solid = ear + ped
+    solid -= Pos(px, 0, pz) * Box(2 * GF.HUB_R + 6, CLEVIS_GAP, 2 * GF.HUB_R + 4)  # thumb-hub gap
+    solid -= Pos(px, 0, pz) * Rotation(90, 0, 0) * Cylinder(
+        radius=GF.PIN_BORE / 2, height=CLEVIS_SPAN + 1)
+    return solid
 
 
 def grip_palm() -> Part:
-    base = Pos(0, 0, BASE_H / 2) * Cylinder(radius=BASE_R, height=BASE_H)
-    stub = Pos(0, 0, BASE_H + STUB_H / 2) * Cone(
-        bottom_radius=STUB_R_BOT, top_radius=STUB_R_TOP, height=STUB_H)
-    palm = base + stub
+    collar = Pos(0, 0, COLLAR_H / 2) * Cylinder(radius=MOUNT_R, height=COLLAR_H)
+    cone = Pos(0, 0, (COLLAR_H + CONE_TOP_Z) / 2) * Cone(
+        bottom_radius=MOUNT_R, top_radius=WRIST_R, height=CONE_TOP_Z - COLLAR_H)
+    wrist = Pos(0, 0, (CONE_TOP_Z + WRIST_TOP_Z) / 2) * Cylinder(
+        radius=WRIST_R, height=WRIST_TOP_Z - CONE_TOP_Z)
+    palm = collar + cone + wrist
 
-    # Underside crown cavity (opens downward; ceiling left above the crown).
-    palm -= Pos(0, 0, (CAVITY_TOP + CAVITY_BOT) / 2) * Cylinder(
-        radius=CAVITY_R, height=CAVITY_TOP - CAVITY_BOT)
+    # Two fused primary fingers (the walking tip) + the thumb clevis.
+    palm += GF.primaries()
+    palm += _clevis()
 
-    # EduLite grip-servo mount + central output bore to the crown.
-    palm = _servo_flange(palm)
+    # --- Hidden drive bay (opens -X) ----------------------------------------
+    palm -= Pos((BAY_X0 + BAY_X1) / 2, 0, (BAY_Z0 + BAY_Z1) / 2) * Box(
+        BAY_X1 - BAY_X0, 2 * BAY_Y, BAY_Z1 - BAY_Z0)
 
-    # Three finger clevises + crank slots, at 120°.
-    for az in azimuths():
-        # Clevis: a knuckle straddling the pivot with a central slot for the
-        # finger hub and a Ø5 pin bore.
-        ear = Rotation(90, 0, 0) * Cylinder(radius=HUB_R, height=CLEVIS_SPAN)
-        gap = Box(2 * HUB_R + 2, CLEVIS_GAP, 2 * HUB_R + 2)
-        knuckle = ear - gap
-        knuckle -= Rotation(90, 0, 0) * Cylinder(radius=PIN_BORE / 2, height=CLEVIS_SPAN + 2)
-        knuckle = Pos(R_PIV, 0, Z_PIV) * knuckle
-        palm += Rotation(0, 0, az) * knuckle
-
-        # Crank slot through the shoulder/ceiling so the crank + follower reach
-        # the crown cavity and can swing across the full grip range. Narrow
-        # (passes between the clevis ears) and only through the ceiling band.
-        slot = Pos((SLOT_R0 + SLOT_R1) / 2, 0, (Z_PIV + 6.0 + CAVITY_TOP - 1.0) / 2) * Box(
-            SLOT_R1 - SLOT_R0, SLOT_W, (Z_PIV + 6.0) - (CAVITY_TOP - 1.0))
-        palm -= Rotation(0, 0, az) * slot
+    # --- Mount flange: 6 clearance bolts on the Ø41.5 PCD (z=0 face) ---------
+    palm -= Pos(0, 0, 0) * E.bolt_holes(BOLT_DEPTH, extend_up=1.0)
 
     return palm
 
@@ -109,17 +96,17 @@ def grip_palm() -> Part:
 META = PartMeta(
     name="grip_palm",
     material="PETG",
-    qty=N_HANDS,                        # one palm per grip hand
+    qty=GF.N_HANDS,                       # one slim wrist per 2+1 hand
     cosmetic=False,
     plate_group="rocky_limbs",
     supports="tree",
     inserts=(
-        Insert("m4_clearance", 3, "grip-servo flange bolts, Ø41.5 PCD (M4)"),
-        Insert("m3_clearance", 3, "grip-servo flange bolts, Ø41.5 PCD (M3)"),
-        Insert("bearing_625zz", 3, "one Ø5 finger-pivot pin per clevis"),
+        Insert("m4_clearance", 3, "tibia-flange bolts, Ø41.5 PCD (M4)"),
+        Insert("m3_clearance", 3, "tibia-flange bolts, Ø41.5 PCD (M3)"),
+        Insert("bearing_625zz", 1, "Ø5 thumb-pivot pin (clevis)"),
     ),
-    clearances={"servo_flange": "slide", "output_bore": "loose",
-                "pivot_pin": "press", "crown_cavity": "loose", "crank_slot": "loose"},
+    clearances={"mount_flange": "slide", "thumb_pin": "press",
+                "servo_bay": "slide", "drive_crank": "loose"},
 )
 
 

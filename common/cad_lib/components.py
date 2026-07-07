@@ -72,11 +72,23 @@ JETSON = Component("jetson_orin_nano", "compute", (90.0, 63.0, 30.0), 90.0, "tra
                    "NVIDIA Orin Nano 8GB on compact carrier; ribbon = CSI cam")
 BATTERY = Component("battery_6s", "power", (85.0, 40.0, 25.0), 280.0, "bay",
                     ("xt60",), 2.0, "6S Li-ion pack for the 48V-class QDD motors (D-022)")
-# ROCKY-5 LEG actuator (D-031): back to Robstride EduLite 05 (1.8/6 N·m, 46x46x44, Ø41.5
-# PCD) — torque-valid on a LIGHT compact body, Ø46 gives a slenderer leg-neck than RS00,
-# lighter + far cheaper. (The RS00 detour was an over-conservative-margin mistake.)
+# QDD actuator: Robstride EduLite 05 (1.8/6 N·m, backdrivable, CAN, Ø41.5 PCD, 242 g).
+# BDX-A uses it on every joint (BDX-R exactly, D-007). ROCKY-5 (D-042 LOCK) uses it on
+# the 3 weight-bearing leg joints per limb — coxa_yaw, femur_pitch, KNEE — ALL mounted in
+# the HIP CLUSTER inside the BODY (mass off the moving leg). The knee QDD drives the knee
+# REMOTELY through the double-cardan driveshaft (see params knee.transmission) so no motor
+# rides the femur/tibia.
 SERVO = Component("robstride_edulite05", "actuator", (46.0, 46.0, 44.0), 242.0, "pocket",
-                  ("canbus",), 2.0, "Robstride EduLite 05 QDD leg actuator (1.8/6 N·m), CAN; Ø41.5 PCD")
+                  ("canbus",), 2.0, "Robstride EduLite 05 QDD (1.8/6 N·m), CAN; Ø41.5 PCD; hip-cluster on ROCKY")
+# ROCKY-5 tibia_roll actuator (D-042): the ONLY servo that rides the moving leg — a slim
+# Feetech STS3215 EMBEDDED INLINE in the shank (45.2x24.7x35, TTL, 12V, position control,
+# low load). Its 24.7-thin body slots INTO the shank; only the output horn crosses the
+# roll axis. SERVO_PITCH (STS3250) is retained for reference but UNUSED on ROCKY under
+# D-042 (the pitch/knee joints are the hip-cluster QDD above).
+SERVO_PITCH = Component("feetech_sts3250", "actuator", (45.2, 24.7, 35.0), 74.0, "pocket",
+                        ("ttl",), 2.0, "Feetech STS3250 slim serial servo (~4.9/2.4 N·m), TTL; UNUSED on ROCKY post-D-042")
+SERVO_YR = Component("feetech_sts3215", "actuator", (45.2, 24.7, 35.0), 55.0, "pocket",
+                     ("ttl",), 2.0, "Feetech STS3215 slim serial servo (~2.9 N·m stall), TTL; ROCKY tibia_roll (inline shank)")
 # ROCKY-5 GRIP actuator (D-028): the 3 fingers per hand are low-load -> a small
 # metal-gear micro servo (all 5 hands), NOT a leg QDD.
 GRIP_SERVO = Component("grip_micro", "actuator", (22.8, 12.2, 28.5), 13.4, "pocket",
@@ -116,12 +128,14 @@ AUDIO_DRIVER = Component("driver_40mm", "audio", (40.0, 40.0, 22.0), 25.0, "vent
 AUDIO_AMP = Component("max98357a", "audio", (17.0, 13.0, 3.0), 2.0, "tray",
                       ("i2s",), 1.5, "I2S mono amp")
 
-# Rocky manipulator hand (D-008, D-027): the REAL split assembly — stony palm +
-# hidden spiral drive crown + three separately-printed fingers. mass_g is the
-# printed assembly (palm 89.5 + crown 61.4 + 3×finger 9.4 = 179 g @100% infill,
-# per docs/reports/mass_rocky.md); the grip micro-servo is the separate grip servo.
-GRIP_HAND = Component("grip_hand_3finger", "actuator", (150.0, 150.0, 55.0), 179.0, "pocket",
-                      (), 1.5, "3-finger grip hand (palm+crown+3 fingers), one per manipulator leg (D-027)")
+# Rocky manipulator hand (D-008, D-027, D-038): the REAL split assembly — now a SLIM
+# 2+1 hand: slim palm with 2 fused primary fingers (the walking tip) + 1 opposing
+# thumb + a hidden micro-servo drive crank. mass_g is the printed assembly (palm 66.6
+# + thumb 7.8 + drive crank 2.0 ≈ 76 g @100% infill, per docs/reports/mass_rocky.md);
+# the grip micro-servo is the separate grip servo. Far lighter than the old Ø108
+# 3-finger crown hand (179 g).
+GRIP_HAND = Component("grip_hand_2plus1", "actuator", (95.0, 60.0, 90.0), 76.4, "pocket",
+                      (), 1.5, "2+1 grip hand (slim palm+2 primaries+thumb+drive crank), one per manipulator leg (D-038)")
 
 # ROCKY-5 breathing crown (D-024): ONE micro-servo turns the scroll cam that
 # drives all five carapace petals radially (slow ~0.25 Hz breathing only — a
@@ -184,12 +198,24 @@ def bdx_a_components() -> list[Placement]:
 
 def rocky_components() -> list[Placement]:
     p = _common_core("base_link", torso_z=30.0)
-    # 17 servos: 15 limb joints (IDs 1-15) + 2 front-leg grips (IDs 16-17, D-008).
-    for sid in range(1, 18):
-        host = "rocky_grip" if sid >= 16 else f"rocky_joint_{sid}"
-        p.append(Placement(SERVO, host, (0, 0, 0), qty=1, note=f"servo id {sid}"))
-    for leg in (1, 4):
-        p.append(Placement(GRIP_HAND, f"rocky_leg{leg}_hand", (0, 0, 0), note=f"3-finger hand leg {leg}"))
+    # 25 DOF (D-039): 20 limb joints (IDs 1-20 — 4 per limb: coxa_yaw, femur_pitch,
+    # tibia_pitch/knee, tibia_roll) + 5 grip micro-servos (IDs 21-25). D-042 LOCK actuator
+    # map: the 3 WEIGHT-BEARING joints per limb (coxa_yaw, femur_pitch, KNEE) are EduLite
+    # QDD (SERVO) housed in the per-limb HIP CLUSTER inside the body — so their 242 g each
+    # lumps into the BODY, NOT the moving leg (light distal leg, heavy body). Only
+    # tibia_roll rides the leg — the slim STS3215 (SERVO_YR). Grips = GRIP_SERVO (D-028).
+    for sid in range(1, 21):
+        i = (sid - 1) // 4                           # limb index 0..4
+        offset = ((sid - 1) % 4) + 1                 # 1=coxa_yaw 2=femur_pitch 3=tibia_pitch/knee 4=tibia_roll
+        if offset in (1, 2, 3):                       # 3 QDD in the hip cluster (in the BODY)
+            note = f"leg {i} {'coxa_yaw' if offset==1 else 'femur_pitch' if offset==2 else 'knee(remote driveshaft)'} QDD id {sid}"
+            p.append(Placement(SERVO, f"rocky_hip_cluster_{i}", (0, 0, 0), qty=1, note=note))
+        else:                                         # tibia_roll STS3215 rides the shank
+            p.append(Placement(SERVO_YR, f"rocky_shank_{i}", (0, 0, 0), qty=1, note=f"leg {i} tibia_roll STS id {sid}"))
+    for k, sid in enumerate(range(21, 26)):
+        p.append(Placement(GRIP_SERVO, f"rocky_leg{k}_grip", (0, 0, 0), qty=1, note=f"grip servo id {sid}"))
+    for leg in (0, 1, 2, 3, 4):
+        p.append(Placement(GRIP_HAND, f"rocky_leg{leg}_hand", (0, 0, 0), note=f"2+1 hand leg {leg}"))
     # ROCKY HAS NO FACE, NO EYES, NO FRONT (D-006). Sensing is by sound (audio)
     # plus fully SYMMETRIC, hidden ToF — no camera, nothing that implies a heading.
     p += [

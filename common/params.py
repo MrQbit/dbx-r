@@ -31,15 +31,18 @@ def bdx_a_dof(params: dict) -> list[dict]:
 
 
 def rocky_dof(params: dict) -> list[dict]:
-    """Expand ROCKY-5 into explicit joints: 15 leg joints (§4) + front-leg grip
-    manipulators (D-008). Order == obs == action == servo-id order."""
+    """Expand ROCKY-5 into explicit joints: 20 leg joints (§4, 4 per limb after the
+    D-039 tibia_roll) + per-leg grip manipulators (D-008). Order == obs == action ==
+    servo-id order. Servo IDs stride by the number of per-limb joints so IDs stay
+    contiguous per limb (leg i => n*i+offset) as the template grows."""
+    n = len(params["dof_template"])            # per-limb joint count (4 with tibia_roll)
     out = []
     for i in range(params["limb_count"]):
         for j in params["dof_template"]:
             out.append(
                 {
                     "name": f"leg{i}_{j['suffix']}",
-                    "servo_id": 3 * i + j["offset"],
+                    "servo_id": n * i + j["offset"],
                     "limit_rad": j["limit_rad"],
                 }
             )

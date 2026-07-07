@@ -29,9 +29,16 @@ dimensions:                    # RECONCILED to the OFFICIAL SCULPT (D-034): the 
   footprint_dia_mm: 402        # sculpt-accurate (NOT stretched to an arbitrary target)
   foot_dia_mm: 35             # sculpt-native craggy claw / 3-finger tip
 
-mass_budget_kg: 6.5           # KEEP LIGHT: 15 EduLite (~3.6kg) + micro grips + hollow STL
-#                               shell + electronics ~= 5.9kg. Above ~6kg EduLite is over.
-design_target_kg: 5.9         # G1 + TRAINING mass at x1.2
+mass_budget_kg: 6.5           # ASPIRATIONAL ceiling. D-042 LOCK: the 3 weight-bearing leg joints
+#                               per limb (coxa_yaw, femur_pitch, KNEE) go back to the Robstride
+#                               EduLite QDD (speed + backdrivability), but ALL of them live in the
+#                               HIP CLUSTER inside the BODY — mass in the body, not the leg. Only
+#                               the tibia_roll STS3215 rides the leg, so the femur/tibia stay slim
+#                               (they wrap a Ø12 driveshaft, not a Ø46 motor). 15 QDD ~3.6 kg + 5
+#                               STS roll + 5 grip micro + slim legs + electronics -> ~6.6 kg as-built
+#                               (OVER the aspirational 6.5 budget; honest cost of 15 QDD). See
+#                               docs/reports/mass_rocky.md + D-042.
+design_target_kg: 6.6         # G1 torque design point (spec §4); as-built ~6.6 kg (D-042)
 
 battery:                       # 6S for the 48V-class EduLite QDD motors (D-022 power fix)
   chemistry: li-ion
@@ -45,43 +52,104 @@ battery:                       # 6S for the 48V-class EduLite QDD motors (D-022 
   # NOTE: 6S (22V) is the practical pick — Rocky's worst case is 0.8 Nm so it needs
   # nowhere near 48V; for max rated servo performance a 12-13S (44-48V) pack drops in.
 
-# --- Degrees of freedom (15, §4): per limb i in 0..4 -----------------------
-# Servo IDs = 3i+1, 3i+2, 3i+3. Generated from the template below by the
-# description pipeline; listed here explicitly so params are self-contained.
+# --- Degrees of freedom (20, §4): per limb i in 0..4 -----------------------
+# 4 joints per limb now (D-039 added tibia_roll). Servo IDs = 4i+1..4i+4. Generated
+# from the template below by the description pipeline; listed here explicitly so
+# params are self-contained.
 dof_template:                  # per-limb joints (i substituted 0..4)
-  - {suffix: coxa_yaw,     offset: 1, limit_rad: [-0.9,  0.9]}
-  - {suffix: femur_pitch,  offset: 2, limit_rad: [-1.4,  1.0]}
+  - {suffix: coxa_yaw,     offset: 1, limit_rad: [-0.9,  0.9]}   # hip-cluster QDD (Z), direct
+  - {suffix: femur_pitch,  offset: 2, limit_rad: [-1.4,  1.0]}   # hip-cluster QDD (Y), direct
+  # tibia_pitch (knee): hip-cluster QDD driven REMOTELY via the double-cardan
+  # driveshaft (see knee.transmission) — kinematically identical, torque 0.9x (D-042).
   - {suffix: tibia_pitch,  offset: 3, limit_rad: [-0.3,  2.0]}
+  # D-039 WRIST-ROLL: a 4th servo (STS3215 per D-041) mounted INLINE in the tibia
+  # (between the knee and the shank) rolls the whole shank+hand about the leg's long
+  # axis. It's a roll, so its travel is limited only by wiring wrap, not self-collision.
+  - {suffix: tibia_roll,   offset: 4, limit_rad: [-1.5,  1.5]}
 
 # Manipulators (D-028, canon-corrected): EVERY limb ends in a 3-finger hand (book:
 # "on each limb, three triangular fingers") — not just the front pair. All 5 legs are
-# hand-feet (grip open = flat foot to stand; closed = grasp). 5 grip DOF, IDs 16-20,
-# appended after the 15 leg joints -> 20 DOF total. Rocky is pentadextrous.
+# hand-feet (grip open = flat foot to stand; closed = grasp). 5 grip DOF, IDs 21-25,
+# appended after the 20 leg joints -> 25 DOF total (D-039). Rocky is pentadextrous.
 manipulators:
   legs: [0, 1, 2, 3, 4]        # ALL five limbs
-  grip_limit_rad: [0.0, 2.2]   # 0 = open/flat foot (stand); 2.2 rad (126°) = fingers
-  #                              pass vertical into a firm 3-jaw grasp (D-027).
-  servo_ids: [16, 17, 18, 19, 20]
-  fingers: 3                   # triangular stony fingers per hand (driven together)
-  grip_servo: grip_micro       # low-load fingers -> small servo, NOT a leg QDD
+  grip_limit_rad: [0.0, 2.2]   # THUMB sweep. 0 = thumb raised: the 2 PRIMARY fingers
+  #                              stand as a foot-tip (walk/stand). 2.2 rad = thumb
+  #                              pinches down against them -> 3-point grasp (D-038).
+  servo_ids: [21, 22, 23, 24, 25]
+  fingers: 3                   # 3 digits per hand, arranged 2+1 (D-038):
+  arrangement: 2plus1          # 2 PRIMARY fingers (fused, low, converge to a single
+  #                              spider-leg WALKING TIP) + 1 opposing THUMB (higher,
+  #                              the only moving digit; grip micro-servo swings it via
+  #                              a hidden crank). Was 3 symmetric fingers on a Ø108
+  #                              crown disc; slimmed to a wrist per operator sculpt ref.
+  grip_servo: grip_micro       # low-load thumb -> small servo, NOT a leg QDD
 
-# --- Leg actuator (Robstride EduLite 05, D-031) ----------------------------
-# Back to EduLite (my RS00 detour was over-conservative — EduLite holds the 272mm leg
-# at ~72% continuous with 3.3x peak headroom). Ø46 (vs RS00 Ø60) also gives a slenderer
-# leg-neck knuckle. Valid ONLY because the body is kept LIGHT (design_target 5.5kg).
+# --- Leg actuator (D-042 LOCK: hip-cluster QDD + knee driveshaft) -----------
+# Operator-approved LOCK, SUPERSEDES the all-STS pitch of D-041. ROCKY-5's three
+# WEIGHT-BEARING leg joints per limb — coxa_yaw, femur_pitch, and the KNEE — are
+# Robstride EduLite-05 QDD motors, and all three live in the HIP CLUSTER inside the
+# BODY (mass in the body, not the leg; ~242 g each stays off the moving leg). coxa_yaw
+# (Z) + femur_pitch (Y) drive their joints DIRECTLY; the KNEE motor (Y) drives the knee
+# REMOTELY through a double-cardan driveshaft (see `knee.transmission`) so the femur +
+# tibia stay slim (they wrap a Ø12 shaft, not a Ø46 motor). Only the 4th joint
+# (tibia_roll) rides the leg — a slim inline STS3215 (see `servo_roll`). Grip = micro.
+# The `servo` block is the QDD — the femur_pitch/knee weight-bearing actuator the G1
+# torque gate evaluates: backdrivable, ~15 rad/s (restores ~2.5 km/h vs the slow STS).
+# BUS (mixed): the 15 QDD on CAN; the 5 STS roll on TTL serial; grips on PWM.
+# POWER: 6S (22.2 V) feeds the 15-60 V EduLite QDD directly; a 12 V buck rail feeds the
+# STS3215 roll servos (mixed rail). BDX-A keeps its own 48 V EduLite bus.
 servo:
   model: robstride_edulite05
-  voltage_v: 48
-  gear_ratio: 9
-  torque_continuous_nm: 1.8
-  torque_stall_nm: 6.0
+  voltage_v: 22.2               # 6S Li-ion; within EduLite 15-60 V (rated 48 V)
+  control: torque               # backdrivable QDD (MIT position+torque), NOT a position servo
+  torque_continuous_nm: 1.8     # EduLite-05 rated continuous
+  torque_stall_nm: 6.0          # EduLite-05 peak
   bus: {type: canbus}
+  # QDD PD gains, restored from the stiff STS position gains of D-041 (was kp 60 / kd 1.5).
   kp: 40
   kd: 2.0
-  effort_clamp_nm: 6.0
-  vel_clamp_rad_s: 15.0
-  armature: 0.02
-  friction: 0.03
+  effort_clamp_nm: 6.0          # saturate at peak
+  vel_clamp_rad_s: 15.0         # EduLite no-load speed — 2.7x the STS's 5.5 (the speed win)
+  backlash_deg: 0.3             # QDD gear backlash (the knee joint adds the driveshaft's 2.5 deg)
+  armature: 0.008
+  friction: 0.04
+  # TRAIN/DEPLOY (D-042): model coxa_yaw/femur_pitch/knee as the backdrivable QDD (PD
+  # above) on CAN; ADD the knee driveshaft transmission (1:1, +2.5 deg backlash, 0.9
+  # efficiency -> effective knee torque 0.9x) at the knee joint; model tibia_roll as the
+  # STS3215 position servo (`servo_roll`) on TTL. Deploy wires CAN + TTL + a 12 V rail.
+
+# --- tibia_roll actuator (D-042): slim inline STS3215 in the shank ----------
+# The ONLY servo that rides the moving leg (distal, light -> keeps the shank slim).
+# Position-controlled TTL serial, 12 V, low load (a wrist roll, not weight-bearing).
+servo_roll:
+  model: feetech_sts3215
+  voltage_v: 12
+  control: position
+  torque_continuous_nm: 1.5     # STS3215 sustained @ 12 V
+  torque_stall_nm: 2.9          # STS3215 stall (low-load roll — wide margin)
+  bus: {type: ttl_serial}
+  kp: 60
+  kd: 1.5
+  effort_clamp_nm: 2.9
+  vel_clamp_rad_s: 5.5
+  backlash_deg: 0.5
+
+# --- Knee transmission (D-042): remote double-cardan driveshaft -------------
+# The KNEE QDD sits in the hip cluster; its torque reaches the knee through a
+# double-cardan CVD centred on the femur_pitch axis (so the shaft just bends over the
+# full ~80 deg pitch range with no cross-coupling) -> a Ø6 shaft in a Ø12 tube down the
+# femur -> an M1 16T:16T miter bevel at the knee. 1:1, so the QDD's full speed passes
+# through; the cost is ~2.5 deg backlash (2 cardans + 1 bevel mesh) and ~0.9 efficiency.
+knee:
+  transmission:
+    type: double_cardan_driveshaft
+    ratio: 1.0                  # NO reduction — the QDD's full 15 rad/s reaches the knee
+    backlash_rad: 0.044         # ~2.5 deg: 2 cardans + 1 miter-bevel mesh
+    efficiency: 0.9             # 2 CV joints + 1 bevel; effective knee torque = 0.9 x QDD
+    shaft: {dia_mm: 6.0, tube_dia_mm: 12.0, cvd_cup_dia_mm: 18.0}
+    bevel: {module: 1.0, teeth: 16, ratio: "1:1 miter"}
+    cv: {type: double_cardan, centred_on: femur_pitch_axis, range_deg: [-80, 57]}
 
 # --- Grip actuator (small servo, D-028) — the 3 fingers per hand are low-load ----
 grip_servo:
@@ -89,15 +157,29 @@ grip_servo:
   torque_continuous_nm: 0.4
   torque_stall_nm: 1.8
   bus: {type: pwm}
+  effort_clamp_nm: 1.8         # description/deploy actuator model (micro, low load)
+  vel_clamp_rad_s: 6.0
 
 # --- Torque check (§4): femur worst case, OFFICIAL SCULPT geometry (D-034) ---
-# Static hold ~0.80 N·m (73mm sculpt femur / 6kg / 5-leg share). The shorter sculpt
-# leg (vs my 131mm parametric) drops the lever, so EduLite is COMFORTABLE again:
-# 1.8 continuous / 0.80 = 2.25x margin (off its x1.2 ceiling), ~7x peak headroom.
+# Static hold ~0.80 N·m at the design point (73mm sculpt femur / ~6kg / 5-leg share).
+# The short sculpt leg keeps the lever low. With the EduLite-05 QDD restored (D-042) on
+# femur_pitch + knee, the gate (evaluated at design_target, spec §4) PASSES: 1.8
+# continuous / 0.80 = 2.25x continuous, 6.0 / 0.80 = 7.5x stall. The QDD trades a little
+# CONTINUOUS headroom (2.25x vs the STS3250's 3.0x, D-041) for far more STALL headroom
+# (7.5x vs 6.1x) plus 2.7x the speed and backdrivability — an honest, deliberate swap.
+# femur_pitch is a DIRECT drive (no loss). The KNEE runs through the driveshaft (0.9
+# efficiency) so its effective torque is 1.62 continuous / 5.4 stall -> still 2.0x / 6.75x
+# vs 0.80 N·m (comfortable). coxa_yaw (QDD) and tibia_roll (STS3215) are low-load.
 torque_check:
-  femur_worst_case_nm: 0.80
+  femur_worst_case_nm: 0.80    # spec §4 design-point figure (gate evaluates this)
   continuous_margin: 1.5
   stall_margin: 3.0
+  # honest real-mass + transmission reference (not used by the gate; for the human):
+  as_built_mass_kg: 6.6
+  as_built_femur_worst_case_nm: 0.88   # ~0.80 * 6.6/6.0
+  as_built_continuous_ratio: 2.05      # 1.8 / 0.88 (QDD continuous vs as-built worst case)
+  knee_transmission_efficiency: 0.9    # knee torque = 0.9 x QDD (driveshaft loss)
+  knee_effective_continuous_nm: 1.62   # 1.8 x 0.9 at the knee output
 
 # --- Carapace procedural displacement (§4) ---------------------------------
 carapace:

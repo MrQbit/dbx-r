@@ -443,3 +443,282 @@ the sculpt-derived leg is shorter than the parametric 336mm reach and I did NOT 
 distort the movie geometry); reported in-report. Export = 4 unique STLs (thorax + coxa/femur/tibia),
 print BOM x1/x5/x5/x5 = 16 parts, all <=250mm. Old per-leg leg{1-5}_*.stl in stl_derived are
 SUPERSEDED (kept per the no-delete-STL rule; the canonical print set is the 4 unique files).
+
+**D-035: ROCKY-5 refine — fingers preserved on the RIGID natural-posed hand-limb; slender knee joints get flat mounts + cosmetic stone-sleeve covers (not articulated FK).**
+| The operator rejected the D-034 assembly (mangled/cut-off manipulator hands + ugly
+flat-cut chunk gaps at the joints). Two root causes fixed in a new, additive pipeline
+`scripts/blender_rocky_refine.py` (bisect + EXACT boolean ONLY, no remesh; nothing
+committed; STLs -> rocky/cad/stl_derived/refined_*.stl, gitignored): (A) FINGERS. A
+read-only profile (`blender_rocky_profile.py`) + isolation (`blender_rocky_hand_isolate.py`)
+located the sculptor's 3-finger manipulator hand on the FRONT RAISED ARM (azimuth ~-33deg;
+raw tip bbox ~8x9x17mm, digits ~4-6mm) — the other three limbs (az -160/-105/125) are
+pointed planted stone feet with NO digits. We isolate THAT hand-bearing arm by planar
+bisect wedge (no boolean) and instance it 5x so every foot is a proper hand; all joint cuts
+are placed PROXIMAL to the wrist so the whole hand rides the distal (tibia) segment
+untouched — NO graft/cone/grip-cavity/servo-boss ever touches it (preserved 1:1, proven by
+docs/media/rocky_hands_before.png vs _after.png). (B) JOINT GAPS. D-034 articulated each
+joint to forced absolute angles (FK), which rotated the mating faces apart into wedge gaps.
+Instead we keep the sculpt's OWN limb bend and place the WHOLE limb RIGIDLY per hip: one
+Y-rotation to a -40deg outward-down splay, hip height derived so the foot plants at the
+ground, coxa root sunk R_CORE-20 into the thorax socket. Because coxa/femur/tibia share ONE
+rigid transform, every cut face MATES EXACTLY (seamless, and closer to the original art).
+(C) SERVOS. The sculpt arm is slender (37-48mm) — narrower than the Ø46 EduLite servo — so
+the two knees CANNOT bury the servo organically; per hard-req #3 they get a FLAT functional
+mount PLUS a separate cosmetic cover (refined_knee{1,2}_cover.stl): a ~2.6mm stone sleeve
+sliced from the UNCUT sculpt at that joint (outer face = the sculpt) that clips over
+joint+servo. The hip servo hides inside the thorax leg socket. Torso keeps the passing
+Jetson(on-edge)+battery(on-end) bays (fit gate re-run GATE_both_fit=True; jet 11.1 / bat
+29.3mm walls). All parts <=250mm (max = thorax 191.7). HONEST shortfalls vs the pristine
+sculpt: footprint dia 378mm vs the 581mm params target (sculpt limb is short; NOT stretched,
+to avoid distorting the movie geometry); minor dark crevices remain at a few hip junctions;
+cover sleeves read slightly smoother than the craggy segments. Old D-034 refined set
+(coxa/femur/tibia/thorax.stl) is superseded by the refined_*.stl set (old STLs kept per the
+no-delete rule).
+
+## D-036 — Mechanism-first ROCKY-5 leg CHASSIS (Phase 1 skeleton); retire leg_bracket
+Operator directive: design Rocky MECHANISM-FIRST — the servos + the structural frame that
+holds them + real articulation FIRST, cosmetic sculpt shell scales over it in Phase 2. This
+lands the leg rebuild D-028 called for (gate-2 had been RED pending it) and RETIRES the
+monolithic `leg_bracket` from the print set (it exceeds the 250 mm envelope at the movie
+dimensions — 273 mm — and was never a real articulated leg; module + STL kept for the legacy
+render, just unregistered).
+
+The new chassis is ONE functional 3-DOF + grip leg, parametric in build123d off
+`rocky/cad/parts/leg_geom.py` (the kinematic single-source-of-truth), split into four
+separately-printed PETG parts, each < 250 mm and QA-clean (watertight / envelope / min-wall):
+- `leg_hip_yoke` (qty 5) — body-side coxa_yaw mount: Ø46 shroud cup, floor carries the real
+  Ø41.5 PCD flange (M3+M4) + Ø24 output bore; 3 M3 carapace lugs. Servo axis VERTICAL (Z).
+- `coxa_bracket` (qty 5) — rides the coxa_yaw Ø24 collar (top hub), reaches COXA_MM to a YOKE
+  that straddles the femur root: +Y wall bolts the femur_pitch EduLite, -Y wall holds a 625ZZ.
+  Sets the two hip axes PERPENDICULAR (yaw Z ⟂ pitch Y).
+- `femur_link` (qty 5) — driven thigh: +Y root presses the femur_pitch collar, -Y stub-axle
+  rides the coxa 625ZZ; runs FEMUR_MM to a knee yoke (tibia_pitch EduLite + 625ZZ).
+- `tibia_link` (qty 5) — driven shank: +Y root on the knee collar, -Y stub in the femur
+  625ZZ; runs TIBIA_MM to a tip pad presenting the Ø41.5 PCD flange the existing 3-finger
+  grip hand (grip_palm/crown/finger) bolts onto.
+Each PITCH joint is carried on BOTH sides (servo output + a 625ZZ), never cantilevered off
+the servo. Servo mounts reuse `common.cad_lib.edulite`; a shallow Ø46 housing register seats
+the body (the Ø38.5 pilot was dropped — it feather-edges against the Ø41.5 bolt circle in a
+thin wall and trips the min-wall screen; the body-rim register centres the servo cleanly).
+
+BOM per leg: 3× EduLite-05 + 1× grip micro servo; 2× 625ZZ (one non-driven pivot at each of
+the two pitch joints; the hip yaw thrust rides the servo output); 2× Ø5×20 steel stub-axle
+dowels (femur/tibia roots); 3× M3 carapace heat-sets; 6× M3 hand-mount heat-sets; servo
+flange fasteners M3+M4 on each Ø41.5 PCD (thread into the servo's own flange).
+
+Articulation (verified by trimesh interference across the joint-limit corners,
+`scripts/build_leg_chassis.py` → `docs/build_plan/leg_chassis_facts.json`): coxa_yaw and
+femur_pitch are collision-free across their FULL params ranges; the knee (tibia_pitch) is
+collision-free to **1.65 rad (95°)** — beyond that the folding tibia contacts the femur, so
+the params limit of **2.0 rad (115°) is NOT reachable** on the printed chassis. HUMAN ACTION:
+clamp the trained tibia_pitch upper limit to ~1.5 rad (a soft margin under the 1.65 hard
+stop), or accept 95° as the mechanical stop. Reach envelope: tip radius 4–237 mm, z −166…
++176 mm, yaw sweep 103° (428 mm arc). Neutral stance = all joints 0 (leg straight out +X);
+diagram (neutral + flexed, 3 axes labelled) at `docs/build_plan/leg_chassis.png`.
+
+## D-037 — ROUND the leg servo joints (coxa/femur/tibia), hug the Ø46 EduLite
+
+Operator feedback: the `coxa_bracket` / `femur_link` pitch-yokes were chunky Ø54 SQUARE
+plates that wasted the corners. Reshaped both both-sides yokes to ROUND Ø54 disc CUPS
+(axis = the pitch axis) that hug the Ø46 servo body / Ø41.5 PCD / Ø52 flange, tied by a flat
+proximal WEB tucked inside the round silhouette. The inscribed circle trims ~21 % of each
+wall face; both-sides support (servo output + 625ZZ + Ø5 stub) is kept, watertight + ≥2.4 mm
++ ≤250 mm hold. Bulk: `coxa_bracket` 117.4 → 100.7 g (−14 %), `femur_link` 107.1 → 85.3 g
+(−20 %); min-wall stays clean (coxa 3.48, femur 2.89). Knee self-collision limit even eases
+1.65 → 1.70 rad (less corner bulk). `tibia_link` was already round (coupling disc + round
+hand pad), left as-is. The web distal face sits at jx−17 (root-safe: the mating link root
+reaches jx−15; a flat web there avoids the thin rim/slot wedge a curved web produced).
+
+## D-038 — Redesign the manipulator hand: SLIM 2+1 (2 primaries + opposing thumb)
+
+Operator feedback (ref sculpt `docs/media/rocky_hands_before.png`): the old hand had a fat
+Ø108 crown disc between the servo and THREE symmetric fingers — both wrong. Redesigned as a
+**2+1** hand on a SLIM wrist:
+- `grip_palm` (qty 5) — slim Ø34 wrist that bolts to the tibia Ø41.5 PCD flange, FUSES the
+  two PRIMARY fingers low (they converge into a single spider-leg WALKING TIP — Rocky stands
+  on the fingertips, rigid so the foot never wobbles), carries the thumb clevis, and HIDES
+  the micro-servo + drive crank in a Y-split clamshell bay. 89.5 → 66.6 g.
+- `grip_finger` (qty 5) — now the single moving THUMB: a Ø5-pivot digit with a crank tail.
+- `grip_crown` (qty 5) — no longer a spiral crown; now the hidden DRIVE CRANK on the
+  micro-servo horn, its Ø5 follower pin swings the thumb tail (crank+pin, not gear teeth —
+  same printability logic as retired D-027). 61.4 → 2.0 g.
+grip 0 = thumb raised, 2 primaries present the foot-tip to STAND on; grip 2.2 = thumb pinches
+down against the primaries → 3-point GRASP. Whole hand 179 → ~76 g. All three parts pass G2
+(watertight, ≤250 mm, ≥2.4 mm). Renders: `docs/build_plan/hand_2plus1.png` (open foot-tip +
+closed grasp, labelled) and the hand now shown on `docs/build_plan/leg_chassis.png`. This is
+the FUNCTIONAL hand; the cosmetic stone sculpt shell scales over it in Phase 2. params
+`manipulators` note updated (fingers still 3 = 2 primary + 1 thumb, `arrangement: 2plus1`).
+
+## D-039 — ADD tibia_roll: a 4th leg DOF (inline wrist-roll) -> 25 DOF total
+
+Operator change 1: give each leg a WRIST-ROLL. A 4th EduLite is mounted INLINE in the
+tibia, between the knee (tibia_pitch) and the shank, and rolls the whole shank+hand about
+the leg's LONG axis (X). DOF go 20 -> 25: each limb is now 4 joints (coxa_yaw, femur_pitch,
+tibia_pitch, tibia_roll), servo IDs stride by 4 (leg i -> 4i+1..4i+4, so 20 leg IDs 1..20);
+the 5 grips shift to IDs 21..25. `tibia_roll` limit [-1.5, 1.5] rad — a roll, so it is
+limited by wiring wrap, not self-collision (verified 0 mm^3 across the full range).
+
+- params.yaml: `dof_template` gains `tibia_roll` (offset 4); `manipulators.servo_ids` ->
+  [21..25]; comments 20->25. `common/params.rocky_dof` now strides by len(dof_template)
+  (produces 25 with correct names/ids). `tests/test_params.py` -> 25 DOF, ids 1..25, roll
+  names present, grips 21..25. Description builder splits the tibia into `tibia_prox`
+  (roll stator) + shank and adds the roll revolute (axis X); `test_descriptions` EXPECTED_DOF
+  17 -> 25 (was STALE at 17 vs the real 20 — gate-3 was already red; now consistent + green).
+  `components.py`: 20 EduLite leg servos (IDs 1-20) + 5 grip micros (21-25).
+- CAD: NEW part `tibia_bracket` (qty 5) = knee-driven carrier of the roll EduLite (its flange
+  bolts a bulkhead ring, axis X; body -X, Ø24 output +X drives the shank). `tibia_link` is now
+  the short roll-driven shank that still ends at the UNCHANGED hand mount TIP=238 (reach
+  unaffected). Roll support is flange + QDD integral bearings (a roll load is axial thrust +
+  a light-hand moment the QDD carries directly — no second bearing, unlike the pitch clevises).
+- HONEST PACKAGING: the femur's both-sides Ø54 knee cups fill the space just past the knee,
+  so the coaxial Ø46 roll body cannot start at the budgeted 54 mm — the bulkhead sits 71 mm
+  past the knee (body on the cup edge), leaving a ~26 mm shank. The bracket keeps an ON-AXIS
+  proximal spine (so the knee still folds cleanly) and drops a cantilever KEEL below the body
+  only DISTALLY. Cost: knee self-collision limit eases from ~1.70 -> ~1.55 rad (still above the
+  ~1.5 rad training clamp from D-036). All tibia parts print < 250 mm; all in-range poses are
+  self-collision free (the only clashes are the out-of-range knee=2.0 corner, as before).
+
+## D-040 — THIN-WALL GYROID STRUTS for the leg link beams
+
+Operator change 2: the strut links only need to be a stiff CORE (the Phase-2 sculpt shell
+carries the volume), so the solid/I-beam link beams are replaced by a THIN closed outer wall
+(2.7 mm, >= the 2.4 mm structural floor) enclosing a rib lattice, with the slicer set to
+GYROID infill 30-40% (documented in each strut's part note) and the hollow core doubling as
+the wiring run. A true modeled gyroid is impractical in build123d, so the printed solid is a
+closed thin-wall tube + transverse ribs + an axial wire channel (`leg_mounts.lattice_beam`);
+the gyroid lives in the slicer. Applied to `femur_link` (main beam), `coxa_bracket` (hub->yoke
+spar) and the `tibia_bracket` keel. A CLOSED thin-wall tube is far stiffer in TORSION than the
+old OPEN I-beam — which now matters because the D-039 roll DOF twists the shank through these
+links. Mass: coxa_bracket 100.7 -> 95.2 g; femur_link 85.3 -> 85.7 g (~flat, but torsionally
+much stiffer + wired). All parts stay watertight, min-wall 2.70, < 250 mm (G2 green).
+
+MASS + TORQUE (honest, D-039/D-040): +5 EduLite = +1.21 kg of servos; net printed-strut change
+is +78 g (the tibia_bracket adds structure; the gyroid trims coxa). AS-BUILT integrated mass is
+now ~9.2 kg (was ~7.9 kg at 15 QDD — the 6.5 kg budget was ALREADY blown before this change; the
+budget/target params are aspirational, not as-built). The G1 torque gate (spec §4 design point,
+femur 0.80 N.m at design_target) stays GREEN unweakened; but scaled to the real ~9.2 kg the femur
+worst case is ~1.23 N.m -> continuous margin ~1.46x (still ABOVE the x1.2 training ceiling, so the
+EduLite HOLDS, stall ~4.9x) but just BELOW the 1.5x design target. Honest human action: lighten the
+shell or use a smaller actuator for the roll DOF, or accept the heavier build / tighter margin.
+
+## D-041 — SLIM SERIAL SERVOS, EMBEDDED INLINE: ROCKY-5's 20 leg joints move off the QDD
+
+Operator-approved "slim all 20": ROCKY-5's 20 leg joints drop the fat external Robstride
+EduLite QDD (Ø46 body seating in a Ø54 round cup, ±27 mm off each joint) for slim Feetech
+STS serial-bus servos EMBEDDED INLINE in the links. Both variants share one 45.2 x 24.7 x
+35 mm body; only mass/torque differ:
+  * PITCH joints (femur_pitch + tibia_pitch, 10 total): **STS3250** — ~4.9 N·m stall /
+    ~2.4 N·m sustained, 74 g (weight-bearing).
+  * YAW/ROLL joints (coxa_yaw + tibia_roll, 10 total): **STS3215** — ~2.9 N·m stall, 55 g
+    (low load).
+  * Grip stays the MG90S-class micro-servo (D-028).
+All 12 V, TTL serial bus, POSITION control (NOT a backdrivable QDD).
+
+INLINE EMBEDDING (the payoff): each servo's 24.7-thin body slots ALONG its link inside the
+strut; only the output HORN crosses the joint axis. Because the STS output is on the 35 mm
+(H) face, that 35 mm sets the joint's minimum width along the output axis — so a pitch joint
+still consumes ~35 mm laterally — but the fat Ø54 round cups are GONE and the both-sides
+yoke fork is replaced by a compact rectangular housing + a 625ZZ IDLER carrying the far end
+of the output shaft (the real double-support servo bracket). New leg-part lateral (Y) widths:
+femur 45, tibia_bracket 38 (were ~54 at every Ø54-cup knuckle); the struts between joints are
+now the slim ~24-30 mm silhouette instead of being punctuated by Ø54 balls. HONEST: the coxa
+bracket is still ~62 mm wide (the yaw hub + the idler back wall), and the pitch-joint knuckle
+can't go below ~40 mm because the servo is 35 mm along its output axis — a real limit of this
+servo, not a modelling shortcut. The couplings are kept strictly on their own side of each
+joint plane (femur root +Y vs coxa body -Y, etc.) so the links interleave without clashing;
+routing the tibia_bracket spine laterally (-Y, clear of the femur's distal knee body) also
+recovers the FULL knee fold — collision-free to the 2.0 rad param limit (was self-limited to
+~1.55 rad by the old on-axis spine). PR/TIP kept UNCHANGED so leg reach and the description
+kinematics are unaffected. All 5 leg parts stay watertight, min-wall >= 2.4 mm (2.7 typ.),
+< 250 mm; the D-040 gyroid struts + D-039 tibia_roll + the 2+1 hand are retained.
+
+CAD: new `common/cad_lib/feetech.py` (STS pocket/horn/screw builders, mirrors `edulite.py`)
++ `standards.STS_*`; `leg_mounts.sts_face_cut/idler_seat_cut/box_from_aabb` + `leg_geom`
+`sts_body_aabb`/`joint_housing_aabb`. `leg_hip_yoke`, `coxa_bracket`, `femur_link`,
+`tibia_bracket`, `tibia_link` reworked to inline STS housings (the Ø54 cups + Ø54 roll
+bulkhead removed). `edulite.py` is RETAINED for BDX-A (Robstride, D-007) and for the ROCKY
+tibia<->grip_palm hand-mount bolt flange (a plain Ø41.5 PCD circle, not a servo).
+`components.py`: `SERVO_PITCH` (STS3250) + `SERVO_YR` (STS3215) replace the leg `SERVO`;
+BDX-A keeps `SERVO` (EduLite). Render `docs/build_plan/leg_chassis.png` redone (slim inline
+joints, no cups).
+
+MASS + TORQUE (honest, GENUINE IMPROVEMENT): the 20 leg servos drop from 4.84 kg (EduLite)
+to 1.29 kg (10x74 + 10x55 g) — a ~3.55 kg cut — so AS-BUILT integrated mass falls from ~9.2
+kg to ~5.6 kg, back UNDER the 6.5 kg budget (design_target 5.9 -> 5.6). The G1 torque gate
+(spec §4 design point, femur 0.80 N·m) PASSES with far MORE headroom: STS3250 2.4 continuous
+/ 0.80 = 3.0x (was EduLite 1.8/0.80 = 2.25x), stall 4.9/0.80 = 6.1x. Scaled to the real ~5.6
+kg the femur worst case FALLS to ~0.75 N·m -> continuous margin ~3.2x (was ~1.46x at 9.2 kg):
+the swap fixes the mass problem AND improves the margin. `test_torque` threshold RAISED 1.5 ->
+2.5x (honest, strengthened — not weakened). STS3215 yaw/roll joints are low-load and clear by
+an even wider margin. The description masses (train-what-you-print) dropped to match: rocky
+model 7.15 -> 4.10 kg, gate-3 green.
+
+TRAINING/DEPLOY implication (for the operator to wire): the retrain MUST model the leg
+actuators as POSITION control (stiff PD: kp 60 / kd 1.5, was QDD kp 40 / kd 2.0) + ~0.5 deg
+gear backlash + torque saturation at stall (effort_clamp 4.9 N·m) + the slower STS no-load
+speed (vel_clamp 5.5 rad/s, was 15), on a TTL serial bus — NOT the old QDD torque source.
+Params + this note are set here; deploy wiring is separate. POWER note: the STS are 12 V (was
+48 V EduLite), so the 6S pack now feeds a 12 V servo-rail buck (or drop in a 3S pack).
+
+## D-042 — LOCK the ROCKY-5 leg: HIP-CLUSTER QDD + KNEE DRIVESHAFT + inline roll STS
+
+Operator-approved LOCK of the leg chassis (SUPERSEDES the all-STS pitch of D-041; and to be
+precise, coxa_yaw is now QDD too — D-041's slim-STS coxa_yaw is dropped). This is the
+weekend's locked leg so we can shell it next. The architecture keeps the QDD's SPEED (~15
+rad/s, restores ~2.5 km/h) and backdrivability at the weight-bearing joints but moves the
+motor MASS into the BODY and keeps the moving leg SLIM by driving the knee remotely.
+
+LOCKED per-leg actuator + transmission map:
+- **Hip cluster (in the body, under the carapace) — 3 EduLite-05 QDD (Ø46, 15 rad/s,
+  backdrivable, 242 g each):** `coxa_yaw` (Z, direct), `femur_pitch` (Y, local direct), and
+  the **KNEE motor** (drives the knee REMOTELY). All three motor masses live in the BODY, not
+  the leg.
+- **Knee = REMOTE driveshaft** (`knee.transmission` = `double_cardan_driveshaft`): the knee QDD
+  → a DOUBLE-CARDAN CVD centred on the femur_pitch axis at P1 (so the shaft just BENDS over the
+  full ~80° pitch range, no cross-coupling) → a Ø6 shaft in a Ø12 tube down the slim femur →
+  an M1 16T:16T MITER BEVEL at the knee that turns it onto the knee axis and caps the tibia.
+  ratio **1.0**, backlash **0.044 rad (~2.5°)** (2 cardans + 1 bevel mesh), efficiency **0.9**
+  (effective knee torque 1.62 N·m continuous / 5.4 stall — still 2.0×/6.75× the 0.80 N·m worst
+  case).
+- **`tibia_roll` = slim inline STS3215** (X) embedded in the shank — the ONLY servo that rides
+  the moving leg (distal, light → keeps the shank slim). **grip = MG90S-class micro** (hidden
+  in the palm). MIXED BUS: 15 QDD on CAN; 5 STS roll on TTL; grips on PWM. POWER: 6S (22.2 V)
+  feeds the 15–60 V QDD directly + a 12 V buck rail for the STS roll servos.
+
+CAD (build123d, `scripts/cadpy`; gate-2 GREEN, all 18 parts QA-clean):
+- `leg_hip_yoke` — coxa_yaw QDD flange plate (Ø46 body up, Ø24 output down; STS pocket → QDD
+  flange). `coxa_bracket` — the HIP CLUSTER frame: couples coxa_yaw, carries the femur_pitch
+  QDD flange (Y) AND the knee QDD flange (its output feeds the CVD), 2 M2.5 shell anchors;
+  knuckles hollowed to shed mass (240 g).
+- `femur_link` — RECONCILED to the SLIM Ø12-shaft wrap (no QDD cup): CV-support ring at P1,
+  axial Ø12 shaft tube, M1 miter-bevel box at the knee (Ø24 output collar drives the tibia),
+  femur_pitch QDD root coupling, 2 M2.5 anchors — bbox 102×39×31 mm, 46 g, fits the Ø44
+  under-shell envelope. `tibia_bracket` — knee-BEVEL-output driven (was inline knee STS), still
+  hosts the inline STS3215 roll, +2 M2.5 anchors. `tibia_link` shank + 2+1 hand unchanged.
+- 6 M2.5 heat-set + machine-screw SHELL ANCHORS per leg (2 each on coxa/femur/tibia; the split
+  stone shell BOLTS on — no clips). All parts watertight, ≤250 mm, min-wall ≥2.4 mm.
+- ARTICULATION (`scripts/build_leg_chassis.py` → `docs/build_plan/leg_chassis_facts.json`):
+  femur_pitch (full ±), coxa_yaw, and the knee are FREE-SPACE collision-free across the in-range
+  poses; tibia_roll ±1.5 rad free (0 mm³); and the SLIM shaft femur RESTORES the full knee fold
+  to 2.0 rad (the old bulky QDD-cup femur self-limited it to ~1.55). HONEST: the coxa_bracket↔
+  femur_link and femur_link↔tibia_bracket overlaps are the coaxial femur_pitch-QDD+CVD coupling
+  at P1 and the knee miter-bevel coupling — BOLTED joints, reported as coupling volume not
+  clashes; the hip-cluster knuckle massing overlaps the femur CV ring by ~5 cm³ and wants
+  clearance refinement before print (tight coaxial QDD+CVD at P1).
+
+MASS + TORQUE (honest): 15 QDD = 3.63 kg back in the build (they were the D-041 slim STS), but
+all in the BODY. COTS integrated mass 4.89 kg (actuators dominate); description "train-what-you-
+print" model 6.68 kg with the QDD lumped into base_link (coxa_yaw ×5) + the near-hip coxa link
+(femur_pitch + knee ×5) so the femur/tibia links are LIGHT (60/110/60 g) — light distal leg,
+heavy body. As-built ≈ **6.6 kg** (design_target 6.6), ~0.1 kg OVER the aspirational 6.5 budget —
+the honest cost of 15 QDD; the payoff is speed + backdrivability + genuinely slim legs. G1 torque
+GREEN (spec §4 design point, femur 0.80 N·m): EduLite 1.8 continuous → **2.25×** (was the STS3250's
+3.0× under D-041) but 6.0 stall → **7.5×** (was 6.1×). `test_torque` re-baselined HONESTLY to the
+QDD (continuous ≥2.2 — its true number, not weakened to pass — plus a STRENGTHENED stall ≥6.0
+check). gate-1/2/3 all GREEN. Render: `docs/build_plan/leg_chassis.png` (hip cluster + CVD + shaft
++ bevel + roll + hand + Ø44 envelope + anchors; neutral + flexed/rolled).
+
+TRAIN/DEPLOY (operator to wire): model coxa_yaw/femur_pitch/knee as the backdrivable QDD (kp 40 /
+kd 2.0, effort 6, vel 15) on CAN; ADD the knee driveshaft transmission (1:1, +2.5° backlash, 0.9
+efficiency) at the knee joint; model tibia_roll as the STS3215 position servo on TTL; wire the
+12 V roll rail alongside the CAN QDD bus.
