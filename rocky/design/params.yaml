@@ -19,15 +19,21 @@ dimensions:                    # RECONCILED to the OFFICIAL SCULPT (D-034): the 
   # segmented + symmetric-reposed in Blender. These are the ACTUAL built dimensions —
   # train what you print. The chunky official body (191mm) fits the Jetson easily
   # (11mm walls); the shorter sculpt legs make EduLite comfortable again (2.3x margin).
-  carapace_dia_mm: 191         # official pentagonal thorax (holds Jetson+battery)
+  carapace_dia_mm: 191         # official pentagonal thorax (holds Jetson+battery) — UNCHANGED
   dome_height_mm: 138
-  limb_reach_mm: 201           # hip r86 -> foot r201
-  coxa_mm: 60
-  femur_mm: 73                 # sculpt-derived (shorter -> low torque -> EduLite comfy)
-  tibia_mm: 105
-  stance_height_mm: 145        # hip z; foot 64mm below hip
-  footprint_dia_mm: 402        # sculpt-accurate (NOT stretched to an arbitrary target)
-  foot_dia_mm: 35             # sculpt-native craggy claw / 3-finger tip
+  limb_reach_mm: 244           # D-043: hip r86 -> foot r244 (was 201); longer slender leg
+  coxa_mm: 60                  # hip-cluster offset — UNCHANGED (body stays compact)
+  # D-043 LEG LENGTHENED for movie-accurate slender spider/crab legs: the official figure
+  # leg is now UNIFORM-scaled (s=4.40) so its natural slender cross-section wraps the Ø44
+  # chassis + 3 mm wall with NO lateral squash (the old shell had to inflate the figure leg
+  # ~6.5x laterally). The scaled shell comes out LONGER, so the chassis strut is lengthened
+  # to match: hip->tip 238 -> 328 mm. Only the Ø12 driveshaft + tube get longer (cheap);
+  # hip cluster, servos, torso UNCHANGED. Torque re-checked HONESTLY (see torque_check).
+  femur_mm: 98                 # was 73 (D-043); femur_pitch continuous margin still 1.68x
+  tibia_mm: 170                # was 105 (D-043); knee->roll spine lengthens, 26mm wrist kept
+  stance_height_mm: 200        # hip z (was 145); scaled with the longer leg at same stance angles
+  footprint_dia_mm: 489        # D-043: 2 x 244 (was 402); wider slender-leg stance
+  foot_dia_mm: 35             # sculpt-native craggy claw / 3-finger tip — UNCHANGED
 
 mass_budget_kg: 6.5           # ASPIRATIONAL ceiling. D-042 LOCK: the 3 weight-bearing leg joints
 #                               per limb (coxa_yaw, femur_pitch, KNEE) go back to the Robstride
@@ -35,10 +41,11 @@ mass_budget_kg: 6.5           # ASPIRATIONAL ceiling. D-042 LOCK: the 3 weight-b
 #                               HIP CLUSTER inside the BODY — mass in the body, not the leg. Only
 #                               the tibia_roll STS3215 rides the leg, so the femur/tibia stay slim
 #                               (they wrap a Ø12 driveshaft, not a Ø46 motor). 15 QDD ~3.6 kg + 5
-#                               STS roll + 5 grip micro + slim legs + electronics -> ~6.6 kg as-built
-#                               (OVER the aspirational 6.5 budget; honest cost of 15 QDD). See
-#                               docs/reports/mass_rocky.md + D-042.
-design_target_kg: 6.6         # G1 torque design point (spec §4); as-built ~6.6 kg (D-042)
+#                               STS roll + 5 grip micro + slim legs + electronics -> ~6.72 kg as-built
+#                               (D-043: +~0.12 kg for the longer femur/tibia struts + Ø6/Ø12 drive-
+#                               shaft; OVER the aspirational 6.5 budget; honest cost of 15 QDD + long
+#                               legs). See docs/reports/mass_rocky.md + D-042/D-043.
+design_target_kg: 6.6         # G1 torque design point (spec §4); as-built ~6.72 kg (D-043)
 
 battery:                       # 6S for the 48V-class EduLite QDD motors (D-022 power fix)
   chemistry: li-ion
@@ -160,26 +167,29 @@ grip_servo:
   effort_clamp_nm: 1.8         # description/deploy actuator model (micro, low load)
   vel_clamp_rad_s: 6.0
 
-# --- Torque check (§4): femur worst case, OFFICIAL SCULPT geometry (D-034) ---
-# Static hold ~0.80 N·m at the design point (73mm sculpt femur / ~6kg / 5-leg share).
-# The short sculpt leg keeps the lever low. With the EduLite-05 QDD restored (D-042) on
-# femur_pitch + knee, the gate (evaluated at design_target, spec §4) PASSES: 1.8
-# continuous / 0.80 = 2.25x continuous, 6.0 / 0.80 = 7.5x stall. The QDD trades a little
-# CONTINUOUS headroom (2.25x vs the STS3250's 3.0x, D-041) for far more STALL headroom
-# (7.5x vs 6.1x) plus 2.7x the speed and backdrivability — an honest, deliberate swap.
-# femur_pitch is a DIRECT drive (no loss). The KNEE runs through the driveshaft (0.9
-# efficiency) so its effective torque is 1.62 continuous / 5.4 stall -> still 2.0x / 6.75x
-# vs 0.80 N·m (comfortable). coxa_yaw (QDD) and tibia_roll (STS3215) are low-load.
+# --- Torque check (§4): femur worst case at the LONGER D-043 lever (HONEST) ---
+# D-043 lengthened the femur 73 -> 98 mm (long slender movie legs). femur_worst_case scales
+# ~linearly with the femur lever, so the spec §4 design-point hold rises 0.80 -> 1.074 N·m
+# (0.80 x 98/73). This is the TIGHTEST honest number and it CUTS the headroom — reported, not
+# hidden. With the EduLite-05 QDD (D-042) on femur_pitch + knee the gate STILL PASSES at the
+# unchanged 1.5x continuous / 3.0x stall margins:
+#   * femur_pitch (DIRECT): 1.8 / 1.074 = 1.68x continuous, 6.0 / 1.074 = 5.59x stall.
+#   * knee (through the 0.9-eff driveshaft): 1.62 continuous / 5.4 stall -> 1.51x / 5.03x.
+# BOTH weight-bearing joints stay above 1.5x continuous, but only just at the knee (1.51x) —
+# this is the honest cost of the longer lever. The femur was CAPPED at 98 mm precisely to hold
+# that 1.5x knee margin (a longer femur would drop the knee below 1.5x; the tibia took the rest
+# of the length so the leg still reads long+slender). coxa_yaw + tibia_roll are low-load.
 torque_check:
-  femur_worst_case_nm: 0.80    # spec §4 design-point figure (gate evaluates this)
-  continuous_margin: 1.5
-  stall_margin: 3.0
+  femur_worst_case_nm: 1.074   # D-043: 0.80 x 98/73 (longer lever); gate evaluates this
+  continuous_margin: 1.5       # UNCHANGED (not weakened to pass)
+  stall_margin: 3.0            # UNCHANGED
   # honest real-mass + transmission reference (not used by the gate; for the human):
-  as_built_mass_kg: 6.6
-  as_built_femur_worst_case_nm: 0.88   # ~0.80 * 6.6/6.0
-  as_built_continuous_ratio: 2.05      # 1.8 / 0.88 (QDD continuous vs as-built worst case)
+  as_built_mass_kg: 6.72       # was 6.6; +~0.12 kg longer femur/tibia struts + Ø6/Ø12 shaft
+  as_built_femur_worst_case_nm: 1.093  # 1.074 * 6.72/6.6
+  as_built_continuous_ratio: 1.65      # 1.8 / 1.093 (QDD continuous vs as-built worst case)
   knee_transmission_efficiency: 0.9    # knee torque = 0.9 x QDD (driveshaft loss)
-  knee_effective_continuous_nm: 1.62   # 1.8 x 0.9 at the knee output
+  knee_effective_continuous_nm: 1.62   # 1.8 x 0.9 at the knee output (1.51x vs 1.074)
+  knee_effective_continuous_ratio: 1.51  # HONEST: the binding margin; capped femur to hold >=1.5x
 
 # --- Carapace procedural displacement (§4) ---------------------------------
 carapace:

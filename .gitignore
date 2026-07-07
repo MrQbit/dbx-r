@@ -54,3 +54,6 @@ reference/
 
 # film-derived voice-clone audio — never commit (copyright)
 docs/media/*.wav
+
+# derived cosmetic-shell output (regenerates from scripts/blender_actionfig_shells.py)
+rocky/cad/stl_derived/

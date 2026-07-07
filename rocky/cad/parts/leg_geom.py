@@ -30,9 +30,16 @@ from common.cad_lib import standards as S   # pure-python constants (no build123
 # --- Segment lengths (rocky/design/params.yaml -> dimensions) --------------
 # Distances BETWEEN drive axes (not sculpt outlines): they set where the servos
 # sit, then the printed links are sized by SERVO FIT around those stations.
-COXA_MM = 60.0      # coxa_yaw axis  -> femur_pitch axis  (perpendicular offset)
-FEMUR_MM = 73.0     # femur_pitch axis -> knee (tibia_pitch) axis  (thigh)
-TIBIA_MM = 105.0    # knee axis        -> hand mount            (shank)
+# D-043: LENGTHENED the leg (femur+tibia) so the UNIFORM-scaled (s=4.40) action-figure
+# shell sheaths the Ø44 chassis WITHOUT the old lateral-only inflation (was LAT 6.5 vs
+# axial 2.5-3.8 = a squashed fat leg). At s=4.40 the slenderest figure leg's typical
+# shaft (Ø11.4 native) wraps to Ø50 = Ø44 envelope + 3 mm wall, and the natural shell
+# comes out LONGER: hip->tip 238 -> 328 mm (compact body + long slender craggy spider
+# legs). ONLY the leg length changes — COXA (hip-cluster offset), servos, torso UNCHANGED;
+# the Ø12 driveshaft + tube just get longer (cheap). See D-043.
+COXA_MM = 60.0      # coxa_yaw axis  -> femur_pitch axis  (perpendicular offset; UNCHANGED)
+FEMUR_MM = 98.0     # femur_pitch axis -> knee (tibia_pitch) axis  (thigh; was 73, D-043)
+TIBIA_MM = 170.0    # knee axis        -> hand mount            (shank; was 105, D-043)
 
 # --- Joint limits (params dof_template / manipulators), radians ------------
 YAW_LIMIT = (-0.9, 0.9)          # coxa_yaw
@@ -80,7 +87,11 @@ ROOT_DISC_D = COUPLE_D        # link-root coupling disc Ø (caps the horn)
 # GONE (D-041), nothing blocks the coaxial body, but PR/TIP are kept UNCHANGED so leg
 # reach and the description kinematics are unaffected. The shank distal of PR is a
 # short ~26 mm wrist that simply rolls the hand.
-ROLL_OUT_OFF = 79.0          # knee axis -> roll output (shank-root) station  (=> PR at 212)
+ROLL_OUT_OFF = 144.0         # knee axis -> roll output (shank-root) station (=> PR at 302).
+# D-043: was 79 (PR 212) at the old 105 mm tibia. The 4th (roll) servo simply moves distal
+# with the longer 170 mm tibia so the wrist (PR->TIP) stays the SAME short ~26 mm — only the
+# knee->roll spine of tibia_bracket lengthens; tibia_link is UNCHANGED. Keeps the reach
+# kinematics = a long slim shank that rolls a short hand.
 
 # --- Thin-wall gyroid/lattice struts (D-040) -------------------------------
 # The Phase-2 cosmetic sculpt shell carries the volume, so the STRUT links are

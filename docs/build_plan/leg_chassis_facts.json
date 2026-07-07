@@ -30,40 +30,21 @@
   },
   "worst_interference_mm3": {
     "coxa_bracket|tibia_bracket": 0.0,
-    "coxa_bracket|tibia_link": 3215.35,
+    "coxa_bracket|tibia_link": 0.0,
     "femur_link|tibia_link": 0.0,
     "hip_yoke|femur_link": 0.0,
     "hip_yoke|tibia_bracket": 0.0,
     "hip_yoke|tibia_link": 0.0,
-    "femur_link|tibia_bracket": 3598.52,
-    "coxa_bracket|femur_link": 5968.01
+    "femur_link|tibia_bracket": 3598.51,
+    "coxa_bracket|femur_link": 5967.7
   },
   "joint_coupling_volume_mm3": {
     "femur_link|tibia_bracket": 3598.5,
-    "coxa_bracket|femur_link": 5968.0
+    "coxa_bracket|femur_link": 5967.7
   },
   "coupling_note": "coxa<->femur = coaxial femur_pitch QDD + knee-driveshaft CVD at P1; femur<->tibia_bracket = knee miter-bevel output collar. Both are BOLTED couplings at the shared joint (not free-space clashes). HONEST: the hip-cluster knuckle massing overlaps the femur CV ring by ~5 cm^3 and wants clearance refinement before print (tight coaxial QDD+CVD at P1).",
   "roll_worst_interference_mm3": 0.0,
-  "free_space_clashes_over_1mm3": [
-    [
-      "-0.9,+1.0,+2.0",
-      "coxa_bracket",
-      "tibia_link",
-      3215.4
-    ],
-    [
-      "+0.0,+1.0,+2.0",
-      "coxa_bracket",
-      "tibia_link",
-      3215.4
-    ],
-    [
-      "+0.9,+1.0,+2.0",
-      "coxa_bracket",
-      "tibia_link",
-      3215.4
-    ]
-  ],
+  "free_space_clashes_over_1mm3": [],
   "params_joint_limits_rad": {
     "coxa_yaw": [
       -0.9,
@@ -103,25 +84,25 @@
   "knee_selfcollision_free_max_rad": 2.0,
   "reach_envelope": {
     "radius_mm": [
-      4.0,
-      237.2
+      8.2,
+      326.9
     ],
     "z_mm": [
-      -166.4,
-      176.1
+      -252.5,
+      265.2
     ],
     "yaw_sweep_deg": 103.1,
-    "yaw_arc_at_neutral_mm": 428.4
+    "yaw_arc_at_neutral_mm": 590.4
   },
   "neutral_tip_xyz": [
-    238.0,
+    328.0,
     0.0,
     0.0
   ],
   "roll_pose_tip_xyz": [
-    218.1,
+    297.0,
     0.0,
-    -29.9
+    -55.3
   ],
   "stations_neutral": {
     "hip": [
@@ -135,17 +116,17 @@
       0.0
     ],
     "knee": [
-      133.0,
+      158.0,
       0.0,
       0.0
     ],
     "roll": [
-      212.0,
+      302.0,
       0.0,
       0.0
     ],
     "tip": [
-      238.0,
+      328.0,
       0.0,
       0.0
     ]

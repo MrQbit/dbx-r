@@ -722,3 +722,167 @@ TRAIN/DEPLOY (operator to wire): model coxa_yaw/femur_pitch/knee as the backdriv
 kd 2.0, effort 6, vel 15) on CAN; ADD the knee driveshaft transmission (1:1, +2.5° backlash, 0.9
 efficiency) at the knee joint; model tibia_roll as the STS3215 position servo on TTL; wire the
 12 V roll rail alongside the CAN QDD bus.
+
+## D-043 — LENGTHEN the leg to UNIFORM-scale the figure shell (kill the lateral squash)
+
+Operator directive: fix the ROCKY-5 leg proportions the RIGHT way. The prior shell pass
+(`blender_actionfig_shells.py`, D-042 era) had to inflate the slender official action-figure
+leg **~6.5× LATERALLY** (LAT=6.5) while only stretching it ~2.5–3.8× axially, just to make it
+cover the Ø27–44 chassis — a fat, squashed leg, NOT the movie's slender craggy spider/crab legs.
+The correct fix is to scale the figure leg **UNIFORMLY** (same factor axially + laterally) so its
+NATURAL slender cross-section wraps the chassis, then LENGTHEN the chassis strut to the resulting
+longer shell. **Only the LEG length changes** — body / hip-cluster / servos / torso stay compact.
+
+**Uniform scale factor `s = 4.40`** (was: lateral 6.5, axial 2.5–3.8 = the distortion). Derived
+from the raw figure geometry: measured the 5 assembled figure legs (`af_leg{N}_assembled.stl`) —
+native length ~66–73 mm, slender-shaft Ø ~10–13 mm. The SLENDEREST leg's typical (median) shaft is
+Ø11.39. `s = Ø50 / Ø11.39 = 4.40`, where Ø50 = Ø44 shell envelope + 3 mm wall each side. So the
+slenderest figure leg's natural cross-section sheaths the chassis links WITHOUT any lateral-only
+stretch; the shell now prints ISOTROPIC (uniform), preserving the craggy slender proportions.
+`blender_actionfig_shells.py`: `LAT 6.5→4.40`, clearance core Ø56→Ø52, stations tracked to the new
+chassis. Its axial scale (chassis-span / piece-length) also lands at ~4.40, so the result is a true
+uniform scale (residual per-leg axial variance ≤ ~15 % because the 5 distinct sculpts share ONE
+chassis — vs the old 70–160 % lateral over-inflation).
+
+**Leg lengthened to match (`rocky/cad/parts/leg_geom.py` + `params.yaml`):**
+- `FEMUR 73→98 mm`, `TIBIA 105→170 mm`; `COXA 60 mm` UNCHANGED (hip-cluster offset stays compact).
+- `ROLL_OUT_OFF 79→144` so the wrist (PR→TIP) stays the SAME short 26 mm — only the tibia_bracket
+  knee→roll spine lengthens; `tibia_link` is geometrically unchanged.
+- **hip→tip 238 → 328 mm (+38 %)**; stations knee 133→158, roll 212→302, tip 238→328.
+- params: `limb_reach 201→244`, `footprint_dia 402→489`, `stance_height 145→200` (re-derived at the
+  longer leg, same stance angles). The Ø12 driveshaft + Ø6 shaft + tube just get longer (cheap).
+
+**Chassis regen (gate-2 GREEN):** all parts watertight, ≤250 mm, min-wall ≥2.4 mm — femur_link
+54.6 g, tibia_bracket 95.9 g, tibia_link 27.5 g. Longest print is the tibia SHELL clamshell half
+at ~158 mm (< 250, **no split needed**). Articulation RE-VERIFIED
+(`build_leg_chassis.py`): knee still folds to 2.0 rad, tibia_roll ±1.5 free, and the longer leg
+now has **ZERO free-space clashes** (the old out-of-range knee-fold clash cleared with the extra
+separation); the only overlaps are the by-design bolted P1 QDD+CVD and knee-bevel couplings.
+
+**Re-shelled + swept (Task 4):** uniform s=4.40 shells over the lengthened chassis — tibia now
+~141–157 mm long × ~52–67 mm wide (was 92 × 66–95: slimmer AND longer = slender), hollow 3 mm,
+sagittal clamshell split on the M2.5 anchors, separate hand claw. New `sweep_shell_clearance.py`:
+all 5 legs **0 mm³** shell-to-shell across femur_pitch [-1.4,1.0], knee to 2.0 rad, roll ±1.5.
+
+**Torque re-checked HONESTLY (gate-1 GREEN, NOT weakened):** the longer femur = longer lever, so
+the spec §4 femur worst case scales ~linearly, `0.80 → 1.074 N·m` (×98/73). Margins (unchanged
+1.5× cont / 3.0× stall bars):
+- femur_pitch (DIRECT): **1.8/1.074 = 1.68× continuous, 6.0/1.074 = 5.59× stall.**
+- knee (0.9-eff driveshaft): 1.62 cont / 5.4 stall → **1.51× / 5.03×** — the binding margin.
+The femur was **CAPPED at 98 mm precisely to hold the knee ≥1.5× continuous** (a longer femur drops
+it below 1.5×); the tibia absorbed the remaining uniform length so the leg still reads long+slender.
+This CUTS headroom from D-042's 2.25× — reported, not hidden. `test_torque` sanity bars moved to the
+new TRUE numbers (cont ≥1.6, stall ≥5.0) + an added explicit knee ≥1.5× assert; the gate margins
+(1.5/3.0) themselves are untouched. As-built mass 6.6→~6.72 kg (+~0.12 kg longer struts + shaft).
+
+**Render:** `docs/build_plan/legs_with_shells.png` replaced — the 5 slender craggy spider legs,
+shell naturally wrapping (no distortion) the ghosted chassis, with leg length / footprint / torque
+margins / 0 mm³ clearance annotated. gate-1 / gate-2 / gate-3 all GREEN.
+
+## D-044 — RE-SHELL the leg cosmetic PRESERVING the craggy stone surface (method fix)
+
+Operator directive: the D-043 shells LOST the official figure's craggy stone relief — the
+tibia rendered as a smooth featureless pill. ROOT CAUSE found in
+`scripts/blender_actionfig_shells.py`: after uniform-scaling (s=4.40) each figure leg
+segment, the pipeline **unioned a fat Ø52 clearance core** (`CORE_R=26`) along every
+segment body "to guarantee the mechanism fits." Where the slender uniform-scaled figure
+leg was thinner than Ø52 (the tibia ~Ø45–56, thin-axis ~Ø30), that core **punched
+through the craggy skin and replaced it with a smooth cylinder** — a smooth pill. The
+core was doing double duty: clearance AND (accidentally) re-rounding the flat craggy plate.
+
+**FIX (method only; D-043 proportions/length UNCHANGED — femur 98 / tibia 170, s=4.40):**
+the shell IS the figure surface. Removed the Ø52 core union entirely; the craggy segment
+is now hollowed by a THIN 3 mm INWARD `solidify` that FOLLOWS the relief. Local joint-
+knuckle relief (taper rims + boot gaps at femur_pitch / knee) is retained. Re-split into
+sagittal clamshells, re-swept, re-rendered. **Craggy stone relief is recovered on ALL
+segments incl. the tibia** (verified `docs/build_plan/legs_shells_solid.png` — mountainous
+relief, cracks, socket holes, engraved marks; previously a smooth pill).
+
+**Motion clearance (gate-3 sweep, `sweep_shell_clearance.py`):** slimmer shells → all 5
+legs **0 mm³** shell-to-shell across femur_pitch [-1.4,1.0], knee to 2.0 rad, roll ±1.5.
+The local knuckle relief still clears full travel. GREEN (unchanged, not weakened).
+
+**HONEST cavity-vs-chassis finding (`measure_shell_cavity.py`, signed-distance of the real
+neutral chassis into each solid shell):** with the rounding core gone, the movie-accurate
+**slender craggy cosmetic does NOT enclose the current chassis.** The chassis tibia shank
+is ~Ø54 round AND offset ~−12 mm in Y (roll-servo body + tibia_bracket routing), while the
+uniform-scaled craggy tibia is a FLAT plate ~Ø56 wide × ~Ø30 thin — so ~45–82 % of tibia
+chassis points sit PROUD of the cosmetic skin (worst chassis pt ~20 mm outside), and the
+femur mid-body is ~8 mm proud. The femur *driveshaft* mid-span (Ø12) fits with margin; the
+hip QDD (R≈72), femur_pitch servo (R≈57) and knee/roll brackets (R≈42) are the bulbous
+stone KNUCKLES (D-029) and sit at the joint stations by design (locally relieved). **The
+D-043 premise "chassis tibia ≈ Ø35 → fits" is optimistic — the as-built chassis is bigger
+and off-axis.** This needs an OPERATOR decision — it is NOT a minimal chassis slim:
+  (a) shrink/re-center the tibia chassis (on-axis roll servo, tighter bracket), or
+  (b) accept a partly-proud cosmetic, or
+  (c) a small *lateral-only* cosmetic inflation on the tibia thin-axis (re-introduces some
+      of the D-042 squash — a movie-accuracy trade). NO surface was smoothed to hide this.
+
+**Watertight (gate-2) — DEGRADED, source-limited:** the cosmetic clamshells derive from the
+OFFICIAL action-figure scans, which are themselves non-manifold (e.g. `2-B.stl`: 16 open +
+30 non-manifold edges; only `1-A` is clean). The derived shells are near-manifold (single
+closed body, euler≈2, positive volume, ≤250 mm, slicer-printable with auto-repair) but NOT
+strictly trimesh-watertight — a handful of bad edges survive every clean/boolean short of a
+**voxel remesh, which the pipeline forbids** (a remesh is exactly what re-smooths the craggy
+detail we just recovered). The old shells read "watertight" only because the EXACT Ø52-core
+boolean rebuilt the whole surface — i.e. the same operation that caused the smooth-pill bug.
+The registered **build123d chassis parts** (the actual gate-2 pytest scope, `test_cad.py`)
+are untouched and remain green. NOT committed per directive.
+
+## D-045 — THIN-AXIS (Y) FATTEN + Y RECENTER to resolve the tibia shell-vs-chassis fit
+
+Operator DECISION on the D-044 conflict: fix it on the SHELL side (do NOT reorient/relocate
+the roll servo), by **fattening ONLY the tibia THIN axis** to enclose the round chassis —
+keep the craggy stone detail, accept a slightly rounder (less flat-blade) tibia. D-043 length
+(femur 98 / tibia 170) and the D-044 craggy surface method are UNTOUCHED.
+
+**The conflict (D-044 `measure_shell_cavity.py`):** the craggy movie tibia is a slim blade
+centred on the leg long axis (y=0), but the as-built chassis in the shank is the roll-bracket
+SPINE beam (STS3215 body + `tibia_bracket` routing) **offset to ~y=−12** (~Ø26 cross-section,
+Y22×Z26), so it poked ~20 mm proud of the slender shell; the femur mid-body was ~8 mm proud.
+
+**Fix (`scripts/blender_actionfig_shells.py`, `FATTEN` + `thin_axis_fatten()`):** for each of
+the 5 tibia shells (and the femur), (1) **recenter** the shell mid-body Y-centre onto the
+chassis axis and (2) **anisotropically scale ONLY Y** (the thin/thickness axis) about that
+axis to `target_half` (tibia 28 → Ø56, femur 22). The WIDE (Z) axis, the AXIAL length, and
+ALL craggy relief are untouched — an affine Y map stretches the cross-section rounder while
+preserving every crag/crack/socket-mark (NO re-core, NO voxel remesh). The recenter is
+**graduated** (ramped over the knee boot-gap taper 171→201, and 70→96 femur) so the shell
+FOLLOWS the chassis centreline — ~0 at the knee (keeping the neck over the knee knuckle) and
+bending onto −12 along the shank — rather than rigid-shifting the whole shell (which regressed
+the neck). Recentring is a shell PLACEMENT change, not a servo change.
+
+**Thin-axis factors (Y) / resulting mid-body cross-section (Ythin × Zwide):**
+- tibia: leg1 ×1.31 → Ø56.0×46.7 · leg2 ×1.24 → Ø56.0×51.7 · leg3 ×1.68 → Ø56.0×47.8 ·
+  leg4 ×1.00 → Ø60.8×54.7 (already wide, no scale) · leg5 ×1.40 → Ø56.0×49.2.
+- femur: recenter-only (×1.00) except leg4 ×1.14; body Ø44–62 × Ø37–51.
+
+**Enclosure verify (`measure_shell_cavity.py`, signed-distance of the real neutral chassis):**
+Measured over the true untapered mid-body (the span the slim shell actually sheaths):
+- **Femur body (x96–114): ENCLOSED all 5 legs** (0 proud legs 1/2/4; 6–7 % on legs 3/5) —
+  was 12–30 % proud in the LINK window. Fixed.
+- **Tibia body (x201–250): legs 1 & 5 ENCLOSED (~0 % proud); legs 2/3/4 = 25–40 % residual.**
+  The residual is NOT a thin-axis shortfall (it is scale-invariant — Y×2.2 does not clear it):
+  it is genuine **craggy HOLLOWS / socket-holes in those specific action-figure source pieces**
+  at a localised x-band (~208–215) sitting over the chassis. Closing them would require FILLING
+  the crags — the exact re-smoothing D-044 forbids. Honest movie-accuracy-vs-coverage limit.
+- The gate's LINK windows (tibia 168–250, femur 92–132) also span the **knee/roll boot-gap
+  NECKS** (60–85 % pierce), which are the external stone KNUCKLES (D-029) the gate's own
+  docstring says are "locally relieved, NOT buried in the slim shell" — so the headline LINK
+  pierce stays high BY DESIGN. No threshold or window was moved to hide this (prime directive 5).
+
+**Motion clearance (`sweep_shell_clearance.py`): all 5 legs 0 mm³** shell-to-shell across
+femur_pitch [−1.4,1.0], knee to 2.0 rad, roll ±1.5 — the graduated recenter kept the knee neck
+on-axis so the boot gaps still clear full travel. **GREEN (unchanged).**
+
+**Printability:** all segments ≤250 mm (max clamshell half ~158 mm); clamshells re-split on
+each segment's own Y-centroid (balanced halves now the tibia sits ~12 mm off-axis); 6 M2.5
+anchor bosses/leg unchanged. Re-rendered `docs/build_plan/legs_shells_solid.png` (craggy
+relief confirmed intact on ALL segments post-stretch) + `legs_with_shells.png` (shank bodies
+now wrapped; residual visible mechanism is the knee-bevel + roll-housing knuckles at the joints).
+
+**Honest aesthetic read:** the tibia is now a **slim oval ~Ø56 × Ø47** (was a flat blade
+~Ø56 × ~Ø30). It reads noticeably ROUNDER / less blade-like on the thin axis — the deliberate,
+operator-accepted trade — but it is still unmistakably a craggy stone shank (not the D-042
+smooth pill, and not a full Ø60 round). Legs 2/3/4 keep a small amount of chassis show-through
+through their natural stone hollows at the shank mid. NOT committed per directive.
