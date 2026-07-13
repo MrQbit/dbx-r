@@ -1,0 +1,98 @@
+{
+ "description": "LEG2 align-only: assembled o3d leg (2-A+2-B, pegs kept), extended+aligned to D-043 chassis skeleton (HIP=0,KNEE=158,TOE=328 along +X).",
+ "method": "per-piece similarity: shortest-arc rotate long axis->+X (preserves o3d roll), uniform scale to span, translate to station.",
+ "frame": "chassis leg frame (X=reach, Z=up, Y=pitch axis); o3d source = toy statue frame.",
+ "chassis_stations_mm": {
+  "HIP": 0,
+  "KNEE": 158,
+  "TOE": 328
+ },
+ "o3d_joints_statue_mm": {
+  "HIP": [
+   12.247493922327,
+   16.31193038639103,
+   45.347156785870034
+  ],
+  "KNEE_2A": [
+   37.852950039972136,
+   8.534689271956783,
+   26.332108786749377
+  ],
+  "KNEE_2B": [
+   35.62174625628048,
+   8.957414009719711,
+   30.362179895422237
+  ],
+  "TOE": [
+   32.45689207946641,
+   2.8578569124137108,
+   2.8856390309701356
+  ],
+  "knee_ball_socket_gap_mm": 4.625844751960056
+ },
+ "scale": {
+  "2-A": 4.812921381431387,
+  "2-B": 6.002230681606543
+ },
+ "source_span_mm": {
+  "2-A_hip_knee": 32.828294393001286,
+  "2-B_knee_toe": 28.322803473874185
+ },
+ "knee_extension_deg": 58.27899355930833,
+ "o3d_interior_knee_angle_deg": 121.72100644069167,
+ "transforms_o3dstatue_to_chassis_4x4": {
+  "2-A": [
+   [
+    3.753988731628728,
+    -1.1402130613336976,
+    -2.787775995557746,
+    99.03983706146421
+   ],
+   [
+    1.1402130613336976,
+    4.661164702759809,
+    -0.37103909814131014,
+    -73.17177853266155
+   ],
+   [
+    2.787775995557746,
+    -0.37103909814131014,
+    3.905745410300307,
+    -205.20535510947255
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "2-B": [
+   [
+    -0.670702844102517,
+    -1.2926315287761705,
+    -5.822888851845407,
+    370.2658411220295
+   ],
+   [
+    1.2926315287761705,
+    5.688831535974686,
+    -1.4117622467443347,
+    -54.13883231499066
+   ],
+   [
+    5.822888851845407,
+    -1.4117622467443347,
+    -0.3573036984706612,
+    -183.92721106131452
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ]
+  ]
+ },
+ "note": "NOTHING trimmed/hollowed/anchored. Pegs kept. Align+show only, for operator confirmation."
+}

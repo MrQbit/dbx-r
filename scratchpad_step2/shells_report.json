@@ -1,0 +1,1056 @@
+{
+ "1": {
+  "scaleA": 4.56,
+  "scaleB": 5.36,
+  "knee_frac_measured": 0.508,
+  "segments": {
+   "coxa": {
+    "scale_src": "A",
+    "stoneR_mm": 32.8,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 39.4,
+    "proud_residual_mm": 19.7,
+    "proud_x_span": [
+     0.0,
+     60.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 2.1,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 230.8,
+    "hollow_vol_cm3": 65.7
+   },
+   "femur": {
+    "scale_src": "A",
+    "stoneR_mm": 33.7,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 32.4,
+    "proud_residual_mm": 4.2,
+    "proud_x_span": [
+     60.0,
+     159.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 269.0,
+    "hollow_vol_cm3": 82.7
+   },
+   "tibia": {
+    "scale_src": "B",
+    "stoneR_mm": 46.2,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 26.7,
+    "proud_residual_mm": 3.7,
+    "proud_x_span": [
+     158.0,
+     298.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 459.3,
+    "hollow_vol_cm3": 126.6
+   }
+  }
+ },
+ "_validation": {
+  "leg1_coxa_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 29.0,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    33.0,
+    76.5
+   ],
+   "max_dim_mm": 76.5
+  },
+  "leg1_coxa_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 36.1,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    43.5,
+    76.5
+   ],
+   "max_dim_mm": 76.5
+  },
+  "leg1_coxa_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 65.4,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    76.5,
+    76.5
+   ],
+   "max_dim_mm": 76.5
+  },
+  "leg1_coxa_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 230.8,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    76.5,
+    76.5
+   ],
+   "max_dim_mm": 76.5
+  },
+  "leg1_femur_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 37.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    31.5,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg1_femur_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 45.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    46.5,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg1_femur_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 82.7,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg1_femur_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 269.0,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg1_tibia_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 56.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    31.5,
+    79.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg1_tibia_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 69.8,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    37.5,
+    82.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg1_tibia_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 126.6,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    69.0,
+    82.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg1_tibia_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 459.3,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    69.0,
+    82.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg2_coxa_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 32.1,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    34.5,
+    85.5
+   ],
+   "max_dim_mm": 85.5
+  },
+  "leg2_coxa_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 40.6,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    46.5,
+    87.0
+   ],
+   "max_dim_mm": 87.0
+  },
+  "leg2_coxa_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 73.0,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    81.0,
+    87.0
+   ],
+   "max_dim_mm": 87.0
+  },
+  "leg2_coxa_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 254.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    81.0,
+    87.0
+   ],
+   "max_dim_mm": 87.0
+  },
+  "leg2_femur_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 35.9,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    31.5,
+    69.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg2_femur_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 47.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    46.5,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg2_femur_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 83.5,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    69.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg2_femur_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 265.8,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    69.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg2_tibia_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 59.8,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    31.5,
+    79.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg2_tibia_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 75.3,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    42.0,
+    85.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg2_tibia_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 135.7,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    73.5,
+    85.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg2_tibia_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 472.5,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    73.5,
+    85.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg3_coxa_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 28.5,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    31.5,
+    78.0
+   ],
+   "max_dim_mm": 78.0
+  },
+  "leg3_coxa_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 37.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    46.5,
+    78.0
+   ],
+   "max_dim_mm": 78.0
+  },
+  "leg3_coxa_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 66.0,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    78.0,
+    78.0
+   ],
+   "max_dim_mm": 78.0
+  },
+  "leg3_coxa_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 227.8,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    78.0,
+    78.0
+   ],
+   "max_dim_mm": 78.0
+  },
+  "leg3_femur_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 33.4,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    31.5,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg3_femur_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 46.9,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    46.5,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg3_femur_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 80.6,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg3_femur_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 247.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    67.5
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg3_tibia_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 81.4,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    37.5,
+    88.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg3_tibia_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 65.6,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    30.0,
+    85.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg3_tibia_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 147.6,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    67.5,
+    88.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg3_tibia_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 509.6,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    67.5,
+    88.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg4_coxa_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 29.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    33.0,
+    76.5
+   ],
+   "max_dim_mm": 76.5
+  },
+  "leg4_coxa_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 35.5,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    43.5,
+    76.5
+   ],
+   "max_dim_mm": 76.5
+  },
+  "leg4_coxa_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 65.0,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    76.5,
+    76.5
+   ],
+   "max_dim_mm": 76.5
+  },
+  "leg4_coxa_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 226.5,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    76.5,
+    76.5
+   ],
+   "max_dim_mm": 76.5
+  },
+  "leg4_femur_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 37.9,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    31.5,
+    72.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg4_femur_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 48.1,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    46.5,
+    72.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg4_femur_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 86.5,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    72.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg4_femur_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 284.1,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    72.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg4_tibia_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 71.6,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    31.5,
+    75.0
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg4_tibia_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 76.0,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    43.5,
+    79.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg4_tibia_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 148.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    75.0,
+    79.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg4_tibia_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 504.9,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    75.0,
+    79.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg5_coxa_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 32.4,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    37.5,
+    81.0
+   ],
+   "max_dim_mm": 81.0
+  },
+  "leg5_coxa_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 42.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    46.5,
+    81.0
+   ],
+   "max_dim_mm": 81.0
+  },
+  "leg5_coxa_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 74.8,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    84.0,
+    81.0
+   ],
+   "max_dim_mm": 84.0
+  },
+  "leg5_coxa_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 248.7,
+   "positive_vol": true,
+   "bbox_mm": [
+    70.5,
+    84.0,
+    81.0
+   ],
+   "max_dim_mm": 84.0
+  },
+  "leg5_femur_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 36.6,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    31.5,
+    69.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg5_femur_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 48.4,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    46.5,
+    72.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg5_femur_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 85.3,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    72.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg5_femur_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 284.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    109.5,
+    78.0,
+    72.0
+   ],
+   "max_dim_mm": 109.5
+  },
+  "leg5_tibia_Lhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 65.2,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    42.0,
+    79.5
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg5_tibia_Rhalf": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 68.8,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    36.0,
+    81.0
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg5_tibia_hollow": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 134.5,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    78.0,
+    81.0
+   ],
+   "max_dim_mm": 189.0
+  },
+  "leg5_tibia_solid": {
+   "watertight": true,
+   "bodies": 1,
+   "degenerate_faces": 0,
+   "volume_cm3": 478.3,
+   "positive_vol": true,
+   "bbox_mm": [
+    189.0,
+    78.0,
+    81.0
+   ],
+   "max_dim_mm": 189.0
+  }
+ },
+ "2": {
+  "scaleA": 4.24,
+  "scaleB": 5.59,
+  "knee_frac_measured": 0.537,
+  "segments": {
+   "coxa": {
+    "scale_src": "A",
+    "stoneR_mm": 39.1,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 36.1,
+    "proud_residual_mm": 14.5,
+    "proud_x_span": [
+     0.0,
+     26.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 1.5,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 254.2,
+    "hollow_vol_cm3": 73.0
+   },
+   "femur": {
+    "scale_src": "A",
+    "stoneR_mm": 37.3,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 22.3,
+    "proud_residual_mm": 2.1,
+    "proud_x_span": [
+     68.0,
+     159.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 265.8,
+    "hollow_vol_cm3": 83.5
+   },
+   "tibia": {
+    "scale_src": "B",
+    "stoneR_mm": 49.2,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 29.0,
+    "proud_residual_mm": 1.5,
+    "proud_x_span": [
+     158.0,
+     302.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.4,
+    "solid_vol_cm3": 472.5,
+    "hollow_vol_cm3": 135.7
+   }
+  }
+ },
+ "3": {
+  "scaleA": 4.49,
+  "scaleB": 6.12,
+  "knee_frac_measured": 0.545,
+  "segments": {
+   "coxa": {
+    "scale_src": "A",
+    "stoneR_mm": 37.7,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 44.8,
+    "proud_residual_mm": 21.7,
+    "proud_x_span": [
+     0.0,
+     50.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 2.1,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 227.8,
+    "hollow_vol_cm3": 66.2
+   },
+   "femur": {
+    "scale_src": "A",
+    "stoneR_mm": 38.0,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 24.8,
+    "proud_residual_mm": 3.0,
+    "proud_x_span": [
+     158.0,
+     159.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 247.2,
+    "hollow_vol_cm3": 80.6
+   },
+   "tibia": {
+    "scale_src": "B",
+    "stoneR_mm": 50.4,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 34.6,
+    "proud_residual_mm": 1.5,
+    "proud_x_span": [
+     158.0,
+     158.0
+    ],
+    "wall_min_mm": 3.0,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 509.6,
+    "hollow_vol_cm3": 147.6
+   }
+  }
+ },
+ "4": {
+  "scaleA": 5.14,
+  "scaleB": 5.17,
+  "knee_frac_measured": 0.469,
+  "segments": {
+   "coxa": {
+    "scale_src": "A",
+    "stoneR_mm": 31.0,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 45.8,
+    "proud_residual_mm": 21.1,
+    "proud_x_span": [
+     0.0,
+     60.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 2.1,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 226.5,
+    "hollow_vol_cm3": 65.2
+   },
+   "femur": {
+    "scale_src": "A",
+    "stoneR_mm": 37.2,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 30.4,
+    "proud_residual_mm": 4.7,
+    "proud_x_span": [
+     60.0,
+     159.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 284.1,
+    "hollow_vol_cm3": 86.5
+   },
+   "tibia": {
+    "scale_src": "B",
+    "stoneR_mm": 53.1,
+    "shaft_enclosed": true,
+    "proud_natural_mm": 19.0,
+    "proud_residual_mm": 0.0,
+    "proud_x_span": null,
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 504.9,
+    "hollow_vol_cm3": 148.2
+   }
+  }
+ },
+ "5": {
+  "scaleA": 5.3,
+  "scaleB": 5.19,
+  "knee_frac_measured": 0.462,
+  "segments": {
+   "coxa": {
+    "scale_src": "A",
+    "stoneR_mm": 38.3,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 44.4,
+    "proud_residual_mm": 17.8,
+    "proud_x_span": [
+     0.0,
+     21.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 2.6,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 248.7,
+    "hollow_vol_cm3": 74.8
+   },
+   "femur": {
+    "scale_src": "A",
+    "stoneR_mm": 39.3,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 24.4,
+    "proud_residual_mm": 3.4,
+    "proud_x_span": [
+     156.0,
+     159.0
+    ],
+    "wall_min_mm": 1.5,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 284.2,
+    "hollow_vol_cm3": 85.3
+   },
+   "tibia": {
+    "scale_src": "B",
+    "stoneR_mm": 42.2,
+    "shaft_enclosed": false,
+    "proud_natural_mm": 25.6,
+    "proud_residual_mm": 1.5,
+    "proud_x_span": [
+     158.0,
+     158.0
+    ],
+    "wall_min_mm": 3.0,
+    "wall_p5_mm": 3.0,
+    "wall_p50_mm": 3.0,
+    "solid_vol_cm3": 478.3,
+    "hollow_vol_cm3": 134.5
+   }
+  }
+ }
+}

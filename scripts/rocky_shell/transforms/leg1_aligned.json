@@ -1,0 +1,98 @@
+{
+ "description": "LEG1 (MANIPULATOR) align-only: assembled o3d leg (1-A+1-C open-hand blade, pegs kept), extended+aligned to D-043 chassis skeleton (HIP=0,KNEE(wrist-junction)=158,TIP=328 along +X).",
+ "method": "per-piece similarity: shortest-arc rotate long axis->+X (preserves o3d roll), uniform scale to span, translate to station.",
+ "frame": "chassis leg frame (X=reach, Z=up, Y=pitch axis); o3d source = toy statue frame.",
+ "chassis_stations_mm": {
+  "HIP": 0,
+  "KNEE": 158,
+  "TIP": 328
+ },
+ "o3d_joints_statue_mm": {
+  "HIP": [
+   11.130338340699103,
+   -2.6375604587431485,
+   54.69987280619639
+  ],
+  "KNEE_1A": [
+   25.926384318577657,
+   -28.013601527065738,
+   45.67430393735729
+  ],
+  "KNEE_1C": [
+   25.202451184144195,
+   -23.182955659870462,
+   45.78651670278841
+  ],
+  "TIP": [
+   46.054336354505054,
+   -29.798377757642886,
+   75.20647133620437
+  ],
+  "knee_ball_socket_gap_mm": 4.885878670424304
+ },
+ "scale": {
+  "1-A": 5.141570645857977,
+  "1-C": 4.636959984335842
+ },
+ "source_span_mm": {
+  "1-A_hip_knee": 30.729909376482848,
+  "1-C_knee_tip": 36.66195105721822
+ },
+ "knee_extension_deg": 79.2124458376525,
+ "o3d_interior_knee_angle_deg": 100.7875541623475,
+ "transforms_o3dstatue_to_chassis_4x4": {
+  "1-A": [
+   [
+    2.4755984387264207,
+    -4.24578889141869,
+    -1.5101118389143782,
+    43.85015239683945
+   ],
+   [
+    4.24578889141869,
+    2.7749797102600287,
+    -0.8417321447463109,
+    6.10475112743468
+   ],
+   [
+    1.5101118389143782,
+    -0.8417321447463109,
+    4.842189374324369,
+    -283.89531800030693
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "1-C": [
+   [
+    2.637321646685591,
+    -0.8367107222140662,
+    3.7210008862653448,
+    -98.23606686078597
+   ],
+   [
+    0.8367107222140662,
+    4.540718888901422,
+    0.4280012098554234,
+    64.5834389896289
+   ],
+   [
+    -3.7210008862653448,
+    0.4280012098554234,
+    2.733562742120011,
+    -21.45963988748913
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ]
+  ]
+ },
+ "note": "NOTHING trimmed/hollowed/anchored. Pegs kept. 1-C is the flat OPEN-HAND blade (manipulator distal)."
+}

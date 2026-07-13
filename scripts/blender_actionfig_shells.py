@@ -56,6 +56,10 @@ CHASSIS_R = {"coxa": 27.0, "femur": 8.0, "tibia": 17.5}  # hip-cluster / Ø12 sh
 GAP_HIP, RRIM_HIP, TL_HIP = 20.0, 12.0, 24.0     # femur_pitch (±~1.4 rad)
 GAP_KNEE, RRIM_KNEE, TL_KNEE = 26.0, 8.0, 30.0   # knee (up to 2.0 rad -> needs R_rim~8)
 HAND_SPAN = 170.0             # Ø170 gripper cosmetic
+# D-047 vestigial-joint trim plane (native leg-x): leg1 tibia tip x328 -> cut 306 removes
+# the 1-A/1-C wrist ball-knob (the operator's "wrist bulge"), leaving the D-043 tibia body
+# (ends x308) intact so the wrist reads as a clean broken-craggy-stone stump.
+VEST_WRIST_X = 306.0
 
 # --- D-045: THIN-AXIS (Y) FATTEN + Y RECENTER (operator-chosen shell-side fix) --------
 # D-044 measured the conflict: the craggy movie tibia is a slim blade centred on the
@@ -152,6 +156,63 @@ def solidify(o, th=WALL):
     if not ok or max(o.dimensions) > before * 1.25:
         o.data = backup.data; bpy.data.objects.remove(backup, do_unlink=True); return "solid"
     bpy.data.objects.remove(backup, do_unlink=True); return "shell"
+
+
+def trim_cap(o, x_cut, keep_lt=True):
+    """D-047: bisect off the vestigial action-figure ball-joint hardware at a mating
+    END and cap the cut FLAT, so the stub/socket-cup is gone and the segment end reads
+    as a natural BROKEN craggy-stone face (the real joint is our mechanism underneath,
+    hidden by the boot gap). keep_lt=True keeps x<x_cut (removes the distal tip).
+    Only the on-axis toy stub past x_cut is removed; the craggy body is untouched."""
+    act(o); bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.bisect(plane_co=(x_cut, 0, 0), plane_no=(1, 0, 0), use_fill=True,
+                        clear_inner=not keep_lt, clear_outer=keep_lt)
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT"); o.data.update()
+
+
+def depeg_torso(src_path, out_path):
+    """D-047: shave the 5 vestigial action-figure HIP BALL-PEGS (stalk+knob that the toy
+    legs socketed onto) off the torso, flush to the craggy body, so the pentagonal thorax
+    reads as clean broken stone (our hip-cluster QDD is the real joint underneath). The 5
+    pegs sit at the pentaradial corners; each is bisected off with a plane perpendicular
+    to its radial direction at the LOCAL body-surface radius, capped flat. Craggy body
+    surface is otherwise untouched. Writes a de-pegged torso STL (native scale)."""
+    clear()
+    t = imp(src_path); t.name = "torso_depeg"
+    act(t); bpy.ops.object.make_single_user(object=True, obdata=True)
+    V = [v.co for v in t.data.vertices]
+    cx = sum(p.x for p in V) / len(V); cy = sum(p.y for p in V) / len(V)
+    prof = [0.0] * 360; zat = [0.0] * 360
+    for p in V:
+        r = math.hypot(p.x - cx, p.y - cy)
+        a = int(math.degrees(math.atan2(p.y - cy, p.x - cx))) % 360
+        if r > prof[a]: prof[a] = r; zat[a] = p.z
+    best = None
+    for ph in range(72):
+        s = sum(prof[(ph + 72 * k) % 360] for k in range(5))
+        if best is None or s > best[0]: best = (s, ph)
+    ph0 = best[1]; pegs = []
+    for k in range(5):
+        a0 = ph0 + 72 * k
+        ab = max(range(a0 - 16, a0 + 17), key=lambda a: prof[a % 360]) % 360
+        # local body-surface radius (median of nearby azimuths OFF the peg spike), then
+        # cut just inside it so the proud peg is removed with a small chipped facet.
+        ring = [prof[a % 360] for a in range(ab - 24, ab + 25)
+                if 7 < min(abs(a - ab), 360 - abs(a - ab)) < 24]
+        ring.sort(); blr = min(ring[int(len(ring) * 0.75)] if ring else prof[ab] - 5, prof[ab] - 4.5)
+        pegs.append((ab, zat[ab], round(blr, 1)))
+    for ab, zt, blr in pegs:
+        rad = math.radians(ab); d = (math.cos(rad), math.sin(rad), 0.0)
+        co = (cx + d[0] * blr, cy + d[1] * blr, zt)
+        act(t); bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.mesh.bisect(plane_co=co, plane_no=d, use_fill=True,
+                            clear_inner=False, clear_outer=True)
+        bpy.ops.mesh.normals_make_consistent(inside=False); bpy.ops.object.mode_set(mode="OBJECT")
+    cleanm(t, 0.05)
+    export_one(t, out_path)
+    return [{"az_deg": ab, "z_mm": round(zt, 1), "cut_radius_mm": blr} for ab, zt, blr in pegs]
 
 
 def taper_end(o, x_rim, x_start, r_rim):
@@ -339,6 +400,19 @@ for N in range(1, 6):
     taper_end(femur, KNEE - GAP_KNEE / 2, KNEE - GAP_KNEE / 2 - TL_KNEE, RRIM_KNEE)
     taper_end(tibia, KNEE + GAP_KNEE / 2, KNEE + GAP_KNEE / 2 + TL_KNEE, RRIM_KNEE)
 
+    # ---- D-047: REMOVE the PROTRUDING vestigial action-figure ball-joint hardware.
+    # The figure pieces carried plastic ball PEGS + socket CUPS (the toy's articulation);
+    # our real leg joints (hip QDD / knee driveshaft / roll servo) replace them, so the toy
+    # hardware is VESTIGIAL. The leg1 lower is the 1-C WRIST piece, whose distal 1-A/1-C
+    # ball-KNOB pokes out (the operator's "wrist bulge"): trim it off past the D-043 body
+    # (tibia body ends x308) + cap flat so the wrist reads as broken craggy stone. Legs 2-5
+    # tibia distals are free craggy feet (no toy peg). The recessed knee/hip socket-CUPS sit
+    # on the necked tips INSIDE the joint boot-gaps, hugging the knee-driveshaft / hip-QDD
+    # clearance envelopes; they do not protrude, so they are left un-plugged (a plug would
+    # foul the mechanism) — hidden by the boot-gap, per the cavity/sweep checks.
+    if N == 1:                                          # leg1 lower = 1-C wrist piece
+        trim_cap(tibia, VEST_WRIST_X, keep_lt=True)     # 1-A/1-C wrist ball-joint knob (bulge)
+
     # ---- D-044: NO fat core. The craggy figure surface IS the shell; the slim chassis
     # ---- clears the natural cavity (verified per-segment below + in measure_shell_cavity).
     segs = {"coxa": coxa, "femur": femur, "tibia": tibia}
@@ -412,6 +486,17 @@ export_one(hand, os.path.join(SHELLDIR, "hand_cosmetic_hollow.stl"))
 report["hand_cosmetic"] = {"source": "1-C open hand", "scaled_span_mm": hand_span,
                            "target_gripper_dia_mm": HAND_SPAN, "wall_mm": WALL,
                            "note": "sculpt claw scaled up to the Ø170 gripper (native claw is too small)"}
+
+# ============================ D-047 de-pegged TORSO ==========================
+# Shave the 5 vestigial hip ball-pegs off the pentagonal thorax (native scale; the render
+# scales x4.40 as before). Our hip-cluster QDD is the real hip joint under each corner.
+torso_pegs = depeg_torso(os.path.join(SRC, "torso.stl"),
+                         os.path.join(SHELLDIR, "torso_depeg.stl"))
+report["torso_depeg_D047"] = {
+    "source": "torso.stl (action figure)", "output": "torso_depeg.stl",
+    "removed": "5 vestigial action-figure hip ball-pegs (stalk+knob), shaved flush + capped",
+    "pegs": torso_pegs}
+print("[shell] torso de-pegged:", torso_pegs)
 
 json.dump(report, open(os.path.join(SHELLDIR, "shell_report.json"), "w"), indent=2)
 print("SHELL_REPORT", json.dumps(report))

@@ -886,3 +886,227 @@ now wrapped; residual visible mechanism is the knee-bevel + roll-housing knuckle
 operator-accepted trade — but it is still unmistakably a craggy stone shank (not the D-042
 smooth pill, and not a full Ø60 round). Legs 2/3/4 keep a small amount of chassis show-through
 through their natural stone hollows at the shank mid. NOT committed per directive.
+
+## D-046 — COSMETIC craggy WRIST-CUFF over the leg1 manipulator tibia→hand junction
+
+Operator ask (cosmetic only): in `rocky_full_assembly.png` the raised leg1 manipulator shows a
+visible BULGE where the slim craggy tibia (~Ø56) abruptly steps up to the wider hand cosmetic
+(claw base ~Ø94–102). Blend it into one continuous craggy stone arm with a slip-over / bolt-on
+cuff (like the joint boots) **without touching any leg chassis/mechanism geometry**
+(`leg_geom`, `tibia_bracket`, grip parts, and the exported `leg1_tibia_solid` / grip STLs are
+READ-ONLY here).
+
+**Method (stone-match by construction).** The cuff surface is DERIVED FROM THE OFFICIAL CRAGGY
+STONE: I lift the leg1 tibia's own distal craggy skin (band x∈[216,267] of `leg1_tibia_solid`,
+itself the s=4.40 uniform-scaled 1-C wrist), flare that OUTER skin radially about the shank arm
+axis (y=−9) with a smoothstep +14 %→+54 % ramp so the envelope grows Ø67→Ø94, then solidify it
+3 mm inward into an open-ended craggy sleeve. Because both faces are the tibia's real crags, the
+cuff carries the SAME grain/socket marks as the rest of the leg. Bisect + radial vertex-scale +
+one solidify — NO voxel remesh, NO re-core, NO boolean into the mechanism. Generator:
+`scripts/blender_wrist_cuff.py`; renders `scripts/blender_wrist_cuff_render.py`.
+
+**Fit / clearance (honest, from `wrist_cuff_report.json`).**
+- Cuff MOUTH Ø94 meets the hand claw base (Ø~94–102) with a **+2.2 mm axial gap → NO x-overlap**,
+  so wrist-roll ±1.5 rad turns the hand FREELY just distal of the FIXED cuff, and the 2+1 grip
+  opens (to Ø170) further distal — the cuff cannot foul the grip.
+- Proximal friction bore slips over the tibia on the crag HIGH points with **+5.4 mm** bearing
+  clearance; deep tibia cracks may kiss the wall (hand-sand / heat-fit) — acceptable for a
+  removable cosmetic. Optional M2.5 set-screw could pin it; shipped as a friction slip-collar.
+- Printable: single sleeve max ~165 mm, **≤250 mm envelope**; clamshell L/R halves (sagittal,
+  matching the leg-shell convention) ~79 mm each; watertight.
+
+**Deliverables (all gitignored, `rocky/cad/stl_derived/af_shells/`):**
+`leg1_wrist_cuff_solid.stl`, `_hollow.stl`, `_Lhalf.stl`, `_Rhalf.stl` + `wrist_cuff_report.json`.
+Re-rendered `docs/build_plan/manip_wrist_cover.png` (leg1 wrist BEFORE/AFTER) and
+`docs/build_plan/rocky_full_assembly.png` (cuff in place).
+
+**Honest aesthetic read.** Because the cuff is the tibia's own crag scaled outward, the SURFACE
+grain matches the surrounding stone well (same cracks + a socket mark carry through). It DOES
+hide the abrupt step — the arm now reads as one continuous craggy taper into the hand. Two
+honest caveats: (1) the tibia's tall top-ridge crag is amplified by the radial flare into a
+slightly PEAKED/eccentric swell (fixed axis y=−9 vs the crag centre drifting −14…−2), so the
+cuff is not perfectly symmetric; (2) the proximal rim sits ~4 mm proud of the Ø56 tibia — a
+craggy lip that reads as natural stone layering rather than a machined step. Both are cosmetic
+and within the craggy-stone idiom; no mechanism geometry was changed. NOT committed (derived
+STLs + build-plan PNGs per the weekend rules).
+
+**SUPERSEDED by D-047.** The bulge the cuff hid was not a scale step — it was the vestigial
+1-A/1-C toy ball-joint KNOB on the tibia tip. D-047 removes that knob at source, so the wrist
+is clean without a cuff. The D-046 cuff is RETIRED (no longer built/rendered/used; the leftover
+`leg1_wrist_cuff_*.stl` are stale gitignored derived files, safe to delete).
+
+## D-047 — leg ASSEMBLY-ORIENTATION check + REMOVE vestigial action-figure ball-joints
+
+### Part A — ORIENTATION CHECK (operator suspected a knee landing at the tip / reversed segment)
+
+Operator flag: a leg appears to have its KNEE at the distal TIP (a segment reversed or mis-
+ordered), and the leg1 "wrist bulge" might be a misplaced knee rather than a toy joint.
+
+**Checked, with a colour-coded diagnostic (`docs/build_plan/leg_orientation_check.png`,
+`scripts/render_leg_orientation.py`) built from the REAL assembly placement (the build_scene
+math in `blender_wrist_cuff_render.py`; note the referenced `scratchpad/assemble_rocky.py` does
+NOT exist — the placement/pose machinery lives inline in that render script).** Segments
+coloured coxa=blue / femur=green / tibia=orange / hand=red, with markers at hip / knee (A/B
+junction) / tip. Result for ALL 5 legs:
+
+- Order is CORRECT: hip → coxa → femur → **KNEE (A/B junction)** → tibia → foot (hand on leg1).
+- The knee A/B junction sits at world x≈125 vs the tip at x≈260–282 → **44–48 %, i.e. MID-leg,
+  NOT at the tip.**
+- Each tibia's knee-clearance NECK (taper to r≈9–14 mm) is at the PROXIMAL (knee) end, the
+  body is widest mid-span (r≈27–31 mm), the foot is the distal end → the tibia is NOT reversed.
+  The B-knee socket cups sit on the knee-facing (proximal) mating ends (mostly cut away by the
+  knee boot-gap), never at the foot.
+- Legs 2–5 distals are craggy FEET; leg1 (the 1-C wrist piece) carries the hand at its tip.
+
+**Conclusion: NO segment is reversed or mis-ordered; no orientation fix was needed.** The
+leg1 "stepped bulge" was NOT a misplaced knee — it is the vestigial 1-A/1-C toy ball-joint
+KNOB on the tibia tip (removed in Part B). The visually short femur / long tibia is the
+intended D-043 proportion (upper leg 158 ≈ lower leg 170; the femur *shell* just reads short
+because the hip+knee boot-gaps eat most of its length).
+
+### Part B — REMOVE the vestigial ACTION-FIGURE BALL-JOINT hardware from the cosmetic shells
+
+Operator caught a real error: the craggy cosmetic shells still carried the ORIGINAL action-
+figure BALL-AND-SOCKET articulation hardware — plastic ball PEGS + socket CUPS that the toy was
+assembled with (heat-fit ball/socket, per the figure docx). Our robot uses REAL leg joints
+(hip-cluster QDD, knee driveshaft, inline roll servo — D-042), so that toy hardware is
+VESTIGIAL and must be REMOVED (not covered — this retires the D-046 cuff, which was only hiding
+the leg1 wrist ball-knob). Constraints: do NOT touch any chassis/mechanism geometry; do NOT
+gouge the craggy stone body — only strip the toy joint hardware at the segment ends; keep the
+D-043 length / D-044 crag / D-045 tibia-fatten intact.
+
+**Diagnosis (docs/build_plan/vestigial_joints.png).** Detected the toy hardware by ray-scanning
+each segment end + smooth-face clustering (machined ball/socket = smooth, stone = craggy),
+cross-checked against `actionfig_orient.json` socket depths. Findings:
+- **TORSO — 5 hip ball-PEGS** at the pentaradial corners (stalk+knob, ~1–5 mm proud native →
+  ~5–22 mm at the ×4.40 render scale). These are the toy's leg-mount balls; they poke into open
+  air in the assembly. **PROTRUDING → the operator's main "pegs poke out" complaint.**
+- **leg1 TIBIA distal — the 1-A/1-C WRIST ball-KNOB** (leg1's lower is the 1-C wrist piece).
+  This knob at the tibia tip IS the "wrist bulge" the D-046 cuff was hiding. **PROTRUDING.**
+- **Recessed socket CUPS** on the joint-facing necked tips: A-hip cups (coxa prox, native
+  0.4–5.9 mm) and B-knee cups / thru-holes (tibia+femur knee; native 2-B 12.9, 4-B 11.8, 1-C
+  5.3, rest <2 mm). **RECESSED (do not protrude), and sit inside the joint boot-gaps / hip
+  collars, hugging the knee-driveshaft / hip-QDD clearance envelopes.**
+- Legs 2–5 tibia distals are free craggy FEET (no toy peg) — left as natural broken stone.
+
+**Removal (generator fix, `scripts/blender_actionfig_shells.py`; re-run regenerates all shells):**
+- `depeg_torso()` — locate the 5 pegs by 5-fold pentaradial symmetry, bisect each off with a
+  plane ⟂ its radial direction at the local body-surface radius, cap flat. Writes
+  `af_shells/torso_depeg.stl` (native scale). Corners now read as chipped/broken stone; craggy
+  body untouched; the hip-QDD is the real joint under each corner.
+- `trim_cap()` on leg1 tibia at x=306 — trims the 1-A/1-C wrist ball-knob off past the D-043
+  tibia body (body ends x308) and caps flat → clean broken-craggy-stone wrist stump.
+- The recessed knee/hip socket-CUPS are LEFT un-plugged: they do not protrude, are occluded by
+  the joint boot-gaps, and a plug would (a) intrude on the knee-driveshaft / hip-QDD clearance
+  or (b) require gouging the craggy skin to reshape — both forbidden. Honest partial: the two
+  PROTRUDING toy features (the actual "poke out" defect) are gone; the hidden recessed cups
+  remain (flagged as a human-next-action for an additive, non-gouging fill if wanted).
+
+**Verify.** `measure_shell_cavity.py` fit unchanged (femur restored to D-043/044/045 exactly;
+the leg1 wrist trim is distal of the tibia chassis-fit span x168–250). Re-rendered
+`docs/build_plan/rocky_full_assembly.png` (torso pegs gone; assembly reads as clean craggy
+stone) and `docs/build_plan/manip_wrist_cover.png` (clean de-pegged wrist, cuff dropped).
+No chassis/mechanism geometry changed. NOT committed (derived STLs + PNGs are gitignored).
+
+## D-048 — CANONICAL TOY ASSEMBLY reference (operator-directed new methodology, Phase 1: CHECK)
+
+New operator-directed method to fix recurring leg-orientation errors AT THE ROOT: instead of
+posing our derived shells, ASSEMBLE THE OFFICIAL ARTICULATED TOY by its OWN ball-socket joints
+(correct-by-construction orientation for every segment), then OVERLAY our leg chassis on the
+assembled toy to CHECK orientation. This is a CHECK/CONFIRM phase only — NO dejoint, NO hollow,
+NO rescale, NO chassis geometry change (those are later phases, after operator confirms the toy
+is assembled right).
+
+**Sources:** the 12 official STLs in `reference/.../Action_figure_Unsupported_STLS/` (torso + 11
+limb pieces). **Authoritative assembly graph:** the docx diagrams, extracted and saved alongside
+the deliverable as `docs/build_plan/toy_ref_image1_assembled.jpg` (assembled, labelled) and
+`toy_ref_image2_exploded.jpg` (exploded, labelled).
+
+**Joint polarity (peg vs socket) — resolved by cross-section loop-counting + the repo's own prior
+measured cup data (D-046/D-047), which AGREE:**
+- torso = 5 BALL hip pegs (5-fold pentaradial symmetry; detected r≈21.7 mm, z≈27.6 mm native).
+- each N-A (upper): PROXIMAL end = HIP socket cup (receives torso ball); DISTAL end = KNEE ball.
+- each N-B (lower): PROXIMAL end = KNEE socket cup (receives N-A knee ball); DISTAL = free toe.
+  (measured knee cups: 2-B 12.9, 4-B 11.8, 1-C 5.3 mm; 3-B/5-B <2 mm, weak but same polarity.)
+- leg1 (manipulator arm): torso → 1-A → **1-C open-hand** (1-B fist option NOT used); 1-A distal
+  wrist BALL mates the 1-C wrist socket cup.
+Ambiguity: 1-A and 5-A hip cups are too shallow to detect geometrically → hip/knee end taken from
+the diagram graph (all 5 legs are structurally identical / pentaradial, so this is unambiguous
+for orientation). Reported honestly, not hidden.
+
+**Assembly (`scratchpad/toywork/assemble_toy.py`):** each leg is chained end-to-end along its own
+radial VERTICAL plane — hip ball → A hip-socket, A knee-ball → B knee-socket — which DETERMINES
+every segment's orientation from the toy's joints. Natural splayed PENTAPOD stance: 4 legs planted
+(hip pitch −18°, knee −62° → toes at the footprint), leg1 raised (hip +38°, hand +12°). Native
+per-piece 4×4 world transforms + joint points saved to the REUSABLE `scratchpad/toy_assembled.json`
+and `scratchpad/toy_assembled.blend` (TOY collection, native scale) so the later sizing/dejoint/
+hollow phases load the canonical assembly directly without rebuilding.
+
+**Chassis overlay CHECK (`scripts` render via `blender_overlay.py`):** the D-042 leg chassis
+(`docs/build_plan/leg_chassis_neutral_*`) is loaded on a SEPARATE collection, split at its knee
+station (x≈158), and each half posed to the SAME hip/knee angles as the toy leg, semi-transparent
+(blue, α0.32), OVERLAY-ONLY sized ×4.40 to the toy (non-destructive; the ×4.40 matches D-043's
+uniform figure-scale, cross-check consistent). Result: our chassis hip-cluster / femur / knee /
+tibia / foot line up co-linearly with the toy hip / upper / knee / lower / toe on ALL 5 legs — NO
+leg is mis-oriented vs the canonical toy. Minor: the chassis foot spike extends slightly past the
+craggy toe on the planted legs (chassis distal is marginally longer than the toy lower at the
+overlay scale) — a sizing detail for the later overlay-sizing phase, not an orientation error.
+
+**CANONICAL segment orientation (for the next rebuild phase), per leg N, in the leg's radial
+vertical plane (radial-out = +away from torso axis; down = −Z):**
+- UPPER N-A: proximal HIP socket seats on the torso hip ball; long axis points radial-OUT and
+  DOWN ~18° (planted) / UP ~38° (leg1); distal end is the KNEE ball.
+- LOWER N-B: proximal KNEE socket seats on the N-A knee ball; long axis continues radial-OUT and
+  DOWN ~62° to the planted craggy TOE (leg1: 1-C continues out/up to the OPEN HAND).
+- No segment reversed (consistent with D-047); the wrist bulge on leg1 is the real 1-A/1-C ball
+  joint, at the tibia TIP by design, not a misplaced knee.
+
+**Deliverable:** `docs/build_plan/toy_assembled_check.png` (hero iso + top pentaradial + side,
+all 11 segments + torso labelled, chassis overlay, per-leg mating table, + both docx ref
+diagrams). NO geometry removed/hollowed/rescaled. Awaiting operator confirmation before the
+scale→dejoint→hollow phases. NOT committed (derived STLs + PNGs are gitignored).
+
+## D-049 — LOCK the whole-creature overlay scale at ×6.0 (carapace inherits it)
+
+Operator directive (Phase 3): LOCK the whole-creature uniform overlay scale at **×6.0** about the
+toy origin, applied to the toy+legs as one rigid body. This is the scale chosen by the phase-2b
+scale sweep (`scale_sweep_phase2b`, recommended_scale 6.0): best whole-creature fit in the 5.6–6.0
+band — toy craggy TOEs fully cover every chassis foot-spike on all 5 legs (carve-back 27→94 mm
+deferred), hip enclosure at its practical peak (~53–68 %), and the carapace bbox Ø **247 mm** still
+inside the 250 mm print envelope (6.2 spills to 255 mm). Carapace outer Ø285 mm, tip-to-tip span
+925 mm, standing height 504 mm. Because ×6.0 is the WHOLE-creature figure scale, the **TORSO /
+CARAPACE inherits the same ×6.0** (carapace sizing is a later phase; recorded here so it is not
+re-litigated).
+
+**Baked** `overlay_scale = 6.0` into the canonical reference `scratchpad/toy_assembled.json`
+(and the `toywork/` working copy the overlay/build scripts load), replacing the prior CHECK-phase
+×4.40. The native per-piece transforms, joint points, and the phase-2/2b sweep blocks are
+unchanged (they record how 6.0 was chosen). CAVEAT carried forward from the sweep: the Ø148
+body-mounted hip cluster stays ~25 mm proud at the hip groove at EVERY scale — going bigger does
+NOT bury it; a local hip shroud (carapace phase / D-042 coxa anchor) is still required, so hips are
+expected ~25 mm proud in this phase (not a defect). NOT committed (derived data is gitignored).
+
+## D-050 — LEG1 MANIPULATOR cosmetics: leg-2 recipe applied with 4 leg1-specific choices
+Applied the operator-approved leg-2 cosmetic recipe to leg1 (1-A + 1-C OPEN-HAND blade,
+the hero limb). Align/enclose/boot/gloves/render all per template; the spec was silent on
+how a FLAT hand blade covers the ROUND Ø52 hand collar + Ø34 wrist, so (smallest changes):
+1. ENCLOSE also stretches the shell over the HAND-CORE collar (x329–342; the recipe lists
+   hand-core as an enclose protrusion) — collar enclosed with 5.6 mm margin, boot mouth
+   moves distal to x336.5 keeping the slim real wrist visible.
+2. Boot floor is (x,theta)-aware chassis-derived (not leg2's flat 28.8 band) and is applied
+   as ENCLOSE-style crag-PRESERVING inflation (blurred bin-deficit field; crag rides along)
+   instead of a hard radial clamp — the flat blade balloons over the wrist core keeping its
+   real stone detail.
+3. Boot placement AX_K=1.00 (near-natural axial), KY=1.80 / KZ=1.45 aniso radial about the
+   fork cleft (fatten mostly the hidden palm-normal y; keep the z fork silhouette), DST_TIP
+   =372 chosen so the sculpt's own THUMB NUB (src x300–318, -y) lands x330–348, proximal of
+   the functional thumb sweep, and survives as the visible thumb root.
+4. Crag-softening applied ONLY to carved/floored walls (leg2 softened globally): final boot
+   is 56% strictly-untouched / 74% real-sculpt-detail on the visible surface (approved leg2
+   toe boot scores 32% by the same strict metric).
+Tradeoff flagged: the distal ~4 mm of the sculpt thumb nub is consumed by the mandatory
+thumb-sweep carve; the fork tips live on the gloves (51%/51% real-blade-governed outers)
+because the thumb must articulate. Gates: gloves watertight, 0.20 mm slide cavities,
+detents 0.20–0.25, seam cleft 1.60 mm, tip pads med 9.3 mm (thumb 3.0/3.4), grip free to
+2.0 rad (bare mech ~2.15), open aperture 65.0 mm. Render docs/build_plan/leg1_complete.png.
+Derived STLs in the session scratchpad (gitignored). NOT committed (operator directive).
